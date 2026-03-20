@@ -1,11 +1,17 @@
 <script lang="ts">
   import { parseResume, createEmptyResume, type Resume } from "./cv-parser";
+  import { saveToStorage, loadFromStorage } from "./storage";
   import Preview from "./preview.svelte";
   import Editor from "./editor.svelte";
 
-  let resume = $state<Resume>(createEmptyResume());
+  let resume = $state<Resume>(loadFromStorage());
   let viewMode = $state<"editor" | "preview">("editor");
   let autofillText = $state("");
+
+  // Auto-save resume changes to localStorage
+  $effect(() => {
+    saveToStorage(resume);
+  });
 
   function toggleView() {
     viewMode = viewMode === "editor" ? "preview" : "editor";
