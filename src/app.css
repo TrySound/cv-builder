@@ -438,13 +438,13 @@ body {
 }
 
 /* Sections */
-.section {
+.form-section {
   margin-bottom: var(--space-6);
   padding-bottom: var(--space-5);
   border-bottom: 1px solid var(--color-border);
 }
 
-.section:last-child {
+.form-section:last-child {
   border-bottom: none;
 }
 

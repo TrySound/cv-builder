@@ -53,7 +53,7 @@
   <h2 class="edit-title">Edit Resume</h2>
 
   <!-- Contact Info -->
-  <section class="section">
+  <section class="form-section">
     <h3 class="section-title">Contact Information</h3>
     <div class="form-grid">
       <div class="form-group">
@@ -130,7 +130,7 @@
   </section>
 
   <!-- Summary -->
-  <section class="section">
+  <section class="form-section">
     <h3 class="section-title">Professional Summary</h3>
     <div class="form-group">
       <textarea
@@ -143,7 +143,7 @@
   </section>
 
   <!-- Experience -->
-  <section class="section">
+  <section class="form-section">
     <h3 class="section-title">Work Experience</h3>
     {#each resume.experience as job, index}
       <div class="card" style="margin-bottom: var(--space-4);">
@@ -230,7 +230,7 @@
   </section>
 
   <!-- Education -->
-  <section class="section">
+  <section class="form-section">
     <h3 class="section-title">Education</h3>
     {#each resume.education as edu, index}
       <div class="card" style="margin-bottom: var(--space-4);">
@@ -320,7 +320,7 @@
   </section>
 
   <!-- Projects -->
-  <section class="section">
+  <section class="form-section">
     <h3 class="section-title">Projects</h3>
     {#each resume.projects as project, index}
       <div class="card" style="margin-bottom: var(--space-4);">
@@ -392,7 +392,7 @@
   </section>
 
   <!-- Skills -->
-  <section class="section">
+  <section class="form-section">
     <h3 class="section-title">Skills</h3>
     <MultiSelectCombobox
       options={allSkills}

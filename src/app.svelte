@@ -16,6 +16,7 @@
       return;
     }
     resume = parseResume(autofillText);
+    console.log(resume)
     autofillText = "";
     // Dialog will auto-close due to method=dialog on the form
   }
@@ -60,14 +61,12 @@
     <p class="dialog-description">
       Paste your resume text below to extract and populate the editor
     </p>
-
     <textarea
       bind:value={autofillText}
       placeholder="Paste your resume text here..."
       rows="15"
       class="form-textarea"
     ></textarea>
-
     <div class="flex justify-end">
       <button type="submit" class="btn btn--primary"> Extract </button>
     </div>
