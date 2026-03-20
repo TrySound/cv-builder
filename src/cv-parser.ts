@@ -484,32 +484,53 @@ function extractExperience(sectionContent: string): Experience[] {
 }
 
 /**
- * Split on lines that contain a date range — that's the most reliable
- * signal that a new job entry is starting, regardless of formatting.
+ * Split into entry blocks based on entry patterns.
+ *
+ * Experience entries: date line followed by bullets/description
+ * Education entries: date line at end (not followed by description)
+ * Empty lines: explicit block separator
  */
 function splitIntoBlocks(text: string): string[] {
   const lines = text.split("\n");
   const blocks: string[] = [];
   let current: string[] = [];
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  function flushBlock() {
+    if (current.length > 0) {
+      blocks.push(current.join("\n"));
+      current = [];
+    }
+  }
 
-    const isEntryStart =
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+
+    // Empty lines are explicit block boundaries
+    if (!trimmed) {
+      flushBlock();
+      continue;
+    }
+
+    const isDateLine =
       DATE_RANGE_RE.test(trimmed) || /\b(19|20)\d{2}\b/.test(trimmed);
     // Reset the regex lastIndex (it's global)
     DATE_RANGE_RE.lastIndex = 0;
 
-    if (isEntryStart && current.length > 0) {
-      blocks.push(current.join("\n"));
-      current = [];
+    // Only split on date if it looks like experience pattern
+    // (followed by description/bullet points)
+    if (isDateLine && current.length > 0) {
+      // Look ahead: if next line is a bullet or long line, it's experience
+      // Otherwise it's education - date at end, don't split
+      const nextLine = lines.slice(i + 1).find((l) => l.trim());
+      if (nextLine && isDescriptionLine(nextLine.trim())) {
+        flushBlock();
+      }
     }
 
     current.push(trimmed);
   }
 
-  if (current.length > 0) blocks.push(current.join("\n"));
+  flushBlock();
 
   return blocks.filter(Boolean);
 }
@@ -667,21 +688,21 @@ function parseEducationBlock(block: string): Education {
   // --- Date range: use unified utility ---
   const { dateRange, index: dateLineIndex } = extractDateFromLines(lines);
 
-  // --- Determine header vs description ---
-  // Header is lines before date, plus maybe one after (institution/degree)
-  const headerEndIndex = Math.max(dateLineIndex + 1, 2);
-  const headerLines = lines
-    .slice(0, headerEndIndex)
-    .filter((_, i) => i !== dateLineIndex);
+  // --- Split into header (before date) and description (after date) ---
+  // Lines before date are header candidates
+  // Lines after date are description
+  const preDateLines =
+    dateLineIndex >= 0 ? lines.slice(0, dateLineIndex) : lines.slice(0, 2);
+  const postDateLines =
+    dateLineIndex >= 0 ? lines.slice(dateLineIndex + 1) : [];
 
-  // --- Description: remaining lines after the header ---
-  const description = lines.slice(headerEndIndex).join("\n").trim();
-
+  // --- Parse header: extract institution and degree ---
   let institution: string | undefined;
   let degree: string | undefined;
   let field: string | undefined;
+  const descriptionLines: string[] = [...postDateLines];
 
-  for (const line of headerLines) {
+  for (const line of preDateLines) {
     // Strip date from the line before further analysis
     const stripped = stripPatterns(line, [DATE_RANGE_RE, SINGLE_YEAR_RE]);
 
@@ -693,11 +714,17 @@ function parseEducationBlock(block: string): Education {
       continue;
     }
 
-    // Whatever remains is the institution
-    if (!institution && stripped.length > 0) {
+    // Institution: first line that doesn't look like a description
+    // (not too long, not starting with bullet)
+    if (!institution && stripped.length > 0 && !isDescriptionLine(stripped)) {
       institution = stripPatterns(stripped, [/\s{2,}/g]);
+    } else {
+      // Everything else before the date goes to description
+      descriptionLines.push(stripped);
     }
   }
+
+  const description = descriptionLines.join("\n").trim();
 
   return {
     institution: institution || undefined,

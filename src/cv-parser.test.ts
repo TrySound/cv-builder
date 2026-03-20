@@ -267,7 +267,7 @@ Jan 2020 - Dec 2021
 });
 
 describe("Education Extraction", () => {
-  it("should extract institution name", () => {
+  it("should extract institution name and dates", () => {
     const resume = `
 Education
 
@@ -276,12 +276,13 @@ BS Computer Science
 2016 - 2020
       `;
     const result = parseResume(resume);
-    expect(result.education.length).toBeGreaterThanOrEqual(1);
-    if (result.education[0].institution) {
-      expect(result.education[0].institution.toLowerCase()).toContain(
-        "stanford",
-      );
-    }
+    expect(result.education).toHaveLength(1);
+    expect(result.education[0].institution?.toLowerCase()).toContain(
+      "stanford",
+    );
+    expect(result.education[0].dateRange).toBeDefined();
+    expect(result.education[0].dateRange?.start).toContain("2016");
+    expect(result.education[0].dateRange?.end).toContain("2020");
   });
 
   it("should normalize degree types", () => {
@@ -332,6 +333,7 @@ GPA: 3.9
 2016 - 2020
       `;
     const result = parseResume(resume);
+    expect(result.education[0]).toBeDefined();
     expect(result.education[0].description).toContain("Magna Cum Laude");
   });
 
