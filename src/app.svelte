@@ -54,7 +54,7 @@
   </header>
 
   <div class="editor-container" hidden={viewMode !== "editor"}>
-    <Editor {resume} />
+    <Editor bind:resume />
   </div>
   <div class="preview-container" hidden={viewMode !== "preview"}>
     <Preview {resume} />

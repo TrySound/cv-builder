@@ -40,11 +40,11 @@
         ),
   );
 
-  function addSkill(skill: string) {
-    const trimmed = skill.trim();
+  function addOption(option: string) {
+    const trimmed = option.trim();
     if (!trimmed) return;
 
-    // Check if skill already exists (case-insensitive)
+    // Check if option already exists (case-insensitive)
     const exists = selected.some(
       (s) => s.toLowerCase() === trimmed.toLowerCase(),
     );
@@ -57,14 +57,13 @@
     inputRef?.focus();
   }
 
-  function removeSkill(skill: string) {
+  function removeOption(option: string) {
     const index = selected.findIndex(
-      (s) => s.toLowerCase() === skill.toLowerCase(),
+      (s) => s.toLowerCase() === option.toLowerCase(),
     );
     if (index !== -1) {
       selected.splice(index, 1);
     }
-    inputRef?.focus();
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -92,9 +91,9 @@
       case "Enter":
         event.preventDefault();
         if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
-          addSkill(filteredOptions[activeIndex]);
+          addOption(filteredOptions[activeIndex]);
         } else if (inputValue.trim()) {
-          addSkill(inputValue);
+          addOption(inputValue);
         }
         break;
       case "Escape":
@@ -103,14 +102,10 @@
         break;
       case "Backspace":
         if (!inputValue && selected.length > 0) {
-          removeSkill(selected[selected.length - 1]);
+          removeOption(selected[selected.length - 1]);
         }
         break;
     }
-  }
-
-  function handleOptionClick(skill: string) {
-    addSkill(skill);
   }
 
   function handleInputFocus() {
@@ -154,16 +149,16 @@
 <div class={`combobox-wrapper-${id} combobox`}>
   <label for={id} class="form-label">{label}</label>
 
-  <!-- Selected skills chips -->
+  <!-- Selected option chips -->
   <div class="selected-chips">
-    {#each selected as skill}
+    {#each selected as option}
       <span class="chip chip--removable" role="listitem">
-        {skill}
+        {option}
         <button
           type="button"
           class="chip-remove"
-          onclick={() => removeSkill(skill)}
-          aria-label={`Remove ${skill}`}
+          onclick={() => removeOption(option)}
+          aria-label={`Remove ${option}`}
         >
           ×
         </button>
@@ -198,7 +193,7 @@
         bind:this={listElement}
         {id}
         role="listbox"
-        aria-label="Skills options"
+        aria-label="Options"
         class="combobox-list"
       >
         {#each filteredOptions as option, index}
@@ -209,7 +204,7 @@
             aria-selected={index === activeIndex}
             class="combobox-option"
             class:combobox-option--active={index === activeIndex}
-            onclick={() => handleOptionClick(option)}
+            onclick={() => addOption(option)}
             onmouseenter={() => (activeIndex = index)}
           >
             {option}
@@ -224,14 +219,14 @@
             class="combobox-option custom-option"
             class:combobox-option--active={activeIndex ===
               filteredOptions.length}
-            onclick={() => addSkill(inputValue)}
+            onclick={() => addOption(inputValue)}
             onmouseenter={() => (activeIndex = filteredOptions.length)}
           >
             Add "{inputValue}"...
           </li>
         {/if}
         {#if filteredOptions.length === 0 && !inputValue.trim()}
-          <li class="combobox-empty">No more skills available</li>
+          <li class="combobox-empty">No more options available</li>
         {/if}
       </ul>
     {/if}

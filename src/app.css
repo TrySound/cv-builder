@@ -288,28 +288,12 @@ body {
   }
 }
 
-.btn--sm {
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-sm);
-}
-
-.btn--lg {
-  padding: var(--space-3) var(--space-5);
-  font-size: var(--font-size-lg);
-}
-
-.btn--block {
-  display: block;
-  width: 100%;
-}
-
-/* Form Elements */
+/* Form Emements */
 .form-label {
   display: block;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-1);
 }
 
 .form-input {
@@ -343,21 +327,19 @@ body {
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-1);
 }
 
-.form-row {
+.form-stack {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
+  gap: var(--space-2);
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-4);
+  gap: var(--space-2);
 }
 
 /* Cards */
@@ -365,7 +347,9 @@ body {
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-5);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-3);
 }
 
 .card--header {
@@ -384,21 +368,28 @@ body {
   color: var(--color-text-secondary);
 }
 
+.card-actions {
+  justify-self: end;
+}
+
 /* Sections */
 .form-section {
   margin-bottom: var(--space-6);
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-4);
 }
 
-.form-section:last-child {
-  border-bottom: none;
+.section-header {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: space-between;
+  align-items: center;
 }
 
 .section-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  margin: 0 0 var(--space-4) 0;
+  margin: 0;
   color: var(--color-text);
 }
 
@@ -483,10 +474,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
   .card--header {
     flex-direction: column;
     gap: var(--space-2);
