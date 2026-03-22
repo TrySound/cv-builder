@@ -30,7 +30,21 @@
 
 <main class="container">
   <header class="app-header">
-    <h1 class="app-title">CV Builder</h1>
+    <div class="app-brand">
+      <svg
+        class="app-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        width="20"
+        height="20"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4M12 8h.01" />
+      </svg>
+      <h1 class="app-title">CV Builder</h1>
+    </div>
     <div class="flex gap-3">
       <button
         type="button"
@@ -84,14 +98,24 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+
+  .app-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .app-icon {
+    color: var(--color-text-muted);
   }
 
   .app-title {
-    color: var(--color-primary);
+    color: var(--color-text);
     margin: 0;
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
   }
 
   .autofill-input {
