@@ -1,13 +1,12 @@
 # CV Builder
 
-A modern, interactive CV/Resume builder built with Svelte 5 and TypeScript. Features an intuitive editor with live preview, smart resume text parsing, and print-ready output.
+A simple CV/Resume builder.
 
 ## Overview
 
-- **Interactive Editor** - Edit your CV sections with an intuitive card-based interface
+- **Interactive Editor** - Edit your CV sections
 - **Autofill from Text** - Paste your existing resume text to automatically extract and populate fields
-- **Print-Optimized** - Clean, professional A4 layout for printing or PDF export
-- **Auto-Save** - Your work is automatically saved to browser storage
+- **Compact Print** - Clean, professional A4 layout for printing or PDF export
 
 ## Contributing
 
