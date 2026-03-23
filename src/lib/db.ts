@@ -25,7 +25,7 @@ async function createDB(): Promise<Kysely<DatabaseSchema>> {
       dialect: new NodeNativeSqliteDialect("app.db"),
     });
   } else {
-    const connectionString = process.env.CONNECTION_STRING;
+    const connectionString = env.CONNECTION_STRING;
     if (!connectionString) {
       throw new Error(
         "CONNECTION_STRING environment variable is required in production",
