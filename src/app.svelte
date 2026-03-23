@@ -22,7 +22,7 @@
   }
 </script>
 
-<main class="container">
+<div class="container">
   <header class="app-header">
     <h1 class="heading-1">CV Builder</h1>
     <div>
@@ -40,13 +40,8 @@
     </div>
   </header>
 
-  <div class="editor-container">
-    <Editor bind:resume />
-  </div>
-  <div class="print-container" hidden>
-    <Print {resume} />
-  </div>
-</main>
+  <Editor bind:resume />
+</div>
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">
   <form method="dialog" class="dialog-content" onsubmit={handleExtract}>
@@ -65,6 +60,8 @@
     </div>
   </form>
 </dialog>
+
+<Print {resume} />
 
 <style>
   .app-header {
@@ -89,25 +86,8 @@
   }
 
   @media print {
-    @page {
-      size: A4;
-    }
-
     .container {
-      padding: 0;
-      max-width: none;
-    }
-
-    .app-header {
       display: none;
-    }
-
-    .editor-container {
-      display: none;
-    }
-
-    .print-container {
-      display: block;
     }
   }
 </style>

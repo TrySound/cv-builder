@@ -4,7 +4,7 @@
   let { resume }: { resume: Resume } = $props();
 </script>
 
-<div class="page">
+<div class="page" hidden>
   <header class="header">
     {#if resume.contact.name}
       <h2 class="display">{resume.contact.name}</h2>
@@ -255,7 +255,12 @@
   }
 
   @media print {
+    @page {
+      size: A4;
+    }
+
     .page {
+      display: block;
       width: 100%;
       min-height: auto;
       box-shadow: none;
