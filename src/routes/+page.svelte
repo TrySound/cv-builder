@@ -4,7 +4,6 @@
   import Print from "../print.svelte";
   import Editor from "../editor.svelte";
   import "../app.css";
-  import { dev } from "$app/environment";
 
   let { data } = $props();
 
@@ -30,19 +29,17 @@
   <header class="app-header">
     <h1 class="heading-1">CV Builder</h1>
     <div class="header-actions">
-      {#if dev}
-        {#if data.profile}
-          <a
-            href="/profile/{data.profile.handle}"
-            class="button button-secondary"
-          >
-            @{data.profile.handle}
-          </a>
-        {:else}
-          <a href="/login" class="button button-atmosphere">
-            Connect to Atmosphere
-          </a>
-        {/if}
+      {#if data.profile}
+        <a
+          href="/profile/{data.profile.handle}"
+          class="button button-secondary"
+        >
+          @{data.profile.handle}
+        </a>
+      {:else}
+        <a href="/login" class="button button-atmosphere">
+          Connect to Atmosphere
+        </a>
       {/if}
       <button
         type="button"

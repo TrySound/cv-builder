@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate-jwk": "node ./scripts/generate-jwk.ts"
   },
   "prettier": {
     "plugins": [

@@ -1,12 +1,12 @@
-import type { Handle } from "@sveltejs/kit";
 import { Agent } from "@atproto/api";
-import { oauthClient } from "$lib/auth";
+import { getOAuthClient } from "$lib/auth";
 
-export const handle: Handle = async ({ event, resolve }) => {
+export const handle = async ({ event, resolve }) => {
   const did = event.cookies.get("session_did");
 
   if (did) {
     try {
+      const oauthClient = await getOAuthClient();
       const oauthSession = await oauthClient.restore(did);
       event.locals.agent = new Agent(oauthSession);
       event.locals.did = did;
