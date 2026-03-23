@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { parseResume, type Resume } from "./cv-parser";
-  import { saveToStorage, loadFromStorage } from "./storage";
-  import Print from "./print.svelte";
-  import Editor from "./editor.svelte";
+  import { parseResume, type Resume } from "$lib/cv-parser";
+  import { saveToStorage, loadFromStorage } from "$lib/storage";
+  import Print from "../print.svelte";
+  import Editor from "../editor.svelte";
+  import "../app.css";
 
   let resume = $state<Resume>(loadFromStorage());
   let autofillText = $state("");

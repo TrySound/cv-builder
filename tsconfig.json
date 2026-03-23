@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/svelte/tsconfig.json",
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
     "types": ["./src/app.d.ts", "svelte", "vite/client"],
     "target": "es2023",

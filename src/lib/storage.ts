@@ -1,4 +1,4 @@
-import { type Resume, createEmptyResume } from "./cv-parser";
+import { type Resume, createEmptyResume } from "$lib/cv-parser";
 
 const STORAGE_KEY = "cv-builder-resume";
 

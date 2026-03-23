@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { groupSkillsByCategory, type Resume } from "./cv-parser";
+  import { groupSkillsByCategory, type Resume } from "$lib/cv-parser";
 
   let { resume }: { resume: Resume } = $props();
 </script>

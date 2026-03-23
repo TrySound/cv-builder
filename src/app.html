@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CV Builder</title>
+    %sveltekit.head%
   </head>
-  <body>
+  <body data-sveltekit-preload-data="hover">
     <!-- SVG Sprite for Icons -->
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
       <symbol id="icon-plus" viewBox="0 0 24 24">
@@ -111,6 +112,6 @@
       </symbol>
     </svg>
 
-    <script type="module" src="./src/main.ts"></script>
+    <div style="display: contents">%sveltekit.body%</div>
   </body>
 </html>

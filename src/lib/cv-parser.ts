@@ -1,6 +1,7 @@
 export interface ContactInfo {
   name?: string;
   email?: string;
+  phone?: string;
   linkedin?: string;
   github?: string;
   website?: string;
@@ -301,6 +302,9 @@ function extractContact(text: string): ContactInfo {
   return {
     name,
     email: text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-z]{2,}/)?.[0],
+    phone: text
+      .match(/\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)?.[0]
+      ?.trim(),
     linkedin: text.match(/linkedin\.com\/in\/([a-zA-Z0-9\-_%]+)/)?.[0],
     github: text.match(/github\.com\/([a-zA-Z0-9\-_%]+)/)?.[0],
     website: text.match(/https?:\/\/(?!linkedin|github)[^\s]+/)?.[0],

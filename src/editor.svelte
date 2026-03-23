@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Resume } from "./cv-parser";
-  import { SKILLS_TAXONOMY } from "./cv-parser";
+  import type { Resume } from "$lib/cv-parser";
+  import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
 
   let { resume = $bindable() }: { resume: Resume } = $props();
