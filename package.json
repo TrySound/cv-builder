@@ -23,6 +23,10 @@
   "engines": {
     "node": "24"
   },
+  "dependencies": {
+    "@atproto/api": "^0.19.4",
+    "@atproto/oauth-client-node": "^0.3.17"
+  },
   "devDependencies": {
     "@sveltejs/adapter-netlify": "^5.0.0",
     "@sveltejs/kit": "^2.21.0",

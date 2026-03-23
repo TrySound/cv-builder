@@ -3,6 +3,8 @@
   "compilerOptions": {
     "types": ["./src/app.d.ts", "svelte", "vite/client"],
     "target": "es2023",
+    "skipLibCheck": true,
+    "strict": true,
     "plugins": [
       {
         "name": "typescript-svelte-plugin"

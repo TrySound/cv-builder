@@ -4,6 +4,9 @@
   import Print from "../print.svelte";
   import Editor from "../editor.svelte";
   import "../app.css";
+  import { dev } from "$app/environment";
+
+  let { data } = $props();
 
   let resume = $state<Resume>(loadFromStorage());
   let autofillText = $state("");
@@ -26,7 +29,21 @@
 <div class="container">
   <header class="app-header">
     <h1 class="heading-1">CV Builder</h1>
-    <div>
+    <div class="header-actions">
+      {#if dev}
+        {#if data.profile}
+          <a
+            href="/profile/{data.profile.handle}"
+            class="button button-secondary"
+          >
+            @{data.profile.handle}
+          </a>
+        {:else}
+          <a href="/login" class="button button-atmosphere">
+            Connect to Atmosphere
+          </a>
+        {/if}
+      {/if}
       <button
         type="button"
         class="button"
@@ -71,6 +88,31 @@
     align-items: center;
     padding-left: calc(180px + var(--space-8));
     margin-bottom: var(--space-8);
+  }
+
+  .header-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .button-atmosphere {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+  }
+
+  .button-atmosphere:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  }
+
+  .button-secondary {
+    background: var(--gray-7);
+    color: var(--gray-1);
+  }
+
+  .button-secondary:hover {
+    background: var(--gray-6);
   }
 
   .autofill-input {
