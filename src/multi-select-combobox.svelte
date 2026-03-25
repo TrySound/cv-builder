@@ -2,13 +2,11 @@
   let {
     options,
     selected = $bindable(),
-    label,
     placeholder = "Search or add...",
     id = "combobox",
   }: {
     options: string[];
     selected: string[];
-    label: string;
     placeholder?: string;
     id?: string;
   } = $props();
@@ -192,7 +190,7 @@
         {id}
         role="listbox"
         aria-label="Options"
-        class="combobox-list"
+        class="menu"
       >
         {#each filteredOptions as option, index}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -200,8 +198,7 @@
             id={`${id}-option-${index}`}
             role="option"
             aria-selected={index === activeIndex}
-            class="combobox-option"
-            class:combobox-option--active={index === activeIndex}
+            class="menuitem"
             onclick={() => addOption(option)}
             onmouseenter={() => (activeIndex = index)}
           >
@@ -214,9 +211,7 @@
             id={`${id}-option-custom`}
             role="option"
             aria-selected={activeIndex === filteredOptions.length}
-            class="combobox-option custom-option"
-            class:combobox-option--active={activeIndex ===
-              filteredOptions.length}
+            class="menuitem custom-option"
             onclick={() => addOption(inputValue)}
             onmouseenter={() => (activeIndex = filteredOptions.length)}
           >
@@ -241,35 +236,16 @@
     position: relative;
   }
 
-  .combobox-list {
+  .menu {
     position: absolute;
     bottom: 100%;
     left: 0;
     right: 0;
-    margin-top: var(--space-1);
-    padding: 0;
+    margin: var(--space-1) 0;
     list-style: none;
-    background: var(--color-bg-elevated);
-    border: 1px solid var(--color-border-input);
-    border-radius: var(--radius-md);
     max-height: 300px;
     overflow-y: auto;
     z-index: var(--z-dropdown);
-    box-shadow: var(--shadow-md);
-  }
-
-  .combobox-option {
-    padding: var(--space-2) var(--space-3);
-    cursor: pointer;
-    font-size: var(--font-size-base);
-    color: var(--color-text-secondary);
-    transition: background-color var(--transition-fast);
-  }
-
-  .combobox-option:hover,
-  .combobox-option--active {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
   }
 
   .combobox-empty {
@@ -290,7 +266,6 @@
   .custom-option {
     font-style: italic;
     color: var(--color-text-muted);
-    border-top: 1px solid var(--color-border);
   }
 
   .chip {

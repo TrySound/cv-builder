@@ -1,9 +1,9 @@
 <script lang="ts">
   import { parseResume, type Resume } from "$lib/cv-parser";
   import { saveToStorage, loadFromStorage } from "$lib/storage";
+  import Topbar from "$lib/topbar.svelte";
   import Print from "../print.svelte";
   import Editor from "../editor.svelte";
-  import "../app.css";
 
   let { data } = $props();
 
@@ -26,34 +26,21 @@
 </script>
 
 <div class="container">
-  <header class="app-header">
-    <h1 class="heading-1">CV Builder</h1>
-    <div class="header-actions">
-      {#if data.profile}
-        <a
-          href="/profile/{data.profile.handle}"
-          class="button button-secondary"
-        >
-          @{data.profile.handle}
-        </a>
-      {:else}
-        <a href="/login" class="button button-atmosphere">
-          Connect to Atmosphere
-        </a>
-      {/if}
-      <button
-        type="button"
-        class="button"
-        commandfor="app-autofill-dialog"
-        command="show-modal"
-      >
-        Autofill
-      </button>
-      <button type="button" class="button" onclick={() => window.print()}>
-        Print
-      </button>
-    </div>
-  </header>
+  <Topbar handle={data.handle} />
+
+  <div class="page-actions">
+    <button
+      type="button"
+      class="button"
+      commandfor="app-autofill-dialog"
+      command="show-modal"
+    >
+      Autofill
+    </button>
+    <button type="button" class="button" onclick={() => window.print()}>
+      Print
+    </button>
+  </div>
 
   <Editor bind:resume />
 </div>
@@ -79,37 +66,13 @@
 <Print {resume} />
 
 <style>
-  .app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: calc(180px + var(--space-8));
-    margin-bottom: var(--space-8);
-  }
-
-  .header-actions {
+  .page-actions {
     display: flex;
     gap: var(--space-2);
+    justify-content: end;
     align-items: center;
-  }
-
-  .button-atmosphere {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    color: white;
-    border: none;
-  }
-
-  .button-atmosphere:hover {
-    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
-  }
-
-  .button-secondary {
-    background: var(--gray-7);
-    color: var(--gray-1);
-  }
-
-  .button-secondary:hover {
-    background: var(--gray-6);
+    padding-left: calc(180px + var(--space-8));
+    margin-bottom: var(--space-4);
   }
 
   .autofill-input {
@@ -117,10 +80,7 @@
   }
 
   @media (max-width: 640px) {
-    .app-header {
-      flex-direction: column;
-      gap: var(--space-4);
-      align-items: flex-start;
+    .page-actions {
       padding-left: 0;
     }
   }

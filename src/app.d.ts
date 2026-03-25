@@ -9,6 +9,7 @@ declare global {
     interface Locals {
       agent?: Agent;
       did?: string;
+      handle?: string;
     }
     // interface PageData {}
     // interface Platform {}

@@ -20,6 +20,9 @@ importers:
       cookie-signature:
         specifier: ^1.2.2
         version: 1.2.2
+      keyux:
+        specifier: ^0.11.3
+        version: 0.11.3
       kysely:
         specifier: ^0.27.6
         version: 0.27.6
@@ -767,6 +770,10 @@ packages:
 
   jose@5.10.0:
     resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
+
+  keyux@0.11.3:
+    resolution: {integrity: sha512-IzS9emdl1gazLhGvCcwy066WYeOJtoxuncDVIsKvvyZZXRmPwUusHuvvOd4bjT9qiN+kBc9ntP6CaKYM16qzPA==}
+    engines: {node: ^18.0.0 || >=20.0.0}
 
   kleur@4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
@@ -1961,6 +1968,8 @@ snapshots:
   iso-datestring-validator@2.2.2: {}
 
   jose@5.10.0: {}
+
+  keyux@0.11.3: {}
 
   kleur@4.1.5: {}
 

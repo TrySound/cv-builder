@@ -1,9 +1,11 @@
 import { env } from "$env/dynamic/private";
 import {
   NodeOAuthClient,
-  buildAtprotoLoopbackClientMetadata,
   JoseKey,
   Keyset,
+  buildAtprotoLoopbackClientMetadata,
+  createDidResolver,
+  createHandleResolver,
   type OAuthClientMetadataInput,
   type RuntimeLock,
   type NodeSavedStateStore,
@@ -11,6 +13,11 @@ import {
 } from "@atproto/oauth-client-node";
 import { Client } from "@atproto/lex";
 import { getDB } from "$lib/db";
+
+export const handleResolver = createHandleResolver({
+  handleResolver: "https://bsky.social",
+});
+export const didResolver = createDidResolver({});
 
 export const getClientMetadata = (): OAuthClientMetadataInput => {
   return {
@@ -119,6 +126,8 @@ const createOAuthClient = async () => {
     clientMetadata,
     keyset,
     requestLock,
+    handleResolver,
+    didResolver,
     stateStore: await createKyselyStateStore(),
     sessionStore: await createKyselySessionStore(),
   });

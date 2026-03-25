@@ -178,6 +178,37 @@ body {
   color: var(--color-text-tertiary);
 }
 
+.menu {
+  padding: var(--space-2) 0;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.menuitem {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border: none;
+  background: transparent;
+  /* for buttons */
+  width: stretch;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible,
+  &[aria-selected="true"] {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text);
+    outline: none;
+  }
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
@@ -202,7 +233,7 @@ body {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-4);
+  padding: 0 var(--space-4);
 }
 
 .form-label {

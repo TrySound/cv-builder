@@ -1,6 +1,4 @@
 <script lang="ts">
-  import "../../app.css";
-
   let handle = $state("");
   let error = $state("");
 
