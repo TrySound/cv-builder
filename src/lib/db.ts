@@ -12,6 +12,66 @@ export interface DatabaseSchema {
     data: string;
     created_at?: string;
   };
+  members: {
+    did: string;
+    name: string | null;
+    email: string | null;
+    location: string | null;
+    headline: string | null;
+    summary: string | null;
+    industry: string | null;
+    linkedin: string | null;
+    github: string | null;
+    website: string | null;
+    created_at?: string;
+    updated_at?: string;
+  };
+  member_positions: {
+    id?: number;
+    did: string;
+    company: string;
+    title: string;
+    location: string | null;
+    workplace_type: string | null;
+    employment_type: string | null;
+    started_at: string | null;
+    ended_at: string | null;
+    description: string | null;
+  };
+  member_education: {
+    id?: number;
+    did: string;
+    institution: string;
+    degree: string;
+    field: string | null;
+    started_at: string | null;
+    ended_at: string | null;
+    description: string | null;
+  };
+  member_projects: {
+    id?: number;
+    did: string;
+    name: string;
+    description: string | null;
+    url: string | null;
+    started_at: string | null;
+    ended_at: string | null;
+  };
+  member_skills: {
+    id?: number;
+    did: string;
+    skill: string;
+  };
+  member_languages: {
+    id?: number;
+    did: string;
+    language: string;
+  };
+  member_preferred_workplaces: {
+    id?: number;
+    did: string;
+    workplace_type: string;
+  };
 }
 
 let db: Kysely<DatabaseSchema> | null = null;

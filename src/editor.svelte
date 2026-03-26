@@ -3,7 +3,10 @@
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
 
-  let { resume = $bindable() }: { resume: Resume } = $props();
+  let {
+    resume = $bindable(),
+    onSave,
+  }: { resume: Resume; onSave?: () => void } = $props();
 
   // Track which section/card is being edited
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
@@ -74,6 +77,7 @@
 
   function stopEditing() {
     editingId = null;
+    onSave?.();
   }
 
   function addExperience() {

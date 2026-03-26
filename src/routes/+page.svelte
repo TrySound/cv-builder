@@ -10,11 +10,6 @@
   let resume = $state<Resume>(loadFromStorage());
   let autofillText = $state("");
 
-  // Auto-save resume changes to localStorage
-  $effect(() => {
-    saveToStorage(resume);
-  });
-
   function handleExtract() {
     if (!autofillText.trim()) {
       return;
@@ -42,7 +37,7 @@
     </button>
   </div>
 
-  <Editor bind:resume />
+  <Editor bind:resume onSave={() => saveToStorage(resume)} />
 </div>
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">
