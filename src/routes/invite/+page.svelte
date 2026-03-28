@@ -76,16 +76,17 @@
               {invitation.recommendation_text.slice(0, 100)}...
             </p>
             <div class="invitation-actions">
-              <code class="invite-code"
-                >{page.url.origin}/invite/{invitation.code}</code
-              >
+              <code class="invite-code">
+                {page.url.origin}/invite/{invitation.code}
+              </code>
               <button
                 type="button"
-                class="button-small"
-                onclick={() =>
+                class="button"
+                onclick={() => {
                   copyToClipboard(
                     `${page.url.origin}/invite/${invitation.code}`,
-                  )}
+                  );
+                }}
               >
                 Copy Link
               </button>
@@ -102,22 +103,6 @@
     float: right;
     font-weight: normal;
     color: var(--color-text-tertiary);
-    font-size: var(--font-size-sm);
-  }
-
-  .invite-link {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    background: var(--color-bg-elevated);
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    margin-top: var(--space-3);
-  }
-
-  .invite-link code {
-    flex: 1;
-    font-family: var(--font-mono);
     font-size: var(--font-size-sm);
   }
 

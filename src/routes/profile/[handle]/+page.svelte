@@ -74,6 +74,8 @@
     </button>
   </div>
 
+  <div style="height: var(--space-4)"></div>
+
   {#if saveMessage}
     <div
       class="save-message alert"
@@ -178,8 +180,20 @@
 </div>
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">
-  <form method="dialog" class="dialog-content" onsubmit={handleExtract}>
+  <header class="dialog-header">
     <h2 class="dialog-title">Autofill from Resume Text</h2>
+    <button
+      class="icon-button"
+      aria-label="Close"
+      commandfor="app-autofill-dialog"
+      command="close"
+    >
+      <svg width="20" height="20">
+        <use href="#icon-x" />
+      </svg>
+    </button>
+  </header>
+  <form method="dialog" class="dialog-content" onsubmit={handleExtract}>
     <p class="dialog-description">
       Paste your resume text below to extract and populate the editor
     </p>
@@ -189,7 +203,7 @@
       rows="15"
       class="form-input autofill-input"
     ></textarea>
-    <div class="flex justify-end">
+    <div class="actions">
       <button type="submit" class="button">Extract</button>
     </div>
   </form>

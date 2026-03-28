@@ -10,7 +10,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar handle={data.handle} inviteCode={data.inviteCode} />
 
   <div class="card-lg">
     <div class="recommendation-section">
@@ -50,11 +50,13 @@
         </form>
       {/if}
     {:else}
-      <form method="POST" action="?/accept">
-        <button type="submit" class="button button-primary">
-          Join Community
-        </button>
-      </form>
+      <button
+        class="button button-primary"
+        commandfor="topbar-login-dialog"
+        command="show-modal"
+      >
+        Join Community
+      </button>
     {/if}
   </div>
 </div>

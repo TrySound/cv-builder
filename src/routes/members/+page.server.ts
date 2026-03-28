@@ -3,7 +3,7 @@ import { getDB } from "$lib/db";
 
 export const load = async ({ locals }) => {
   if (!locals.did) {
-    redirect(302, "/login");
+    redirect(302, "/");
   }
 
   const db = await getDB();
@@ -35,6 +35,7 @@ export const load = async ({ locals }) => {
     .orderBy("m.created_at", "desc")
     .execute();
 
+    console.log(members)
   return {
     handle: locals.handle,
     members,

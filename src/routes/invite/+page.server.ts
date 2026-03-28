@@ -4,7 +4,7 @@ import { getDB } from "$lib/db";
 
 export const load = async ({ locals }) => {
   if (!locals.did || !locals.handle) {
-    redirect(302, "/login");
+    redirect(302, "/");
   }
 
   // Verify user is a member

@@ -7,7 +7,7 @@ import type { EmploymentType, Resume, WorkplaceType } from "$lib/cv-parser";
 export const load = async ({ params, locals }) => {
   const currentDid = locals.did;
   if (!currentDid) {
-    redirect(302, "/login");
+    redirect(302, "/");
   }
 
   // Verify current user is a member
@@ -177,9 +177,9 @@ export const load = async ({ params, locals }) => {
     })),
     inviter: inviter
       ? {
-        name: inviter.name,
-        handle: inviter.handle,
-      }
+          name: inviter.name,
+          handle: inviter.handle,
+        }
       : null,
     hasRecommended,
   };

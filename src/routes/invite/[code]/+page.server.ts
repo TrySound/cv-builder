@@ -1,4 +1,4 @@
-import { error, redirect } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
 
 export const load = async ({ params, locals }) => {
@@ -40,6 +40,7 @@ export const load = async ({ params, locals }) => {
 
   return {
     handle: locals.handle,
+    inviteCode: code,
     invitation: {
       id: invitation.id,
       code: invitation.code,
@@ -56,7 +57,7 @@ export const load = async ({ params, locals }) => {
 };
 
 export const actions = {
-  accept: async ({ params, cookies, locals }) => {
+  accept: async ({ params, locals }) => {
     const { code } = params;
 
     const db = await getDB();
@@ -93,17 +94,6 @@ export const actions = {
           .where("id", "=", invitation.id)
           .execute();
       });
-    } else {
-      // Store invite code in cookie for post-auth handling
-      cookies.set("invite_code", code, {
-        path: "/",
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60, // 1 hour
-      });
-      // Not authenticated - redirect to login
-      redirect(302, "/login");
     }
   },
 };

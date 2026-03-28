@@ -1,5 +1,20 @@
 <script lang="ts">
-  let { handle }: { handle: undefined | string } = $props();
+  let {
+    handle,
+    inviteCode,
+  }: { handle: undefined | string; inviteCode?: string } = $props();
+
+  function handleLoginSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    const formData = new FormData(event.target as HTMLFormElement);
+    const handle = formData.get("handle")?.toString().trim() ?? "";
+    const searchParams = new URLSearchParams();
+    searchParams.set("handle", handle.trim());
+    if (inviteCode) {
+      searchParams.set("code", inviteCode);
+    }
+    window.location.href = `/auth/login?${searchParams.toString()}`;
+  }
 </script>
 
 <header class="topbar">
@@ -34,9 +49,15 @@
       </form>
     {:else}
       <!-- svelte-ignore a11y_autofocus -->
-      <a href="/login" class="menuitem" role="menuitem" autofocus>
+      <button
+        class="menuitem"
+        role="menuitem"
+        autofocus
+        commandfor="topbar-login-dialog"
+        command="show-modal"
+      >
         Connect to Atmosphere
-      </a>
+      </button>
     {/if}
     <a
       href="https://github.com/TrySound/cv-builder"
@@ -47,6 +68,54 @@
     </a>
   </div>
 </div>
+
+<dialog id="topbar-login-dialog" closedby="any" class="dialog">
+  <header class="dialog-header">
+    <h2 class="dialog-title">Atmosphere</h2>
+    <button
+      class="icon-button"
+      aria-label="Close"
+      commandfor="topbar-login-dialog"
+      command="close"
+    >
+      <svg width="20" height="20">
+        <use href="#icon-x" />
+      </svg>
+    </button>
+  </header>
+
+  <form method="dialog" class="dialog-content" onsubmit={handleLoginSubmit}>
+    <p class="dialog-description">Connect with your Atmosphere account</p>
+
+    <div class="form-group">
+      <label for="topbar-login-handle" class="form-label">Handle</label>
+      <input
+        type="text"
+        id="topbar-login-handle"
+        class="form-input"
+        name="handle"
+        placeholder="your-handle.bsky.social"
+        autocomplete="username"
+        required
+      />
+      <details class="login-info">
+        <summary class="subtle">What is an Atmosphere account?</summary>
+        <p>
+          CV Builder uses the AT Protocol to let you own your CV data and
+          connect with the professional community. Use your existing Bluesky
+          account to join, or create a new one to get started.
+        </p>
+      </details>
+      <button type="submit" class="button button-primary">Connect</button>
+    </div>
+
+    <!--
+    <hr class="separator">
+
+    <button type="button" class="button">Create a new account</button>
+    -->
+  </form>
+</dialog>
 
 <style>
   .topbar {
@@ -69,5 +138,16 @@
     background: transparent;
     border: 0;
     min-width: 80px;
+  }
+
+  .login-info {
+    margin: var(--space-2) 0;
+  }
+
+  .login-info p {
+    margin: var(--space-1) 0 0;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
   }
 </style>
