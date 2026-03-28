@@ -13,18 +13,11 @@
   <Topbar handle={data.handle} />
 
   <div class="card-lg">
-    <div class="invite-header">
-      <div class="avatar">
-        {inviterDisplayName.charAt(0).toUpperCase()}
-      </div>
-      <div class="inviter-info">
-        <h1 class="heading-2">{inviterDisplayName}</h1>
-        <p class="handle">@{data.invitation.invitedBy.handle}</p>
-      </div>
-    </div>
-
     <div class="recommendation-section">
-      <h2 class="heading-3">Invitation: {data.invitation.name}</h2>
+      <h2 class="heading-3">Invitation for {data.invitation.name}</h2>
+      <p class="subtle">
+        {inviterDisplayName} has invited you to join the community with this recommendation.
+      </p>
       <div class="recommendation-quote">
         <p>{data.invitation.recommendationText}</p>
       </div>
@@ -58,9 +51,6 @@
       {/if}
     {:else}
       <form method="POST" action="?/accept">
-        <p class="subtle">
-          {inviterDisplayName} has invited you to join the community with this recommendation.
-        </p>
         <button type="submit" class="button button-primary">
           Join Community
         </button>
