@@ -38,6 +38,13 @@
         Connect to Atmosphere
       </a>
     {/if}
+    <a
+      href="https://github.com/TrySound/cv-builder"
+      class="menuitem"
+      role="menuitem"
+    >
+      GitHub
+    </a>
   </div>
 </div>
 
