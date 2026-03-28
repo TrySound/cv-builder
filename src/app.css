@@ -411,6 +411,8 @@ body {
   width: 90vw;
   max-height: 80vh;
   background: var(--color-bg-elevated);
+  /* color is not inherited from the root */
+  color: var(--color-text-secondary);
 }
 
 .dialog::backdrop {

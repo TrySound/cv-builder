@@ -2,11 +2,14 @@ import { redirect } from "@sveltejs/kit";
 import { getOAuthClient } from "$lib/auth";
 
 export const GET = async ({ url, cookies }) => {
-  const handle = url.searchParams.get("handle");
+  const prompt =
+    url.searchParams.get("prompt") === "login" ? "login" : "create";
   const code = url.searchParams.get("code");
-  if (!handle) {
-    redirect(302, "/");
-  }
+  const oauthClient = await getOAuthClient();
+  const authUrl = await oauthClient.authorize("https://bsky.social", {
+    scope: "atproto transition:generic",
+    prompt,
+  });
   // Store invite code in cookie for post-auth handling
   if (code) {
     cookies.set("invite_code", code, {
@@ -17,9 +20,5 @@ export const GET = async ({ url, cookies }) => {
       maxAge: 60 * 60, // 1 hour
     });
   }
-  const oauthClient = await getOAuthClient();
-  const authUrl = await oauthClient.authorize(handle, {
-    scope: "atproto transition:generic",
-  });
-  redirect(302, authUrl.toString());
+  redirect(302, authUrl);
 };
