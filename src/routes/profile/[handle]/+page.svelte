@@ -80,16 +80,7 @@
   <!-- Recommendations Section -->
   {#if data.inviter || data.recommendations.length > 0}
     <div class="recommendations-section">
-      <h2 class="heading-2">Community Recommendations</h2>
-
-      {#if data.inviter}
-        <div class="alert alert-info inviter-info">
-          <span class="badge">Invited by</span>
-          <a href="/profile/{data.inviter.handle}" class="link inviter-link">
-            {data.inviter.name || data.inviter.handle}
-          </a>
-        </div>
-      {/if}
+      <h2 class="heading-2">Recommendations from other members</h2>
 
       {#if data.recommendations.length > 0}
         <div class="recommendations-list">

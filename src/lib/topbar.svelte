@@ -3,7 +3,9 @@
 </script>
 
 <header class="topbar">
-  <a href="/" class="heading-1 topbar-title">CV Builder</a>
+  <a href={handle ? "/members" : "/"} class="heading-1 topbar-title">
+    CV Builder
+  </a>
   <button class="icon-button" popovertarget="topbar-menu" aria-label="Menu">
     <svg width="24" height="24">
       <use href="#icon-menu" />
@@ -25,6 +27,7 @@
       <a href="/profile/{handle}" class="menuitem" role="menuitem" autofocus>
         Profile
       </a>
+      <a href="/members" class="menuitem" role="menuitem">Members</a>
       <a href="/invite" class="menuitem" role="menuitem">Invite</a>
       <form method="POST" action="/auth/logout">
         <button class="menuitem" role="menuitem">Logout</button>
