@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { Kysely, Migrator, FileMigrationProvider } from "kysely";
+import { seedDatabase } from "./seed.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -83,6 +84,11 @@ if (result.results && result.results.length > 0) {
   });
 } else {
   console.log("No migrations to run");
+}
+
+// Seed database in dev mode if fresh
+if (mode === "dev") {
+  await seedDatabase(db);
 }
 
 await db.destroy();

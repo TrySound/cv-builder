@@ -17,6 +17,7 @@
     "generate-jwk": "node ./scripts/generate-jwk.ts",
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
     "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod",
+    "seed": "node ./scripts/seed.ts --mode=dev",
     "lexicons:build": "lex build --out src/lib/lexicons",
     "pglite:server": "pglite-server --db=./.pgdata --port=5432 --max-connections=10 --debug=1"
   },
