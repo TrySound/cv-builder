@@ -16,113 +16,105 @@
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <div class="content">
-    <h1 class="heading-2">Create Invitation</h1>
-    <p class="subtle">
-      Invite someone to join the community with a personal recommendation.
-    </p>
+  <h1 class="heading-2">Create Invitation</h1>
+  <p class="subtle">
+    Invite someone to join the community with a personal recommendation.
+  </p>
 
-    <form method="POST" class="card-lg form-stack" action="?/create">
-      <div class="form-group">
-        <label for="name" class="form-label">Invitation Name</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          bind:value={name}
-          placeholder="e.g., My colleague from Meta"
-          required
-          class="form-input"
-        />
-      </div>
+  <form method="POST" class="card-lg form-stack" action="?/create">
+    <div class="form-group">
+      <label for="name" class="form-label">Invitation Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        bind:value={name}
+        placeholder="e.g., My colleague from Meta"
+        required
+        class="form-input"
+      />
+    </div>
 
-      <div class="form-group">
-        <label for="recommendation_text" class="form-label">
-          Recommendation
-          <span class="char-count">
-            {charCount}/200
-          </span>
-        </label>
-        <textarea
-          id="recommendation_text"
-          name="recommendation_text"
-          bind:value={recommendationText}
-          placeholder="Write a recommendation letter..."
-          minlength="200"
-          required
-          class="form-input"
-        ></textarea>
-      </div>
+    <div class="form-group">
+      <label for="recommendation_text" class="form-label">
+        Recommendation
+        <span class="char-count">
+          {charCount}/200
+        </span>
+      </label>
+      <textarea
+        id="recommendation_text"
+        name="recommendation_text"
+        bind:value={recommendationText}
+        placeholder="Write a recommendation letter..."
+        minlength="200"
+        required
+        class="form-input"
+      ></textarea>
+    </div>
 
-      {#if form?.error}
-        <div class="alert alert-error">{form.error}</div>
-      {/if}
-
-      <button type="submit" class="button">Generate Invite Link</button>
-    </form>
-
-    {#if form?.success && form.inviteUrl}
-      <div class="alert alert-success">
-        <h2 class="heading-3">Invitation Created!</h2>
-        <p>Share this link with your invitee:</p>
-        <div class="invite-link">
-          <code>{page.url.origin}{form.inviteUrl}</code>
-          <button
-            type="button"
-            class="button-small"
-            onclick={() =>
-              copyToClipboard(`${page.url.origin}${form.inviteUrl}`)}
-          >
-            Copy
-          </button>
-        </div>
-      </div>
+    {#if form?.error}
+      <div class="alert alert-error">{form.error}</div>
     {/if}
 
-    {#if data.invitations.length > 0}
-      <div class="invitations-list">
-        <h2 class="heading-3">Your Invitations</h2>
-        <div class="list">
-          {#each data.invitations as invitation}
-            <div class="card-lg invitation-card">
-              <div class="invitation-header">
-                <h3 class="heading-3">{invitation.name}</h3>
-                <span class="badge">
-                  {invitation.used_count}/{invitation.max_uses} used
-                </span>
-              </div>
-              <p class="recommendation-preview">
-                {invitation.recommendation_text.slice(0, 100)}...
-              </p>
-              <div class="invitation-actions">
-                <code class="invite-code"
-                  >{page.url.origin}/invite/{invitation.code}</code
-                >
-                <button
-                  type="button"
-                  class="button-small"
-                  onclick={() =>
-                    copyToClipboard(
-                      `${page.url.origin}/invite/${invitation.code}`,
-                    )}
-                >
-                  Copy Link
-                </button>
-              </div>
+    <button type="submit" class="button">Generate Invite Link</button>
+  </form>
+
+  {#if form?.success && form.inviteUrl}
+    <div class="alert alert-success">
+      <h2 class="heading-3">Invitation Created!</h2>
+      <p>Share this link with your invitee:</p>
+      <div class="invite-link">
+        <code>{page.url.origin}{form.inviteUrl}</code>
+        <button
+          type="button"
+          class="button-small"
+          onclick={() => copyToClipboard(`${page.url.origin}${form.inviteUrl}`)}
+        >
+          Copy
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  {#if data.invitations.length > 0}
+    <div class="invitations-list">
+      <h2 class="heading-3">Your Invitations</h2>
+      <div class="list">
+        {#each data.invitations as invitation}
+          <div class="card-lg invitation-card">
+            <div class="invitation-header">
+              <h3 class="heading-3">{invitation.name}</h3>
+              <span class="badge">
+                {invitation.used_count}/{invitation.max_uses} used
+              </span>
             </div>
-          {/each}
-        </div>
+            <p class="recommendation-preview">
+              {invitation.recommendation_text.slice(0, 100)}...
+            </p>
+            <div class="invitation-actions">
+              <code class="invite-code"
+                >{page.url.origin}/invite/{invitation.code}</code
+              >
+              <button
+                type="button"
+                class="button-small"
+                onclick={() =>
+                  copyToClipboard(
+                    `${page.url.origin}/invite/${invitation.code}`,
+                  )}
+              >
+                Copy Link
+              </button>
+            </div>
+          </div>
+        {/each}
       </div>
-    {/if}
-  </div>
+    </div>
+  {/if}
 </div>
 
 <style>
-  .content {
-    max-width: 800px;
-    margin: var(--space-8) auto 0;
-  }
-
   .char-count {
     float: right;
     font-weight: normal;
