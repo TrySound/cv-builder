@@ -7,7 +7,6 @@ declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      agent?: Agent;
       did?: string;
       handle?: string;
     }

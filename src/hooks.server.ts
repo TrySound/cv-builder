@@ -1,6 +1,4 @@
-import { Agent } from "@atproto/api";
 import { unsign } from "cookie-signature";
-import { getOAuthClient } from "$lib/auth";
 import { env } from "$env/dynamic/private";
 
 export const handle = async ({ event, resolve }) => {
@@ -11,15 +9,12 @@ export const handle = async ({ event, resolve }) => {
 
     if (unsigned) {
       try {
-        // Parse the session data containing did and handle
         const sessionData = JSON.parse(unsigned);
         const { did, handle } = sessionData;
 
-        const oauthClient = await getOAuthClient();
-        const oauthSession = await oauthClient.restore(did);
-        event.locals.agent = new Agent(oauthSession);
         event.locals.did = did;
         event.locals.handle = handle;
+
       } catch {
         event.cookies.delete("session", { path: "/" });
       }
