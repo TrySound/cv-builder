@@ -1,8 +1,22 @@
 <script lang="ts">
+  import { isAtIdentifierString } from "@atproto/lex";
+
   let {
     handle,
     inviteCode,
   }: { handle: undefined | string; inviteCode?: string } = $props();
+
+  const handleConnectSubmit = (event: SubmitEvent) => {
+    const form = event.currentTarget as HTMLFormElement;
+    const handle = form.elements.namedItem("handle") as HTMLInputElement;
+    if (!isAtIdentifierString(handle.value)) {
+      event.preventDefault();
+      handle.setCustomValidity(
+        "Please enter a valid handle, DID, or a full PDS URL",
+      );
+      handle.reportValidity()
+    }
+  };
 </script>
 
 <header class="topbar">
@@ -85,7 +99,12 @@
       with the same account.
     </p>
 
-    <form class="form-stack" method="get" action="/auth/login">
+    <form
+      class="form-stack"
+      method="get"
+      action="/auth/login"
+      onsubmit={handleConnectSubmit}
+    >
       <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="login" />
       <div class="form-group">
@@ -97,6 +116,7 @@
           placeholder="e.g., user.bsky.social"
           required
           class="form-input"
+          oninput={(event) => event.currentTarget.setCustomValidity("")}
         />
       </div>
       <button class="button button-primary">Connect</button>
