@@ -22,7 +22,7 @@ export const didResolver = createDidResolver({});
 export const getClientMetadata = (): OAuthClientMetadataInput => {
   return {
     client_id: `${env.BASE_URL}/client-metadata.json`,
-    client_name: "CV Builder",
+    client_name: "weareonhire",
     client_uri: env.BASE_URL,
     redirect_uris: [`${env.BASE_URL}/auth/callback`],
     scope: "atproto transition:generic",

@@ -28,7 +28,8 @@ export const GET = async ({ url, cookies }) => {
       });
     }
     redirect(302, authUrl);
-  } catch {
+  } catch (error) {
+    console.error(error);
     // in case of invalid handle
     redirect(302, "/unauthorized");
   }

@@ -14,7 +14,7 @@
       handle.setCustomValidity(
         "Please enter a valid handle, DID, or a full PDS URL",
       );
-      handle.reportValidity()
+      handle.reportValidity();
     }
   };
 </script>
@@ -87,7 +87,7 @@
 
   <div class="dialog-content">
     <p class="dialog-description">
-      CV Builder uses the
+      weareonhire uses the
       <a class="link" target="_blank" href="https://atproto.com/">AT Protocol</a
       >
       to power its social features, allowing users to own their data and use one account

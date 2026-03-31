@@ -1,6 +1,6 @@
-# CV Builder
+# weareonhire!
 
-A simple CV/Resume builder.
+Invite-only community for professionals
 
 ## Overview
 
