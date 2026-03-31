@@ -20,7 +20,7 @@
 </script>
 
 <header class="topbar">
-  <span class="heading-1 topbar-title">CV</span>
+  <a class="heading-1 topbar-title" href="/members">WAOH!</a>
   <button class="icon-button" popovertarget="topbar-menu" aria-label="Menu">
     <svg width="24" height="24">
       <use href="#icon-menu" />
@@ -39,7 +39,7 @@
   <div class="menu" role="menu">
     <a
       target="_blank"
-      href="https://github.com/TrySound/cv-builder"
+      href="https://github.com/TrySound/weareonhire"
       class="menuitem"
       role="menuitem"
     >
