@@ -22,9 +22,6 @@ pnpm install
 # Run database migrations (required on first setup)
 pnpm migrate:dev
 
-# Optional: Seed database with sample data
-pnpm seed
-
 # Start development server
 pnpm dev
 ```

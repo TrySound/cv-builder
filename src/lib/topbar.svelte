@@ -14,7 +14,10 @@
   const handleConnectSubmit = (event: SubmitEvent) => {
     const form = event.currentTarget as HTMLFormElement;
     const handle = form.elements.namedItem("handle") as HTMLInputElement;
-    if (!isAtIdentifierString(handle.value)) {
+    if (
+      !isAtIdentifierString(handle.value) &&
+      !handle.value.startsWith("https://")
+    ) {
       event.preventDefault();
       handle.setCustomValidity(
         "Please enter a valid handle, DID, or a full PDS URL",
