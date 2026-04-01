@@ -4,9 +4,7 @@ Invite-only community for professionals
 
 ## Overview
 
-- **Interactive Editor** - Edit your CV sections
-- **Autofill from Text** - Paste your existing resume text to automatically extract and populate fields
-- **Compact Print** - Clean, professional A4 layout for printing or PDF export
+weareonhire is a professional networking platform built on the AT Protocol (Bluesky's underlying protocol). It combines decentralized identity with invite-only membership to create a trusted community where professionals can create, manage, and share their CV/resumes.
 
 ## Contributing
 
@@ -21,8 +19,11 @@ Invite-only community for professionals
 # Install dependencies
 pnpm install
 
-# Run database migrations (required on first setup and after schema changes)
-pnpm migrate
+# Run database migrations (required on first setup)
+pnpm migrate:dev
+
+# Optional: Seed database with sample data
+pnpm seed
 
 # Start development server
 pnpm dev
@@ -32,82 +33,84 @@ The application will be available at `http://localhost:5173`.
 
 ### Database
 
-This application uses **PGlite** (WASM PostgreSQL) with **Kysely** for local development:
+This application uses **PGlite** (WebAssembly PostgreSQL) for local development:
 
-- Database: `PGlite` (WebAssembly PostgreSQL, automatically created in `.pgdata/`)
+- Database is automatically created in `.pgdata/` directory
 - Migrations are located in `migrations/` directory
 - Run `pnpm migrate:dev` to execute pending migrations
-- The database stores OAuth session state and user sessions
+- Stores OAuth session state, user profiles, and community data
+
+**Debug the database:**
+
+```bash
+# Start the socket server (for external PostgreSQL clients)
+pnpm pglite:server
+
+# Connect using psql
+PGSSLMODE=disable psql -h localhost -p 5432 -d postgres
+```
 
 ### Available Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm format` - Format code with Prettier
-- `pnpm check` - Run TypeScript and Svelte checks
-- `pnpm test` - Run unit tests
-- `pnpm migrate` - Run database migrations
-- `pnpm pglite:server` - Start PGlite socket server for debugging with PostgreSQL clients
+| Command               | Description                                |
+| --------------------- | ------------------------------------------ |
+| `pnpm dev`            | Start development server                   |
+| `pnpm build`          | Build for production                       |
+| `pnpm preview`        | Preview production build                   |
+| `pnpm format`         | Format code with Prettier                  |
+| `pnpm check`          | Run TypeScript and Svelte type checks      |
+| `pnpm test`           | Run unit tests                             |
+| `pnpm migrate:dev`    | Run database migrations (development)      |
+| `pnpm migrate:prod`   | Run database migrations (production)       |
+| `pnpm seed`           | Seed database with sample data             |
+| `pnpm generate-jwk`   | Generate OAuth private key for AT Protocol |
+| `pnpm lexicons:build` | Build AT Protocol lexicon types            |
+| `pnpm pglite:server`  | Start PGlite socket server for debugging   |
 
-### Database Debugging
+### AT Protocol Setup
 
-You can connect to the PGlite database using standard PostgreSQL clients for debugging:
-
-1. Start the socket server:
-
-   ```bash
-   pnpm pglite:server
-   ```
-
-2. Connect using any PostgreSQL client (psql, DBeaver, pgAdmin, etc.):
-   - **Host:** `localhost`
-   - **Port:** `5432`
-   - **Database:** `postgres`
-   - **SSL:** Disabled (required)
-
-   **Using psql:**
-
-   ```bash
-   PGSSLMODE=disable psql -h localhost -p 5432 -d postgres
-   ```
-
-   **Note:** The server runs with debug logging enabled. Stop it with `Ctrl+C` when finished.
-
-## Deployment
-
-### Netlify
-
-This project is configured for seamless deployment to Netlify using the `@sveltejs/adapter-netlify` adapter.
-
-**Deploy via Netlify UI:**
-
-1. Push your code to GitHub/GitLab/Bitbucket
-2. Log in to [Netlify](https://netlify.com)
-3. Click "Add new site" → "Import an existing project"
-4. Connect your repository
-5. Netlify will auto-detect settings from `netlify.toml`:
-   - Build command: `pnpm run build`
-   - Publish directory: `build`
-   - Node version: 24
-6. Click "Deploy site"
-
-**Required Environment Variables:**
-Set these in the Netlify UI (Site settings → Environment variables):
-
-- `BASE_URL` - Your site's URL (e.g., `https://your-site.netlify.app`)
-- `PRIVATE_KEY` - OAuth private key for AT Protocol authentication (keep this secret!)
-
-**Deploy via CLI:**
+To enable AT Protocol authentication locally:
 
 ```bash
-# Install Netlify CLI
-npm install -g netlify-cli
+# Generate a private key for OAuth
+pnpm generate-jwk
 
-# Login and deploy
-netlify login
-netlify deploy --build --prod
+# Copy the output and add to your environment
 ```
+
+### Environment Variables
+
+Create a `.env` file in the root directory with:
+
+```env
+# Required for production
+BASE_URL=https://your-site.netlify.app
+PRIVATE_KEY=your-generated-jwk-private-key
+SESSION_PASSWORD=secure-random-string-for-cookie-signing
+
+# Required for local development (uses loopback mode if PRIVATE_KEY not set)
+DEV=true
+
+# Required for production database
+CONNECTION_STRING=postgresql://user:pass@host:5432/database
+```
+
+**Variable Descriptions:**
+
+- `BASE_URL` - Your site's public URL (used for OAuth redirects)
+- `PRIVATE_KEY` - JWK private key for AT Protocol OAuth (generate with `pnpm generate-jwk`)
+- `SESSION_PASSWORD` - Secure random string for signing session cookies
+- `DEV` - Set to `true` for local development (enables loopback OAuth mode)
+- `CONNECTION_STRING` - PostgreSQL connection string for production database
+
+## Technology Stack
+
+- **Framework:** SvelteKit 2.x with Svelte 5 (runes-based reactivity)
+- **Language:** TypeScript (strict mode)
+- **Database:** PGlite (local) / PostgreSQL (production) with Kysely query builder
+- **Authentication:** AT Protocol (Bluesky) OAuth
+- **Styling:** Custom CSS with CSS variables (dark mode default)
+- **Testing:** Vitest
 
 ## License
 
