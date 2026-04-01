@@ -1062,6 +1062,10 @@
 </section>
 
 <style>
+  .heading-2 {
+    text-transform: uppercase;
+  }
+
   .cv-section {
     display: grid;
     gap: var(--space-8);

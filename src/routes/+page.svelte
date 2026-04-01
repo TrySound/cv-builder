@@ -1,88 +1,127 @@
 <script lang="ts">
-  import { parseResume, type Resume } from "$lib/cv-parser";
-  import { saveToStorage, loadFromStorage } from "$lib/storage";
   import Topbar from "$lib/topbar.svelte";
-  import Print from "../print.svelte";
-  import Editor from "../editor.svelte";
+  import type { PageProps } from "./$types";
 
-  let { data } = $props();
-
-  let resume = $state<Resume>(loadFromStorage());
-  let autofillText = $state("");
-
-  function handleExtract() {
-    if (!autofillText.trim()) {
-      return;
-    }
-    resume = parseResume(autofillText);
-    autofillText = "";
-    // Dialog will auto-close due to method=dialog on the form
-  }
+  let { data }: PageProps = $props();
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar handle={data.handle} hideLogo />
 
-  <div class="actions">
-    <button
-      type="button"
-      class="button"
-      commandfor="app-autofill-dialog"
-      command="show-modal"
-    >
-      Autofill
-    </button>
-    <button type="button" class="button" onclick={() => window.print()}>
-      Print
-    </button>
-  </div>
-
-  <div style="height: var(--space-4)"></div>
-
-  <Editor bind:resume onSave={() => saveToStorage(resume)} />
+  <main class="hero">
+    <div>
+      <h1 class="hero-title">weareonhire!</h1>
+      <p>An invite-only community for professionals</p>
+      <p class="subtle">Population: {data.memberCount}, and counting</p>
+      <div class="hero-actions">
+        <a href="mailto:hire@weareonhire.com" class="button button-primary">
+          Hire an expert
+        </a>
+      </div>
+    </div>
+  </main>
 </div>
 
-<dialog id="app-autofill-dialog" closedby="any" class="dialog">
-  <header class="dialog-header">
-    <h2 class="dialog-title">Autofill from Resume Text</h2>
-    <button
-      class="icon-button"
-      aria-label="Close"
-      commandfor="app-autofill-dialog"
-      command="close"
+<footer class="footer">
+  <h2 class="heading-1">Get Involved</h2>
+  <div class="get-involved-grid">
+    <a
+      class="button"
+      target="_blank"
+      href="https://github.com/TrySound/weareonhire"
     >
-      <svg width="20" height="20">
-        <use href="#icon-x" />
-      </svg>
-    </button>
-  </header>
-  <form method="dialog" class="dialog-content" onsubmit={handleExtract}>
-    <p class="dialog-description">
-      Paste your resume text below to extract and populate the editor
-    </p>
-    <textarea
-      bind:value={autofillText}
-      placeholder="Paste your resume text here..."
-      rows="15"
-      class="form-input autofill-input"
-    ></textarea>
-    <div class="actions">
-      <button type="submit" class="button">Extract</button>
-    </div>
-  </form>
-</dialog>
-
-<Print {resume} />
+      <div class="involved-card">
+        <h3 class="heading-2">Contribute</h3>
+        <p class="subtle">Help us build weareonhire!</p>
+        <p>View on GitHub</p>
+      </div>
+    </a>
+    <!--
+      <a class="button" target="_blank" href="#">
+        <div class="involved-card">
+          <h3 class="heading-2">Join the Community</h3>
+          <p class="subtle">Chat, ask questions, and share ideas.</p>
+          <p>Join Discord</p>
+        </div>
+      </a>
+      -->
+    <a
+      class="button"
+      target="_blank"
+      href="https://bsky.app/profile/trysound.io"
+    >
+      <div class="involved-card">
+        <h3 class="heading-2">Stay Updated</h3>
+        <p class="subtle">Get the latest updates and announcements.</p>
+        <p>Follow on Bluesky</p>
+      </div>
+    </a>
+  </div>
+</footer>
 
 <style>
-  .autofill-input {
-    field-sizing: fixed;
+  .container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
   }
 
-  @media print {
-    .container {
-      display: none;
+  .heading-1 {
+    text-transform: uppercase;
+    margin-bottom: var(--space-8);
+  }
+
+  .hero {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    margin: 0 0 var(--space-8);
+    letter-spacing: -0.02em;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: var(--space-8);
+  }
+
+  .footer {
+    padding: var(--space-12) var(--space-8);
+    text-align: center;
+  }
+
+  .get-involved-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-8);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .involved-card {
+    text-align: center;
+    padding: var(--space-6);
+  }
+
+  @media (max-width: 768px) {
+    .get-involved-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-title {
+      font-size: var(--font-size-3xl);
     }
   }
 </style>
-

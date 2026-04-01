@@ -4,7 +4,12 @@
   let {
     handle,
     inviteCode,
-  }: { handle: undefined | string; inviteCode?: string } = $props();
+    hideLogo = false,
+  }: {
+    handle: undefined | string;
+    inviteCode?: string;
+    hideLogo?: boolean;
+  } = $props();
 
   const handleConnectSubmit = (event: SubmitEvent) => {
     const form = event.currentTarget as HTMLFormElement;
@@ -20,8 +25,36 @@
 </script>
 
 <header class="topbar">
-  <a class="heading-1 topbar-title" href="/feed">WAOH!</a>
-  <button class="icon-button" popovertarget="topbar-menu" aria-label="Menu">
+  {#if !hideLogo}
+    <a class="heading-1 topbar-logo" href="/">WAOH!</a>
+  {:else}
+    <span></span>
+  {/if}
+
+  <nav class="nav">
+    {#if handle}
+      <a href="/feed" class="link">Feed</a>
+      <a href="/invite" class="link">Invite</a>
+      <a href="/profile/{handle}" class="link">Profile</a>
+      <form method="POST" action="/auth/logout">
+        <button class="link">Logout</button>
+      </form>
+    {:else}
+      <button
+        class="link"
+        commandfor="topbar-login-dialog"
+        command="show-modal"
+      >
+        Connect to Atmosphere
+      </button>
+    {/if}
+  </nav>
+
+  <button
+    class="icon-button menu-trigger"
+    popovertarget="topbar-menu"
+    aria-label="Menu"
+  >
     <svg width="24" height="24">
       <use href="#icon-menu" />
     </svg>
@@ -37,23 +70,13 @@
   onclick={(event) => event.currentTarget.hidePopover()}
 >
   <div class="menu" role="menu">
-    <a
-      target="_blank"
-      href="https://github.com/TrySound/weareonhire"
-      class="menuitem"
-      role="menuitem"
-    >
-      GitHub
-    </a>
     {#if handle}
-      <a href="/members" class="menuitem" role="menuitem">Members</a>
-      <a href="/invite" class="menuitem" role="menuitem">Invite</a>
       <!-- svelte-ignore a11y_autofocus -->
-      <a href="/profile/{handle}" class="menuitem" role="menuitem" autofocus>
-        Profile
-      </a>
+      <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
+      <a href="/invite" role="menuitem" class="menuitem">Invite</a>
+      <a href="/profile/{handle}" role="menuitem" class="menuitem">Profile</a>
       <form method="POST" action="/auth/logout">
-        <button class="menuitem" role="menuitem">Logout</button>
+        <button role="menuitem" class="menuitem">Logout</button>
       </form>
     {:else}
       <!-- svelte-ignore a11y_autofocus -->
@@ -137,13 +160,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--space-4) 0;
+    padding: var(--space-2) 0;
+    min-height: 60px;
     margin-bottom: var(--space-4);
     border-bottom: 1px solid var(--color-border);
   }
 
-  .topbar-title {
+  .topbar-logo {
     text-decoration: none;
+  }
+
+  .nav {
+    display: flex;
+    gap: var(--space-8);
+  }
+
+  .menu-trigger {
+    display: none;
   }
 
   .menu-popover {
@@ -157,5 +190,14 @@
 
   form {
     display: grid;
+  }
+
+  @media (max-width: 640px) {
+    .nav {
+      display: none;
+    }
+    .menu-trigger {
+      display: block;
+    }
   }
 </style>

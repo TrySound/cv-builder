@@ -104,7 +104,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-6);
-    margin-top: var(--space-6);
+    margin-top: var(--space-12);
   }
 
   .invite-actions {
