@@ -28,6 +28,7 @@ export const GET = async ({ url, cookies }) => {
     .executeTakeFirst();
 
   let invitation;
+  let inviteExpired = false;
   if (inviteCode) {
     invitation = await db
       .selectFrom("invitations")
@@ -36,11 +37,29 @@ export const GET = async ({ url, cookies }) => {
       // make sure invitation is valid
       .whereRef("used_count", "<", "max_uses")
       .executeTakeFirst();
+
+    // Check if invitation exists but is expired
+    if (!invitation) {
+      const expiredInvite = await db
+        .selectFrom("invitations")
+        .selectAll()
+        .where("code", "=", inviteCode)
+        .whereRef("used_count", ">=", "max_uses")
+        .executeTakeFirst();
+      if (expiredInvite) {
+        inviteExpired = true;
+      }
+    }
   }
 
   // If not a member and no invite code, check whitelist
   if (!existingMember && !invitation && !ALLOWED_HANDLES.includes(handle)) {
     cookies.delete("session", { path: "/" });
+    // Redirect back to invite page with error if invite code exists
+    if (inviteCode) {
+      const errorParam = inviteExpired ? "invite_expired" : "not_invited";
+      redirect(302, `/invite/${inviteCode}?error=${errorParam}`);
+    }
     redirect(302, "/unauthorized");
   }
 

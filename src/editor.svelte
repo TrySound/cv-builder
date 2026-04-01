@@ -299,7 +299,7 @@
         {/if}
         {#if resume.profile.email}
           <a href="mailto:{resume.profile.email}" class="link">
-            {resume.profile.email}
+            Email
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}

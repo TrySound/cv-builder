@@ -147,7 +147,9 @@
                 {new Date(item.createdAt ?? 0).toLocaleDateString()}
               </time>
             </div>
-            <p>{item.text}</p>
+            <div class="quote">
+              <p>{item.text}</p>
+            </div>
           </article>
         {/each}
       </div>
@@ -217,6 +219,11 @@
   .recommendations-list {
     display: grid;
     gap: var(--space-6);
+  }
+
+  .recommendation-item {
+    display: grid;
+    gap: var(--space-4);
   }
 
   .recommendation-item.highlight {

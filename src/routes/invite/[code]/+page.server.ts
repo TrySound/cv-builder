@@ -1,8 +1,11 @@
 import { error } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
 
-export const load = async ({ params, locals }) => {
+export const load = async ({ params, locals, url }) => {
   const { code } = params;
+
+  // Get error from query params if present
+  const errorType = url.searchParams.get("error");
 
   const db = await getDB();
 
@@ -41,6 +44,7 @@ export const load = async ({ params, locals }) => {
   return {
     handle: locals.handle,
     inviteCode: code,
+    errorType,
     invitation: {
       id: invitation.id,
       code: invitation.code,

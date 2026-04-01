@@ -7,6 +7,26 @@
   const inviterDisplayName = $derived(
     data.invitation.invitedBy.name || data.invitation.invitedBy.handle,
   );
+
+  // Error messages for different error types
+  const errorMessages: Record<string, { title: string; description: string }> =
+    {
+      invalid_handle: {
+        title: "Account not found",
+        description:
+          "The handle you entered doesn't exist on Bluesky. Make sure you have a valid Bluesky account, or create one first.",
+      },
+      invite_expired: {
+        title: "Invitation expired",
+        description:
+          "This invitation has reached its maximum uses and is no longer valid.",
+      },
+      not_invited: {
+        title: "Not authorized",
+        description:
+          "You need a valid invitation to join this community. Please make sure you're using the correct invitation link.",
+      },
+    };
 </script>
 
 <div class="container">
@@ -17,10 +37,28 @@
     <p>
       {inviterDisplayName} has invited you to join the community with this recommendation.
     </p>
-    <div class="recommendation-quote">
+    <div class="quote">
       <p>{data.invitation.recommendationText}</p>
     </div>
   </div>
+
+  {#if data.errorType && errorMessages[data.errorType]}
+    <div class="alert alert-error" role="alert">
+      <h3>{errorMessages[data.errorType]?.title}</h3>
+      <p>
+        {errorMessages[data.errorType]?.description}
+      </p>
+      {#if data.errorType === "invalid_handle"}
+        <p>
+          New to Bluesky? <a
+            href="https://bsky.app/"
+            target="_blank"
+            class="link">Create an account first</a
+          >, then return here to join.
+        </p>
+      {/if}
+    </div>
+  {/if}
 
   {#if data.handle === data.invitation.invitedBy.handle}
     <div>
@@ -49,35 +87,27 @@
       </form>
     {/if}
   {:else}
-    <button
-      class="button button-primary"
-      commandfor="topbar-login-dialog"
-      command="show-modal"
-    >
-      Join Community
-    </button>
+    <div>
+      <button
+        class="button button-primary"
+        commandfor="topbar-login-dialog"
+        command="show-modal"
+      >
+        Join Community
+      </button>
+    </div>
   {/if}
 </div>
 
 <style>
+  .container {
+    display: grid;
+    grid-auto-rows: min-content;
+    gap: var(--space-8);
+  }
+
   .recommendation-section h2 {
     margin-bottom: var(--space-4);
-  }
-
-  .recommendation-quote {
-    background: var(--color-bg);
-    padding: var(--space-6);
-    border-radius: var(--radius-md);
-    border-left: 4px solid var(--color-primary);
-    margin-bottom: var(--space-6);
-  }
-
-  .recommendation-quote p {
-    margin: 0;
-    line-height: var(--line-height-relaxed);
-    font-size: var(--font-size-lg);
-    color: var(--color-text);
-    white-space: pre-wrap;
   }
 
   .invite-url {

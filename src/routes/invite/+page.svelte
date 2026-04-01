@@ -68,23 +68,26 @@
     <div class="list">
       {#each data.invitations as invitation}
         <div class="invite">
-          <h3 class="heading-3 subtle">{invitation.name}</h3>
-          <p class="subtle">
-            {invitation.recommendation_text}
-          </p>
-          <div class="invite-actions">
-            <code class="invite-code">
-              {page.url.origin}/invite/{invitation.code}
-            </code>
+          <h3 class="heading-3 subtle invite-heading">
+            <a class="link" href="{page.url.origin}/invite/{invitation.code}">
+              {invitation.name}
+            </a>
             <button
-              type="button"
-              class="button"
+              class="icon-button"
+              aria-label="Copy invite link"
               onclick={() => {
                 copyToClipboard(`${page.url.origin}/invite/${invitation.code}`);
               }}
             >
-              Copy Link
+              <svg width="20" height="20">
+                <use href="#icon-copy" />
+              </svg>
             </button>
+          </h3>
+          <div class="quote">
+            <p>
+              {invitation.recommendation_text}
+            </p>
           </div>
         </div>
       {/each}
@@ -107,16 +110,14 @@
     margin-top: var(--space-12);
   }
 
-  .invite-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
+  .invite {
+    display: grid;
+    gap: var(--space-4);
   }
 
-  .invite-code {
-    flex: 1;
-    font-family: var(--font-mono);
-    font-size: var(--font-size-xs);
-    color: var(--color-text-tertiary);
+  .invite-heading {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
   }
 </style>

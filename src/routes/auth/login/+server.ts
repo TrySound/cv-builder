@@ -17,7 +17,10 @@ export const GET = async ({ url, cookies }) => {
     });
   } catch (error) {
     console.error(error);
-    // in case of invalid handle
+    // in case of invalid handle, redirect back to invite page with error
+    if (code) {
+      redirect(302, `/invite/${code}?error=invalid_handle`);
+    }
     redirect(302, "/unauthorized");
   }
   // Store invite code in cookie for post-auth handling
