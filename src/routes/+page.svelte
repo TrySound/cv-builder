@@ -36,15 +36,13 @@
         <p>View on GitHub</p>
       </div>
     </a>
-    <!--
-      <a class="button" target="_blank" href="#">
-        <div class="involved-card">
-          <h3 class="heading-2">Join the Community</h3>
-          <p class="subtle">Chat, ask questions, and share ideas.</p>
-          <p>Join Discord</p>
-        </div>
-      </a>
-      -->
+    <a class="button" target="_blank" href="https://discord.gg/Axdhf8x47F">
+      <div class="involved-card">
+        <h3 class="heading-2">Join the Community</h3>
+        <p class="subtle">Chat, ask questions, and share ideas.</p>
+        <p>Join Discord</p>
+      </div>
+    </a>
     <a
       class="button"
       target="_blank"
@@ -102,9 +100,9 @@
 
   .get-involved-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-8);
-    max-width: 600px;
+    max-width: 900px;
     margin: 0 auto;
   }
 
