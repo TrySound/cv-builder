@@ -22,6 +22,13 @@
   let isUploading = $state(false);
   let isDragOver = $state(false);
 
+  const resetUploadDialog = () => {
+    selectedFile = null;
+    uploadError = "";
+    isUploading = false;
+    isDragOver = false;
+  };
+
   async function handleSave() {
     if (!data.isOwnProfile) return;
 
@@ -270,7 +277,12 @@
   </section>
 </div>
 
-<dialog id="app-autofill-dialog" closedby="any" class="dialog">
+<dialog
+  id="app-autofill-dialog"
+  closedby="any"
+  class="dialog"
+  ontoggle={resetUploadDialog}
+>
   <header class="dialog-header">
     <h2 class="dialog-title">Upload Resume</h2>
     <button

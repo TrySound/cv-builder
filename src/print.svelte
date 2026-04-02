@@ -177,6 +177,7 @@
     font-size: var(--font-sm);
     line-height: 1.25;
     margin: 0;
+    white-space: pre-wrap;
   }
 
   .title {
@@ -227,10 +228,6 @@
     gap: var(--space-xl);
   }
 
-  .stack-item {
-    page-break-inside: avoid;
-  }
-
   @media (max-width: 640px) {
     .page {
       width: 100%;
@@ -267,10 +264,6 @@
       background: white;
       padding: 0;
       margin: 0;
-    }
-
-    .section {
-      page-break-inside: avoid;
     }
 
     .stack-item {

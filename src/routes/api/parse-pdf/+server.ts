@@ -17,16 +17,18 @@ ${schemaString}
 
 CRITICAL RULES:
 1. Return ONLY valid JSON matching these TypeScript interfaces - no markdown, no code blocks
-2. Fields marked with ? are optional - either include the value or OMIT the field entirely
-3. NEVER use null values - if data is missing, simply omit the field from the JSON
-4. NEVER include trailing commas in arrays or objects - this will break JSON parsing
-5. Use empty arrays [] for positions, education, projects, skills, languages if none found
-6. Use empty array [] for preferredWorkplace if not specified
-7. For current positions, omit endedAt field entirely (never set to null)
-8. Dates: ISO format YYYY-MM-DD preferred, or written format like "Jan 2020"
-9. Ensure all quotes, brackets, and braces are properly closed
-10. Extract all available information from the resume
-11. Infer workplaceType and employmentType from job descriptions when possible
+2. Preserve formatting of paragraphs using newlines
+3. Preserve formatting of lists using "-"
+4. Fields marked with ? are optional - either include the value or OMIT the field entirely
+5. NEVER use null values - if data is missing, simply omit the field from the JSON
+6. NEVER include trailing commas in arrays or objects - this will break JSON parsing
+7. Use empty arrays [] for positions, education, projects, skills, languages if none found
+8. Use empty array [] for preferredWorkplace if not specified
+9. For current positions, omit endedAt field entirely (never set to null)
+10. Dates: ISO format YYYY-MM-DD preferred, or written format like "Jan 2020"
+11. Ensure all quotes, brackets, and braces are properly closed
+12. Extract all available information from the resume
+13. Infer workplaceType and employmentType from job descriptions when possible
 
 EXAMPLE VALID OUTPUT:
 {
