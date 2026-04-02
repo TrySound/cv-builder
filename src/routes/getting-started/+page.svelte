@@ -135,6 +135,11 @@
         {/if}
       </div>
     </div>
+    <div>
+      <a href="https://chat.weaonrehire.com" target="_blank" class="link">
+        Chat with community
+      </a>
+    </div>
   </main>
 </div>
 
