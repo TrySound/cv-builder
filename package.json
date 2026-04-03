@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite-socket": "^0.1.2",
+    "@netlify/functions": "^5.1.5",
     "@sveltejs/adapter-netlify": "^5.0.0",
     "@sveltejs/kit": "^2.21.0",
     "@types/cookie-signature": "^1.1.2",

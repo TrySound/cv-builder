@@ -14,11 +14,68 @@
   let isDragOver = $state(false);
   let dialog: undefined | HTMLDialogElement;
 
+  // Polling state
+  let jobId = $state<string | null>(null);
+  let pollInterval: ReturnType<typeof setInterval> | null = null;
+  let pollingAttempts = $state(0);
+  const MAX_POLLING_ATTEMPTS = 150; // 5 minutes at 2 second intervals
+
   function reset() {
     selectedFile = null;
     uploadError = "";
     isUploading = false;
     isDragOver = false;
+    jobId = null;
+    pollingAttempts = 0;
+    stopPolling();
+  }
+
+  function stopPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+  }
+
+  async function pollForResult(currentJobId: string) {
+    try {
+      const response = await fetch(`/api/parse-pdf-status?id=${currentJobId}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        uploadError = result.error || "Failed to check parsing status";
+        stopPolling();
+        isUploading = false;
+        return;
+      }
+
+      if (result.status === "completed" && result.resume) {
+        stopPolling();
+        isUploading = false;
+        onUpload(result.resume);
+        selectedFile = null;
+        dialog?.close();
+      } else if (result.status === "failed") {
+        stopPolling();
+        isUploading = false;
+        uploadError = result.error || "Failed to parse resume";
+      } else {
+        // Still processing - increment attempts
+        pollingAttempts++;
+        if (pollingAttempts >= MAX_POLLING_ATTEMPTS) {
+          stopPolling();
+          isUploading = false;
+          uploadError = "PDF parsing timed out. Please try again later.";
+        }
+      }
+    } catch (error) {
+      stopPolling();
+      isUploading = false;
+      uploadError =
+        error instanceof Error
+          ? error.message
+          : "Network error during status check. Please try again.";
+    }
   }
 
   function handleFileSelect(event: Event) {
@@ -51,6 +108,8 @@
 
     uploadError = "";
     isUploading = true;
+    jobId = null;
+    pollingAttempts = 0;
 
     const formData = new FormData();
     formData.append("file", selectedFile);
@@ -61,25 +120,35 @@
     })
       .then(async (response) => {
         const result = await response.json();
-        isUploading = false;
 
         if (!response.ok) {
-          uploadError = result.error || "Failed to parse resume";
+          isUploading = false;
+          uploadError = result.error || "Failed to start resume parsing";
           return;
         }
 
-        if (result.resume) {
-          onUpload(result.resume);
-          selectedFile = null;
-          dialog?.close();
+        if (result.jobId) {
+          jobId = result.jobId;
+          // Start polling for results
+          pollInterval = setInterval(() => {
+            if (jobId) {
+              pollForResult(jobId);
+            }
+          }, 2000); // Poll every 2 seconds
+
+          // Do an immediate first poll
+          pollForResult(result.jobId);
+        } else {
+          isUploading = false;
+          uploadError = "No job ID received from server";
         }
       })
       .catch((error) => {
+        isUploading = false;
         uploadError =
           error instanceof Error
             ? error.message
             : "Network error. Please try again.";
-        isUploading = false;
       });
   }
 
@@ -136,6 +205,7 @@
       aria-label="Close"
       commandfor="upload-resume-dialog"
       command="close"
+      disabled={isUploading}
     >
       <svg width="20" height="20">
         <use href="#icon-x" />
@@ -173,6 +243,9 @@
         <div class="upload-loader">
           <div class="spinner"></div>
           <span>Parsing your resume...</span>
+          {#if jobId}
+            <span class="subtle">This may take up to a minute</span>
+          {/if}
         </div>
       {:else}
         <label for="upload-resume-dialog-file" class="file-label">
@@ -213,11 +286,6 @@
     to {
       transform: rotate(360deg);
     }
-  }
-
-  .upload-loader span {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
   }
 
   .drop-zone {

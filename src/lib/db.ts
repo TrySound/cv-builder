@@ -92,6 +92,15 @@ export interface DatabaseSchema {
     invitation_id?: string | null;
     created_at?: string;
   };
+  pdf_jobs: {
+    id?: string;
+    status: "pending" | "completed" | "failed";
+    result: any | null;
+    error: string | null;
+    retry_count: number;
+    created_at?: string;
+    updated_at?: string;
+  };
 }
 
 let db: Kysely<DatabaseSchema> | null = null;
