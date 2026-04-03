@@ -1093,7 +1093,7 @@
   .cv-row-main {
     p {
       margin-top: 0;
-      white-space: pre-wrap;
+      white-space: pre-line;
     }
   }
 

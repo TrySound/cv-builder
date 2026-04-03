@@ -196,7 +196,7 @@ body {
   padding: var(--space-4) var(--space-6);
   border-left: 4px solid var(--color-primary);
   color: var(--color-text);
-  white-space: pre-wrap;
+  white-space: pre-line;
   font-size: var(--font-size-lg);
   line-height: var(--line-height-relaxed);
   p {

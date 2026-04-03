@@ -177,7 +177,7 @@
     font-size: var(--font-sm);
     line-height: 1.25;
     margin: 0;
-    white-space: pre-wrap;
+    white-space: pre-line;
   }
 
   .title {
