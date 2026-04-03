@@ -19,13 +19,18 @@ export const handleResolver = createHandleResolver({
 });
 export const didResolver = createDidResolver({});
 
+export const SCOPE = [
+  "atproto",
+  "rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app#bsky_appview",
+];
+
 export const getClientMetadata = (): OAuthClientMetadataInput => {
   return {
     client_id: `${env.BASE_URL}/client-metadata.json`,
     client_name: "weareonhire",
     client_uri: env.BASE_URL,
     redirect_uris: [`${env.BASE_URL}/auth/callback`],
-    scope: "atproto transition:generic",
+    scope: SCOPE.join(" "),
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
     token_endpoint_auth_method: "private_key_jwt",
@@ -115,7 +120,7 @@ const createOAuthClient = async () => {
   let keyset;
   if (isDev) {
     clientMetadata = buildAtprotoLoopbackClientMetadata({
-      scope: "atproto transition:generic",
+      scope: SCOPE.join(" "),
       redirect_uris: ["http://127.0.0.1:5173/auth/callback"],
     });
   } else {

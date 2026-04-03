@@ -1,5 +1,5 @@
 import { redirect } from "@sveltejs/kit";
-import { getOAuthClient } from "$lib/auth";
+import { getOAuthClient, SCOPE } from "$lib/auth";
 
 export const GET = async ({ url, cookies }) => {
   const prompt =
@@ -12,7 +12,7 @@ export const GET = async ({ url, cookies }) => {
     const oauthClient = await getOAuthClient();
     // use handle to resolve pds or fallback to bsky login
     authUrl = await oauthClient.authorize(handle ?? "https://bsky.social", {
-      scope: "atproto transition:generic",
+      scope: SCOPE.join(" "),
       prompt,
     });
   } catch (error) {
