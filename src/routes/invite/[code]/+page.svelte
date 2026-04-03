@@ -16,6 +16,11 @@
         description:
           "The handle you entered doesn't exist on Bluesky. Make sure you have a valid Bluesky account, or create one first.",
       },
+      oauth_failed: {
+        title: "Authentication failed",
+        description:
+          "Something went wrong during login. This can happen if the login took too long. Please try joining again.",
+      },
       invite_expired: {
         title: "Invitation expired",
         description:

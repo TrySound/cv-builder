@@ -9,16 +9,27 @@ const ALLOWED_HANDLES = ["trysound.io"];
 
 export const GET = async ({ url, cookies }) => {
   const oauthClient = await getOAuthClient();
-  const { session } = await oauthClient.callback(url.searchParams);
+  const inviteCode = cookies.get("invite_code");
+
+  let session;
+  try {
+    const result = await oauthClient.callback(url.searchParams);
+    session = result.session;
+  } catch (error) {
+    console.error("OAuth callback error:", error);
+    // Redirect back to invite page with error, or unauthorized if no invite code
+    cookies.delete("invite_code", { path: "/" });
+    if (inviteCode) {
+      redirect(302, `/invite/${inviteCode}?error=oauth_failed`);
+    }
+    redirect(302, "/unauthorized");
+  }
 
   const agent = new Agent(session);
   const profile = await agent.getProfile({ actor: session.did });
   const handle = profile.data.handle;
 
   const db = await getDB();
-
-  // Check for invite code in cookie
-  const inviteCode = cookies.get("invite_code");
 
   // Check if user is already a member
   const existingMember = await db
