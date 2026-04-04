@@ -147,11 +147,12 @@
       <div class="form-group">
         <label for="topbar-login-handle-input" class="form-label">Handle</label>
         <input
-          type="url"
+          type="text"
           id="topbar-login-handle-input"
           name="handle"
           placeholder="e.g., user.bsky.social"
           autocomplete="off"
+          inputmode="url"
           required
           class="form-input"
           oninput={(event) => event.currentTarget.setCustomValidity("")}
