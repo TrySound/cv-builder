@@ -10,8 +10,11 @@
   let recommendationSuccess = $state(false);
 
   // Track completion status
+  // svelte-ignore state_referenced_locally
   let hasResume = $state(data.hasResume);
+  // svelte-ignore state_referenced_locally
   let hasRecommendedBack = $state(data.hasRecommendedBack);
+  // svelte-ignore state_referenced_locally
   let hasInvited = $state(data.hasInvited);
 
   async function handleResumeUpload(resume: Resume) {

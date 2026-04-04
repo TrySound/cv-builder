@@ -8,6 +8,7 @@
 
   let { data, form } = $props();
 
+  // svelte-ignore state_referenced_locally
   let resume = $state<Resume>(data.resume);
   let saveMessage = $state("");
   let recommendationText = $state("");
