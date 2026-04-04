@@ -1,8 +1,7 @@
 <script lang="ts">
   import Topbar from "$lib/topbar.svelte";
-  import type { PageProps } from "./$types";
 
-  let { data }: PageProps = $props();
+  let { data } = $props();
 </script>
 
 <div class="container">

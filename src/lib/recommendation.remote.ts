@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { error, fail } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
 import { query, form, getRequestEvent } from "$app/server";
 import { sql } from "kysely";
 import { getDB } from "./db";
@@ -73,7 +73,7 @@ export const createRecommendation = form(
   async ({ handle, text }) => {
     const event = getRequestEvent();
     if (!event.locals.did) {
-      return fail(401, { error: "Not authenticated" });
+      error(401);
     }
 
     const db = await getDB();
@@ -85,11 +85,11 @@ export const createRecommendation = form(
       .where("handle", "=", handle)
       .executeTakeFirst();
     if (!targetMember) {
-      return fail(404, { error: "Member not found" });
+      error(404, "Member not found");
     }
     // Prevent self-recommendations
     if (event.locals.did === targetMember.did) {
-      return fail(400, { error: "Cannot recommend yourself" });
+      error(400, "Cannot recommend yourself");
     }
 
     // Check if already recommended
@@ -100,7 +100,7 @@ export const createRecommendation = form(
       .where("subject_did", "=", targetMember.did)
       .executeTakeFirst();
     if (existingRecommendation) {
-      return fail(400, { error: "Already recommended this member" });
+      error(400, "Already recommended this member");
     }
 
     // Create the recommendation

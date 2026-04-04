@@ -2,20 +2,26 @@
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import type { Resume } from "$lib/resume-schema";
-  import type { PageProps } from "./$types";
+  import { createRecommendation as createRecommendationRaw } from "$lib/recommendation.remote";
+  import { getChecks } from "./checks.remote";
 
-  let { data, form }: PageProps = $props();
+  let { data } = $props();
 
-  let recommendationText = $state("");
-  let recommendationSuccess = $state(false);
+  const checks = getChecks();
+
+  const createRecommendation = $derived(
+    createRecommendationRaw.for(data.inviter?.handle ?? ""),
+  );
+
+  let recommendationDialog: undefined | HTMLDialogElement;
 
   // Track completion status
   // svelte-ignore state_referenced_locally
-  let hasResume = $state(data.hasResume);
-  // svelte-ignore state_referenced_locally
-  let hasRecommendedBack = $state(data.hasRecommendedBack);
-  // svelte-ignore state_referenced_locally
-  let hasInvited = $state(data.hasInvited);
+  let hasResume = $state(checks.current?.hasResume ?? false);
+  let hasRecommendedBack = $derived(
+    checks.current?.hasRecommendedBack ?? false,
+  );
+  let hasInvited = $derived(checks.current?.hasInvited ?? false);
 
   async function handleResumeUpload(resume: Resume) {
     // Save the resume to the profile
@@ -151,6 +157,7 @@
 
 <!-- Recommendation Dialog -->
 <dialog
+  bind:this={recommendationDialog}
   id="getting-started-recommendation-dialog"
   class="dialog"
   closedby="any"
@@ -170,46 +177,46 @@
   </header>
 
   <div class="dialog-content">
-    {#if form?.error && !recommendationSuccess}
-      <div class="alert alert-error">{form.error}</div>
-    {/if}
-
-    {#if recommendationSuccess}
-      <div class="alert alert-success">Recommendation sent successfully!</div>
-    {:else}
-      <p class="dialog-description">
-        {#if data.inviter}
-          Write a recommendation for {data.inviter.name || data.inviter.handle}
-        {:else}
-          Write a recommendation for the person who invited you
-        {/if}
-      </p>
-      <form method="POST" action="?/recommend" class="form-stack">
-        <div class="form-group">
-          <label for="recommendation-text" class="form-label">
-            Your recommendation
-            <span class="character-count">
-              {recommendationText.length} / 200 characters
-            </span>
-          </label>
-          <textarea
-            id="recommendation-text"
-            name="text"
-            bind:value={recommendationText}
-            placeholder="Write your recommendation here..."
-            rows="6"
-            class="form-input"
-            required
-            minlength="200"
-          ></textarea>
-        </div>
-        <div>
-          <button type="submit" class="button button-primary">
-            Send Recommendation
-          </button>
-        </div>
-      </form>
-    {/if}
+    <p class="dialog-description">
+      Write a recommendation for {data.inviter?.name || data.inviter?.handle}
+    </p>
+    <form
+      {...createRecommendation.enhance(async ({ form, submit }) => {
+        await submit();
+        await checks.refresh();
+        form.reset();
+        // remote functions do not support method=dialog
+        // so use enhanced form to close it manually after submission
+        recommendationDialog?.close();
+      })}
+      class="form-stack"
+    >
+      <input
+        {...createRecommendation.fields.handle.as(
+          "hidden",
+          data.inviter?.handle ?? "",
+        )}
+      />
+      <div class="form-group">
+        <label for="recommendation-text" class="form-label">
+          Your recommendation
+          <span class="character-count">
+            {createRecommendation.fields.text.value()?.length ?? 0} / 200 characters
+          </span>
+        </label>
+        <textarea
+          id="recommendation-text"
+          rows="6"
+          class="form-input"
+          placeholder="Write your recommendation here..."
+          minlength="200"
+          {...createRecommendation.fields.text.as("text")}
+        ></textarea>
+      </div>
+      <div>
+        <button class="button button-primary">Send Recommendation</button>
+      </div>
+    </form>
   </div>
 </dialog>
 

@@ -6,7 +6,7 @@
     getMyInvitations,
   } from "$lib/invitation.remote.js";
 
-  let { data, form } = $props();
+  let { data } = $props();
 
   const invitations = getMyInvitations();
 </script>
@@ -49,10 +49,6 @@
         {...createInvitation.fields.recommendation_text.as("text")}
       ></textarea>
     </div>
-
-    {#if form?.error}
-      <div class="alert alert-error">{form.error}</div>
-    {/if}
 
     <div>
       <button class="button">Generate Invite Link</button>
