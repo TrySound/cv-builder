@@ -862,7 +862,7 @@
         </div>
         <div class="cv-row-heading">
           {#if project.url}
-            <a href={project.url} target="_blank" class="heading-3 link">
+            <a href={normalizeUrl(project.url)} target="_blank" class="heading-3 link">
               {project.name || "Untitled Project"}
             </a>
           {:else}
