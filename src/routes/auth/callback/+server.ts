@@ -5,7 +5,7 @@ import { env } from "$env/dynamic/private";
 import { getOAuthClient } from "$lib/auth";
 import { getDB } from "$lib/db";
 
-const ALLOWED_HANDLES = env.ALLOWED_HANDLES.split(",").filter(Boolean);
+const ALLOWED_HANDLES = env.ALLOWED_HANDLES?.split(",").filter(Boolean) ?? [];
 
 export const GET = async ({ url, cookies }) => {
   const oauthClient = await getOAuthClient();
