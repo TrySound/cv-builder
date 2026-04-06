@@ -103,6 +103,7 @@ CRITICAL RULES:
 11. Ensure all quotes, brackets, and braces are properly closed
 12. Extract all available information from the resume
 13. Infer workplaceType and employmentType from job descriptions when possible
+14. headline is a short description like "Senior full-stack engineer". Can be extracted from summary.
 
 EXAMPLE VALID OUTPUT:
 {
