@@ -107,7 +107,10 @@
     {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe}
       <form {...createRecommendation} class="form-stack">
         <input
-          {...createRecommendation.fields.handle.as("hidden", data.handle)}
+          {...createRecommendation.fields.handle.as(
+            "hidden",
+            data.profile.handle,
+          )}
         />
         <div class="form-group">
           <label for="recommendation-input" class="form-label">
