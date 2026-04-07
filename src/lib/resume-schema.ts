@@ -1,23 +1,9 @@
 import * as v from "valibot";
-import { ISO8601Schema } from "./jsonresume";
-
-export const EmploymentTypeSchema = v.union([
-  v.literal("fulltime"),
-  v.literal("parttime"),
-  v.literal("contract"),
-  v.literal("freelance"),
-  v.literal("internship"),
-]);
-
-export type EmploymentType = v.InferOutput<typeof EmploymentTypeSchema>;
-
-export const WorkplaceTypeSchema = v.union([
-  v.literal("onsite"),
-  v.literal("remote"),
-  v.literal("hybrid"),
-]);
-
-export type WorkplaceType = v.InferOutput<typeof WorkplaceTypeSchema>;
+import {
+  ISO8601Schema,
+  EmploymentTypeSchema,
+  WorkplaceTypeSchema,
+} from "./jsonresume";
 
 export const ProfileSchema = v.object({
   name: v.string(),

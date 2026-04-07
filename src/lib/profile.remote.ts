@@ -5,9 +5,8 @@ import { getDB } from "./db";
 import {
   ResumeSchema,
   type Resume,
-  type EmploymentType,
-  type WorkplaceType,
 } from "./resume-schema";
+import type { EmploymentType, WorkplaceType } from "./jsonresume";
 
 export const getMemberProfile = query(
   v.object({ handle: v.string() }),

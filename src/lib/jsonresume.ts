@@ -7,6 +7,24 @@ export const ISO8601Schema = v.pipe(v.string(), v.regex(ISO8601_REGEX));
 
 export type ISO8601 = v.InferOutput<typeof ISO8601Schema>;
 
+export const EmploymentTypeSchema = v.union([
+  v.literal("fulltime"),
+  v.literal("parttime"),
+  v.literal("contract"),
+  v.literal("freelance"),
+  v.literal("internship"),
+]);
+
+export type EmploymentType = v.InferOutput<typeof EmploymentTypeSchema>;
+
+export const WorkplaceTypeSchema = v.union([
+  v.literal("onsite"),
+  v.literal("remote"),
+  v.literal("hybrid"),
+]);
+
+export type WorkplaceType = v.InferOutput<typeof WorkplaceTypeSchema>;
+
 export const LocationSchema = v.object({
   address: v.optional(v.string()),
   postalCode: v.optional(v.string()),
@@ -49,6 +67,12 @@ export const WorkSchema = v.object({
   endDate: v.optional(ISO8601Schema),
   summary: v.optional(v.string()),
   highlights: v.optional(v.array(v.string())),
+  extension: v.optional(
+    v.object({
+      employmentType: v.optional(EmploymentTypeSchema),
+      workplaceType: v.optional(WorkplaceTypeSchema),
+    }),
+  ),
 });
 
 export type Work = v.InferOutput<typeof WorkSchema>;
@@ -74,6 +98,11 @@ export const EducationSchema = v.object({
   endDate: v.optional(ISO8601Schema),
   score: v.optional(v.string()),
   courses: v.optional(v.array(v.string())),
+  extension: v.optional(
+    v.object({
+      description: v.optional(v.string()),
+    }),
+  ),
 });
 
 export type Education = v.InferOutput<typeof EducationSchema>;
@@ -173,6 +202,12 @@ export const ResumeSchema = v.object({
   references: v.optional(v.array(ReferenceSchema)),
   projects: v.optional(v.array(ProjectSchema)),
   meta: v.optional(MetaSchema),
+  extension: v.optional(
+    v.object({
+      industry: v.optional(v.string()),
+      preferredWorkplaces: v.optional(v.array(WorkplaceTypeSchema)),
+    }),
+  ),
 });
 
 export type Resume = v.InferOutput<typeof ResumeSchema>;
