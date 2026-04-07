@@ -14,7 +14,6 @@ export const handle = async ({ event, resolve }) => {
 
         event.locals.did = did;
         event.locals.handle = handle;
-
       } catch {
         event.cookies.delete("session", { path: "/" });
       }

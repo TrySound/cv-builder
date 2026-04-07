@@ -99,7 +99,11 @@ CRITICAL RULES:
 7. Use empty arrays [] for positions, education, projects, skills, languages if none found
 8. Use empty array [] for preferredWorkplace if not specified
 9. For current positions, omit endedAt field entirely (never set to null)
-10. Dates: ISO format YYYY-MM-DD preferred, or written format like "Jan 2020"
+10. Dates: Always use partial ISO8601 format WITHOUT the day component:
+    - YYYY format when only year is known (e.g., "2020")
+    - YYYY-MM format when month is known (e.g., "2020-06")
+    - IMPORTANT: If a resume shows a full date like "2020-01-15", trim the day and return "2020-01"
+    - Never include the day component in date fields
 11. Ensure all quotes, brackets, and braces are properly closed
 12. Extract all available information from the resume
 13. Infer workplaceType and employmentType from job descriptions when possible

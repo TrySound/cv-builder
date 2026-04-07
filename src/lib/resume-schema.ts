@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { ISO8601Schema } from "./jsonresume";
 
 export const EmploymentTypeSchema = v.union([
   v.literal("fulltime"),
@@ -39,8 +40,8 @@ export const PositionSchema = v.object({
   workplaceType: v.optional(WorkplaceTypeSchema),
   employmentType: v.optional(EmploymentTypeSchema),
   description: v.optional(v.string()),
-  startedAt: v.optional(v.string()),
-  endedAt: v.optional(v.string()),
+  startedAt: v.optional(ISO8601Schema),
+  endedAt: v.optional(ISO8601Schema),
 });
 
 export type Position = v.InferOutput<typeof PositionSchema>;
@@ -50,8 +51,8 @@ export const EducationSchema = v.object({
   degree: v.string(),
   field: v.optional(v.string()),
   description: v.optional(v.string()),
-  startedAt: v.optional(v.string()),
-  endedAt: v.optional(v.string()),
+  startedAt: v.optional(ISO8601Schema),
+  endedAt: v.optional(ISO8601Schema),
 });
 
 export type Education = v.InferOutput<typeof EducationSchema>;
@@ -60,8 +61,8 @@ export const ProjectSchema = v.object({
   name: v.string(),
   description: v.optional(v.string()),
   url: v.optional(v.string()),
-  startedAt: v.optional(v.string()),
-  endedAt: v.optional(v.string()),
+  startedAt: v.optional(ISO8601Schema),
+  endedAt: v.optional(ISO8601Schema),
 });
 
 export type Project = v.InferOutput<typeof ProjectSchema>;

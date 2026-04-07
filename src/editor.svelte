@@ -2,6 +2,7 @@
   import type { Resume } from "$lib/resume-schema";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
+  import DatePicker from "$lib/date-picker.svelte";
 
   let {
     resume,
@@ -420,22 +421,18 @@
               <label for="job-start-{index}" class="form-label">
                 Start Date
               </label>
-              <input
-                type="text"
+              <DatePicker
                 id="job-start-{index}"
                 bind:value={editingResume.positions[index].startedAt}
-                placeholder="Jan 2020"
-                class="form-input"
+                placeholder="YYYY or YYYY-MM"
               />
             </div>
             <div class="form-group">
               <label for="job-end-{index}" class="form-label">End Date</label>
-              <input
-                type="text"
+              <DatePicker
                 id="job-end-{index}"
                 bind:value={editingResume.positions[index].endedAt}
-                placeholder="Present"
-                class="form-input"
+                placeholder="YYYY or YYYY-MM"
               />
             </div>
             <div class="form-group">
@@ -624,22 +621,18 @@
               <label for="edu-start-{index}" class="form-label">
                 Start Date
               </label>
-              <input
-                type="text"
+              <DatePicker
                 id="edu-start-{index}"
                 bind:value={editingResume.education[index].startedAt}
-                placeholder="Sep 2016"
-                class="form-input"
+                placeholder="YYYY or YYYY-MM"
               />
             </div>
             <div class="form-group">
               <label for="edu-end-{index}" class="form-label">End Date</label>
-              <input
-                type="text"
+              <DatePicker
                 id="edu-end-{index}"
                 bind:value={editingResume.education[index].endedAt}
-                placeholder="May 2020"
-                class="form-input"
+                placeholder="YYYY or YYYY-MM"
               />
             </div>
             <div class="form-group">
@@ -790,24 +783,20 @@
               <label for="project-start-{index}" class="form-label">
                 Start Date
               </label>
-              <input
-                type="text"
+              <DatePicker
                 id="project-start-{index}"
                 bind:value={editingResume.projects[index].startedAt}
-                placeholder="Jan 2023"
-                class="form-input"
+                placeholder="YYYY or YYYY-MM"
               />
             </div>
             <div class="form-group">
               <label for="project-end-{index}" class="form-label">
                 End Date
               </label>
-              <input
-                type="text"
+              <DatePicker
                 id="project-end-{index}"
                 bind:value={editingResume.projects[index].endedAt}
-                placeholder="Present"
-                class="form-input"
+                placeholder="YYYY or YYYY-MM"
               />
             </div>
             <div class="form-group">
@@ -862,7 +851,11 @@
         </div>
         <div class="cv-row-heading">
           {#if project.url}
-            <a href={normalizeUrl(project.url)} target="_blank" class="heading-3 link">
+            <a
+              href={normalizeUrl(project.url)}
+              target="_blank"
+              class="heading-3 link"
+            >
               {project.name || "Untitled Project"}
             </a>
           {:else}

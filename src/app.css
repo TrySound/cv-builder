@@ -221,6 +221,7 @@ body {
   transition: background-color var(--transition-fast);
   border: none;
   background: transparent;
+  cursor: default;
   /* for buttons */
   width: stretch;
   text-align: left;
