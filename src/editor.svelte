@@ -417,6 +417,9 @@
         {/if}
       </div>
       <div class="cv-row-main">
+        {#if displayResume.profile.headline}
+          <p class="subtle">{displayResume.profile.headline}</p>
+        {/if}
         {#if displayResume.profile.summary}
           <p>{displayResume.profile.summary}</p>
         {:else}
@@ -1138,7 +1141,7 @@
 
   .cv-section {
     display: grid;
-    gap: var(--space-8);
+    gap: var(--space-6);
     margin-bottom: var(--space-12);
   }
 
