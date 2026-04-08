@@ -74,6 +74,11 @@ export interface DatabaseSchema {
     did: string;
     workplace_type: string;
   };
+  member_profiles: {
+    id?: string;
+    did: string;
+    url: string;
+  };
   invitations: {
     id?: string;
     code: string;

@@ -3,6 +3,12 @@
   import type { Resume } from "$lib/resume-schema";
 
   let { resume }: { resume: Resume } = $props();
+  const stripHttps = (url: string) => {
+    if (url.startsWith("https://")) {
+      return url.slice("https://".length);
+    }
+    return url;
+  };
 </script>
 
 <div class="page" hidden>
@@ -11,20 +17,23 @@
       <h2 class="display">{resume.profile.name}</h2>
     {/if}
     <div class="contact-info">
-      {#if resume.profile.email}
-        <span class="caption">{resume.profile.email}</span>
-      {/if}
       {#if resume.profile.location}
-        <span class="caption">{resume.profile.location}</span>
+        <span class="body">{resume.profile.location}</span>
       {/if}
-      {#if resume.profile.linkedin}
-        <span class="caption">{resume.profile.linkedin}</span>
+      {#if resume.profile.email}
+        <a class="body" href="mailto:{resume.profile.email}">
+          {resume.profile.email}
+        </a>
       {/if}
-      {#if resume.profile.github}
-        <span class="caption">{resume.profile.github}</span>
+      {#if resume.profile.profiles}
+        {#each resume.profile.profiles as profile}
+          <a class="body" href={profile.url}>{stripHttps(profile.url)}</a>
+        {/each}
       {/if}
       {#if resume.profile.website}
-        <span class="caption">{resume.profile.website}</span>
+        <a class="body" href={resume.profile.website}>
+          {stripHttps(resume.profile.website)}
+        </a>
       {/if}
     </div>
   </header>

@@ -231,6 +231,27 @@ export async function seedDatabase(db: Kysely<DatabaseSchema>) {
   await db.insertInto("members").values(members).execute();
   console.log(`Inserted ${members.length} members`);
 
+  // Insert profiles (GitHub and LinkedIn URLs)
+  const profiles: DatabaseSchema["member_profiles"][] = [];
+  members.forEach((member) => {
+    if (member.linkedin) {
+      profiles.push({
+        did: member.did,
+        url: member.linkedin,
+      });
+    }
+    if (member.github) {
+      profiles.push({
+        did: member.did,
+        url: member.github,
+      });
+    }
+  });
+  if (profiles.length > 0) {
+    await db.insertInto("member_profiles").values(profiles).execute();
+    console.log(`Inserted ${profiles.length} profile URLs`);
+  }
+
   // Insert positions
   const positions: DatabaseSchema["member_positions"][] = members
     .slice(1)

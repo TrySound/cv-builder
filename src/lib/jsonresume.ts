@@ -38,7 +38,7 @@ export type Location = v.InferOutput<typeof LocationSchema>;
 export const ProfileSchema = v.object({
   network: v.optional(v.string()),
   username: v.optional(v.string()),
-  url: v.optional(v.string()),
+  url: v.string(),
 });
 
 export type Profile = v.InferOutput<typeof ProfileSchema>;

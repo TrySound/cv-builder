@@ -3,13 +3,13 @@ import {
   ISO8601Schema,
   EmploymentTypeSchema,
   WorkplaceTypeSchema,
+  ProfileSchema as JsonResumeProfileSchema
 } from "./jsonresume";
 
 export const ProfileSchema = v.object({
   name: v.string(),
   email: v.optional(v.string()),
-  linkedin: v.optional(v.string()),
-  github: v.optional(v.string()),
+  profiles: v.optional(v.array(JsonResumeProfileSchema)),
   website: v.optional(v.string()),
   location: v.optional(v.string()),
   headline: v.optional(v.string()),

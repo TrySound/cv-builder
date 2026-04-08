@@ -22,54 +22,70 @@ export async function loadResume(handle: string): Promise<Resume | undefined> {
   }
 
   // Load all related data
-  const [positions, education, projects, skills, languages, workplaces] =
-    await Promise.all([
-      db
-        .selectFrom("member_positions")
-        .selectAll()
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_education")
-        .selectAll()
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_projects")
-        .selectAll()
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_skills")
-        .select("skill")
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_languages")
-        .select("language")
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_preferred_workplaces")
-        .select("workplace_type")
-        .where("did", "=", targetMember.did)
-        .execute(),
-    ]);
+  const [
+    positions,
+    education,
+    projects,
+    skills,
+    languages,
+    workplaces,
+    profiles,
+  ] = await Promise.all([
+    db
+      .selectFrom("member_positions")
+      .selectAll()
+      .where("did", "=", targetMember.did)
+      .execute(),
+    db
+      .selectFrom("member_education")
+      .selectAll()
+      .where("did", "=", targetMember.did)
+      .execute(),
+    db
+      .selectFrom("member_projects")
+      .selectAll()
+      .where("did", "=", targetMember.did)
+      .execute(),
+    db
+      .selectFrom("member_skills")
+      .select("skill")
+      .where("did", "=", targetMember.did)
+      .execute(),
+    db
+      .selectFrom("member_languages")
+      .select("language")
+      .where("did", "=", targetMember.did)
+      .execute(),
+    db
+      .selectFrom("member_preferred_workplaces")
+      .select("workplace_type")
+      .where("did", "=", targetMember.did)
+      .execute(),
+    db
+      .selectFrom("member_profiles")
+      .select("url")
+      .where("did", "=", targetMember.did)
+      .execute(),
+  ]);
 
-  // Build profiles array from linkedin and github
-  const profiles = [];
-  if (targetMember.linkedin) {
-    profiles.push({
-      network: "LinkedIn",
-      url: targetMember.linkedin,
-    });
+  // Build profiles array with network inference from URL
+  function inferNetwork(url: string): string | undefined {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes("github.com")) return "GitHub";
+    if (lowerUrl.includes("linkedin.com")) return "LinkedIn";
+    if (lowerUrl.includes("twitter.com") || lowerUrl.includes("x.com"))
+      return "Twitter";
+    if (lowerUrl.includes("facebook.com")) return "Facebook";
+    if (lowerUrl.includes("instagram.com")) return "Instagram";
+    if (lowerUrl.includes("t.me") || lowerUrl.includes("telegram.me"))
+      return "Telegram";
+    return undefined;
   }
-  if (targetMember.github) {
-    profiles.push({
-      network: "GitHub",
-      url: targetMember.github,
-    });
-  }
+
+  const resumeProfiles = profiles.map((p) => ({
+    network: inferNetwork(p.url),
+    url: p.url,
+  }));
 
   // Build extension with custom fields (only non-position data)
   const extension: Resume["extension"] = {
@@ -130,19 +146,19 @@ export async function loadResume(handle: string): Promise<Resume | undefined> {
       url: targetMember.website ?? undefined,
       summary: targetMember.summary ?? undefined,
       location,
-      profiles: profiles.length > 0 ? profiles : undefined,
+      profiles: resumeProfiles.length > 0 ? resumeProfiles : undefined,
     },
     work: work.length > 0 ? work : undefined,
     education: educationList.length > 0 ? educationList : undefined,
     projects:
       projects.length > 0
         ? projects.map((p) => ({
-          name: p.name,
-          description: p.description ?? undefined,
-          url: p.url ?? undefined,
-          startDate: p.started_at ?? undefined,
-          endDate: p.ended_at ?? undefined,
-        }))
+            name: p.name,
+            description: p.description ?? undefined,
+            url: p.url ?? undefined,
+            startDate: p.started_at ?? undefined,
+            endDate: p.ended_at ?? undefined,
+          }))
         : undefined,
     skills:
       skills.length > 0 ? skills.map((s) => ({ name: s.skill })) : undefined,

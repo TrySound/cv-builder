@@ -168,12 +168,32 @@
     stopEditing();
   }
 
-  const normalizeUrl = (url: string) => {
-    if (url.startsWith("https://")) {
+  function getNetworkDisplayName(url: string): string {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes("github.com")) return "GitHub";
+    if (lowerUrl.includes("linkedin.com")) return "LinkedIn";
+    if (lowerUrl.includes("twitter.com") || lowerUrl.includes("x.com"))
+      return "Twitter";
+    if (lowerUrl.includes("facebook.com")) return "Facebook";
+    if (lowerUrl.includes("instagram.com")) return "Instagram";
+    if (lowerUrl.includes("t.me") || lowerUrl.includes("telegram.me"))
+      return "Telegram";
+
+    try {
+      const hostname = new URL(url.startsWith("http") ? url : `https://${url}`)
+        .hostname;
+      return hostname.replace(/^www\./, "");
+    } catch {
       return url;
     }
-    return `https://${url}`;
-  };
+  }
+
+  function getNetworkIcon(url: string): string {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes("github.com")) return "github";
+    if (lowerUrl.includes("linkedin.com")) return "linkedin";
+    return "website";
+  }
 </script>
 
 <!-- Contacts and summary -->
@@ -240,26 +260,6 @@
             />
           </div>
           <div class="form-group">
-            <label for="contact-linkedin" class="form-label">LinkedIn</label>
-            <input
-              type="text"
-              id="contact-linkedin"
-              bind:value={editingResume.profile.linkedin}
-              placeholder="linkedin.com/in/johndoe"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label for="contact-github" class="form-label">GitHub</label>
-            <input
-              type="text"
-              id="contact-github"
-              bind:value={editingResume.profile.github}
-              placeholder="github.com/johndoe"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
             <label for="contact-headline" class="form-label">Headline</label>
             <input
               type="text"
@@ -278,6 +278,55 @@
               placeholder="Software Development"
               class="form-input"
             />
+          </div>
+          <div class="form-group full-row">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="form-label">Profile URLs</label>
+            {#each editingResume.profile.profiles ?? [] as profile, index}
+              <div class="input-with-action">
+                <input
+                  value={profile.url}
+                  oninput={(e) => {
+                    const profiles = editingResume!.profile.profiles ?? [];
+                    profiles[index] = { url: e.currentTarget.value };
+                    editingResume!.profile.profiles = profiles;
+                  }}
+                  placeholder="https://linkedin.com/in/johndoe"
+                  class="form-input"
+                />
+                <button
+                  class="icon-button"
+                  aria-label="Remove profile URL"
+                  onclick={() => {
+                    const profiles = editingResume!.profile.profiles ?? [];
+                    profiles.splice(index, 1);
+                    editingResume!.profile.profiles = profiles;
+                  }}
+                >
+                  <svg width="16" height="16">
+                    <use href="#icon-minus-circle" />
+                  </svg>
+                </button>
+              </div>
+            {/each}
+            <div class="input-with-action">
+              <div><!-- skip column --></div>
+              <button
+                class="icon-button"
+                aria-label="Add profile URL"
+                onclick={() => {
+                  if (editingResume) {
+                    const profiles = editingResume.profile.profiles ?? [];
+                    profiles.push({ url: "" });
+                    editingResume.profile.profiles = profiles;
+                  }
+                }}
+              >
+                <svg width="16" height="16">
+                  <use href="#icon-plus" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -330,33 +379,19 @@
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}
-        {#if displayResume.profile.linkedin}
-          <a
-            href={normalizeUrl(displayResume.profile.linkedin)}
-            target="_blank"
-            class="link"
-          >
-            LinkedIn
-            <svg width="14" height="14"><use href="#icon-linkedin" /></svg>
-          </a>
-        {/if}
-        {#if displayResume.profile.github}
-          <a
-            href={normalizeUrl(displayResume.profile.github)}
-            target="_blank"
-            class="link"
-          >
-            <span>GitHub</span>
-            <svg width="14" height="14"><use href="#icon-github" /></svg>
-          </a>
+        {#if displayResume.profile.profiles}
+          {#each displayResume.profile.profiles as profile}
+            <a href={profile.url} target="_blank" class="link">
+              {getNetworkDisplayName(profile.url)}
+              <svg width="14" height="14">
+                <use href="#icon-{getNetworkIcon(profile.url)}" />
+              </svg>
+            </a>
+          {/each}
         {/if}
         {#if displayResume.profile.website}
-          <a
-            href={normalizeUrl(displayResume.profile.website)}
-            target="_blank"
-            class="link"
-          >
-            Website
+          <a href={displayResume.profile.website} target="_blank" class="link">
+            {getNetworkDisplayName(displayResume.profile.website)}
             <svg width="14" height="14"><use href="#icon-website" /></svg>
           </a>
         {/if}
@@ -851,11 +886,7 @@
         </div>
         <div class="cv-row-heading">
           {#if project.url}
-            <a
-              href={normalizeUrl(project.url)}
-              target="_blank"
-              class="heading-3 link"
-            >
+            <a href={project.url} target="_blank" class="heading-3 link">
               {project.name || "Untitled Project"}
             </a>
           {:else}
@@ -1120,6 +1151,16 @@
       margin-top: 0;
       white-space: pre-line;
     }
+  }
+
+  .input-with-action {
+    display: grid;
+    grid-template-columns: 1fr max-content;
+    gap: var(--space-2);
+  }
+
+  .full-row {
+    grid-column: 1 / -1;
   }
 
   @media (max-width: 640px) {

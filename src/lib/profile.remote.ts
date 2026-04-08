@@ -2,11 +2,15 @@ import * as v from "valibot";
 import { error } from "@sveltejs/kit";
 import { query, command, getRequestEvent } from "$app/server";
 import { getDB } from "./db";
-import {
-  ResumeSchema,
-  type Resume,
-} from "./resume-schema";
+import { ResumeSchema, type Resume } from "./resume-schema";
 import type { EmploymentType, WorkplaceType } from "./jsonresume";
+
+const normalizeUrl = (url: string) => {
+  if (url.startsWith("https://")) {
+    return url;
+  }
+  return `https://${url}`;
+};
 
 export const getMemberProfile = query(
   v.object({ handle: v.string() }),
@@ -29,39 +33,51 @@ export const getMemberProfile = query(
     }
 
     // Load all related data
-    const [positions, education, projects, skills, languages, workplaces] =
-      await Promise.all([
-        db
-          .selectFrom("member_positions")
-          .selectAll()
-          .where("did", "=", targetMember.did)
-          .execute(),
-        db
-          .selectFrom("member_education")
-          .selectAll()
-          .where("did", "=", targetMember.did)
-          .execute(),
-        db
-          .selectFrom("member_projects")
-          .selectAll()
-          .where("did", "=", targetMember.did)
-          .execute(),
-        db
-          .selectFrom("member_skills")
-          .select("skill")
-          .where("did", "=", targetMember.did)
-          .execute(),
-        db
-          .selectFrom("member_languages")
-          .select("language")
-          .where("did", "=", targetMember.did)
-          .execute(),
-        db
-          .selectFrom("member_preferred_workplaces")
-          .select("workplace_type")
-          .where("did", "=", targetMember.did)
-          .execute(),
-      ]);
+    const [
+      positions,
+      education,
+      projects,
+      skills,
+      languages,
+      workplaces,
+      profiles,
+    ] = await Promise.all([
+      db
+        .selectFrom("member_positions")
+        .selectAll()
+        .where("did", "=", targetMember.did)
+        .execute(),
+      db
+        .selectFrom("member_education")
+        .selectAll()
+        .where("did", "=", targetMember.did)
+        .execute(),
+      db
+        .selectFrom("member_projects")
+        .selectAll()
+        .where("did", "=", targetMember.did)
+        .execute(),
+      db
+        .selectFrom("member_skills")
+        .select("skill")
+        .where("did", "=", targetMember.did)
+        .execute(),
+      db
+        .selectFrom("member_languages")
+        .select("language")
+        .where("did", "=", targetMember.did)
+        .execute(),
+      db
+        .selectFrom("member_preferred_workplaces")
+        .select("workplace_type")
+        .where("did", "=", targetMember.did)
+        .execute(),
+      db
+        .selectFrom("member_profiles")
+        .select("url")
+        .where("did", "=", targetMember.did)
+        .execute(),
+    ]);
 
     const profile: Resume = {
       profile: {
@@ -71,8 +87,7 @@ export const getMemberProfile = query(
         headline: targetMember.headline ?? undefined,
         summary: targetMember.summary ?? undefined,
         industry: targetMember.industry ?? undefined,
-        linkedin: targetMember.linkedin ?? undefined,
-        github: targetMember.github ?? undefined,
+        profiles: profiles.map((p) => ({ url: p.url })),
         website: targetMember.website ?? undefined,
       },
       positions: positions.map((p) => ({
@@ -135,8 +150,6 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
         headline: resume.profile.headline || null,
         summary: resume.profile.summary || null,
         industry: resume.profile.industry || null,
-        linkedin: resume.profile.linkedin || null,
-        github: resume.profile.github || null,
         website: resume.profile.website || null,
         updated_at: new Date().toISOString(),
       })
@@ -153,6 +166,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
       .deleteFrom("member_preferred_workplaces")
       .where("did", "=", did)
       .execute();
+    await trx.deleteFrom("member_profiles").where("did", "=", did).execute();
 
     if (resume.positions?.length > 0) {
       await trx
@@ -237,6 +251,18 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
           resume.preferredWorkplace.map((workplace_type) => ({
             did,
             workplace_type,
+          })),
+        )
+        .execute();
+    }
+
+    if (resume.profile.profiles && resume.profile.profiles.length > 0) {
+      await trx
+        .insertInto("member_profiles")
+        .values(
+          resume.profile.profiles.map((profile) => ({
+            did,
+            url: normalizeUrl(profile.url),
           })),
         )
         .execute();
