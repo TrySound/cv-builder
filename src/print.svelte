@@ -1,36 +1,63 @@
 <script lang="ts">
-  import { groupSkillsByCategory } from "$lib/cv-parser";
-  import type { Resume } from "$lib/resume-schema";
+  import { SKILLS_TAXONOMY } from "$lib/cv-parser";
+  import type { Resume } from "$lib/jsonresume";
 
   let { resume }: { resume: Resume } = $props();
+
   const stripHttps = (url: string) => {
     if (url.startsWith("https://")) {
       return url.slice("https://".length);
     }
     return url;
   };
+
+  function groupSkillsByCategory(skills: { name?: string }[]): {
+    [category: string]: string[];
+  } {
+    const grouped: { [category: string]: string[] } = {};
+
+    // Create reverse lookup map: skill -> category
+    const skillToCategory: Record<string, string> = {};
+    for (const [category, categorySkills] of Object.entries(SKILLS_TAXONOMY)) {
+      for (const skill of categorySkills) {
+        skillToCategory[skill.toLowerCase()] = category;
+      }
+    }
+
+    for (const skill of skills) {
+      const skillName = skill.name ?? "";
+      if (!skillName) continue;
+      const category = skillToCategory[skillName.toLowerCase()] ?? "other";
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(skillName);
+    }
+
+    return grouped;
+  }
 </script>
 
 <div class="page" hidden>
   <header class="header">
-    {#if resume.profile.name}
-      <h2 class="display">{resume.profile.name}</h2>
+    {#if resume.basics?.name}
+      <h2 class="display">{resume.basics.name}</h2>
     {/if}
     <div class="contact-info">
-      {#if resume.profile.location}
-        <span class="body">{resume.profile.location}</span>
+      {#if resume.basics?.location?.address}
+        <span class="body">{resume.basics.location.address}</span>
       {/if}
-      {#if resume.profile.email}
-        {#if resume.profile.location}
+      {#if resume.basics?.email}
+        {#if resume.basics?.location?.address}
           •
         {/if}
-        <a class="body" href="mailto:{resume.profile.email}">
-          {resume.profile.email}
+        <a class="body" href="mailto:{resume.basics.email}">
+          {resume.basics.email}
         </a>
       {/if}
-      {#if resume.profile.profiles}
-        {#each resume.profile.profiles as profile, index}
-          {#if resume.profile.location || resume.profile.email || index > 0}
+      {#if resume.basics?.profiles}
+        {#each resume.basics.profiles as profile, index}
+          {#if resume.basics?.location?.address || resume.basics?.email || index > 0}
             •
           {/if}
           <a class="body" href={profile.url}>{stripHttps(profile.url)}</a>
@@ -39,33 +66,33 @@
     </div>
   </header>
 
-  {#if resume.profile.summary}
+  {#if resume.basics?.summary}
     <section class="section">
       <h3 class="heading">Summary</h3>
-      <p class="body">{resume.profile.summary}</p>
+      <p class="body">{resume.basics.summary}</p>
     </section>
   {/if}
 
-  {#if resume.positions.length > 0}
+  {#if resume.work && resume.work.length > 0}
     <section class="section">
       <h3 class="heading">Experience</h3>
       <div class="stack">
-        {#each resume.positions as job}
+        {#each resume.work as job}
           <div class="stack-item">
             <div class="space-between">
-              <h4 class="title">{job.title}</h4>
+              <h4 class="title">{job.position}</h4>
               <span class="caption">
-                {job.startedAt || ""} - {job.endedAt || "Present"}
+                {job.startDate || ""} - {job.endDate || "Present"}
               </span>
             </div>
             <div class="space-between">
-              <span class="caption">{job.company}</span>
+              <span class="caption">{job.name}</span>
               {#if job.location}
                 <span class="caption">{job.location}</span>
               {/if}
             </div>
-            {#if job.description}
-              <p class="body">{job.description}</p>
+            {#if job.summary}
+              <p class="body">{job.summary}</p>
             {/if}
           </div>
         {/each}
@@ -73,7 +100,7 @@
     </section>
   {/if}
 
-  {#if resume.education.length > 0}
+  {#if resume.education && resume.education.length > 0}
     <section class="section">
       <h3 class="heading">Education</h3>
       <div class="stack">
@@ -82,19 +109,19 @@
             <div class="space-between">
               <h4 class="title">{edu.institution}</h4>
               <span class="caption">
-                {edu.startedAt || ""} - {edu.endedAt || "Present"}
+                {edu.startDate || ""} - {edu.endDate || "Present"}
               </span>
             </div>
             <div class="space-between">
-              {#if edu.degree}
-                <span class="caption">{edu.degree}</span>
+              {#if edu.studyType}
+                <span class="caption">{edu.studyType}</span>
               {/if}
-              {#if edu.field}
-                <span class="caption">{edu.field}</span>
+              {#if edu.area}
+                <span class="caption">{edu.area}</span>
               {/if}
             </div>
-            {#if edu.description}
-              <p class="body">{edu.description}</p>
+            {#if edu.extension?.description}
+              <p class="body">{edu.extension.description}</p>
             {/if}
           </div>
         {/each}
@@ -102,7 +129,8 @@
     </section>
   {/if}
 
-  {#if resume.projects.length > 0}
+  <!-- projects takes too much space which maybe make sense to spend on more work experience
+  {#if resume.projects && resume.projects.length > 0}
     <section class="section">
       <h3 class="heading">Projects</h3>
       <div class="stack">
@@ -111,7 +139,7 @@
             <div class="space-between">
               <h4 class="title">{project.name}</h4>
               <span class="caption">
-                {project.startedAt || ""} - {project.endedAt || "Present"}
+                {project.startDate || ""} - {project.endDate || "Present"}
               </span>
             </div>
             {#if project.description}
@@ -122,8 +150,9 @@
       </div>
     </section>
   {/if}
+  -->
 
-  {#if resume.skills.length > 0}
+  {#if resume.skills && resume.skills.length > 0}
     <section class="section">
       <h3 class="heading">Skills</h3>
       {#each Object.entries(groupSkillsByCategory(resume.skills)) as [category, skills]}

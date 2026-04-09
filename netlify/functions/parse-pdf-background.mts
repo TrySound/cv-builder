@@ -134,6 +134,7 @@ CRITICAL RULES:
 13. Use extension.preferredWorkplaces for workplace preferences (onsite/remote/hybrid)
 14. Use extension.industry for industry field
 15. Store work description as "description" string. Avoid using highlights array.
+16. Put skills into array of objects { name }. Avoid using keywords for this.
 
 EXAMPLE VALID OUTPUT:
 {
@@ -259,7 +260,6 @@ async function parseResumeFromPDF(
   }
 
   const result = v.safeParse(ResumeSchema, parsedData);
-  console.dir(result, { depth: null });
   if (result.success) {
     return { success: true, data: result.output };
   }

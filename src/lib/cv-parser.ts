@@ -102,27 +102,3 @@ export const SKILLS_TAXONOMY: Record<string, string[]> = {
     "sendgrid",
   ],
 };
-
-export function groupSkillsByCategory(skills: string[]): {
-  [category: string]: string[];
-} {
-  const grouped: { [category: string]: string[] } = {};
-
-  // Create reverse lookup map: skill -> category
-  const skillToCategory: Record<string, string> = {};
-  for (const [category, categorySkills] of Object.entries(SKILLS_TAXONOMY)) {
-    for (const skill of categorySkills) {
-      skillToCategory[skill.toLowerCase()] = category;
-    }
-  }
-
-  for (const skill of skills) {
-    const category = skillToCategory[skill.toLowerCase()] ?? "other";
-    if (!grouped[category]) {
-      grouped[category] = [];
-    }
-    grouped[category].push(skill);
-  }
-
-  return grouped;
-}

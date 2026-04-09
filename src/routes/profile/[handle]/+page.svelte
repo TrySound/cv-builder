@@ -172,8 +172,8 @@
 
 <UploadResumeDialog onUpload={handleSave} />
 
-{#if legacyProfile}
-  <Print resume={legacyProfile} />
+{#if profile.current}
+  <Print resume={profile.current} />
 {/if}
 
 <style>
