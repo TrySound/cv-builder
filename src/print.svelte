@@ -21,19 +21,20 @@
         <span class="body">{resume.profile.location}</span>
       {/if}
       {#if resume.profile.email}
+        {#if resume.profile.location}
+          •
+        {/if}
         <a class="body" href="mailto:{resume.profile.email}">
           {resume.profile.email}
         </a>
       {/if}
       {#if resume.profile.profiles}
-        {#each resume.profile.profiles as profile}
+        {#each resume.profile.profiles as profile, index}
+          {#if resume.profile.location || resume.profile.email || index > 0}
+            •
+          {/if}
           <a class="body" href={profile.url}>{stripHttps(profile.url)}</a>
         {/each}
-      {/if}
-      {#if resume.profile.website}
-        <a class="body" href={resume.profile.website}>
-          {stripHttps(resume.profile.website)}
-        </a>
       {/if}
     </div>
   </header>
@@ -54,7 +55,7 @@
             <div class="space-between">
               <h4 class="title">{job.title}</h4>
               <span class="caption">
-                {job.startedAt || ""} - {job.endedAt || ""}
+                {job.startedAt || ""} - {job.endedAt || "Present"}
               </span>
             </div>
             <div class="space-between">
@@ -81,7 +82,7 @@
             <div class="space-between">
               <h4 class="title">{edu.institution}</h4>
               <span class="caption">
-                {edu.startedAt || ""} - {edu.endedAt || ""}
+                {edu.startedAt || ""} - {edu.endedAt || "Present"}
               </span>
             </div>
             <div class="space-between">
@@ -110,7 +111,7 @@
             <div class="space-between">
               <h4 class="title">{project.name}</h4>
               <span class="caption">
-                {project.startedAt || ""} - {project.endedAt || ""}
+                {project.startedAt || ""} - {project.endedAt || "Present"}
               </span>
             </div>
             {#if project.description}
@@ -196,7 +197,7 @@
   }
 
   .caption {
-    font-size: var(--font-md);
+    font-size: var(--font-sm);
   }
 
   .label {
@@ -213,11 +214,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-lg);
-  }
-
-  .contact-info > .caption:not(:last-child)::after {
-    content: "•";
-    margin-left: var(--space-lg);
   }
 
   .section {
@@ -250,7 +246,7 @@
       flex-direction: column;
     }
 
-    .contact-info > .caption:not(:last-child)::after {
+    .contact-info > *:not(:last-child)::after {
       content: "";
       margin-left: 0;
     }
