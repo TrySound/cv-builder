@@ -10,8 +10,8 @@ export { $nsid }
 
 type Main = {
   $type?: 'com.atproto.repo.strongRef'
-  cid: l.CidString
   uri: l.AtUriString
+  cid: l.CidString
 }
 
 export type { Main }
@@ -20,8 +20,8 @@ const main = l.typedObject<Main>(
   $nsid,
   'main',
   l.object({
-    cid: l.string({ format: 'cid' }),
     uri: l.string({ format: 'at-uri' }),
+    cid: l.string({ format: 'cid' }),
   }),
 )
 

@@ -13,29 +13,9 @@ type Label = {
   $type?: 'com.atproto.label.defs#label'
 
   /**
-   * Optionally, CID specifying the specific version of 'uri' resource this label applies to.
+   * The AT Protocol version of the label object.
    */
-  cid?: l.CidString
-
-  /**
-   * Timestamp when this label was created.
-   */
-  cts: l.DatetimeString
-
-  /**
-   * Timestamp at which this label expires (no longer applies).
-   */
-  exp?: l.DatetimeString
-
-  /**
-   * If true, this is a negation label, overwriting a previous label.
-   */
-  neg?: boolean
-
-  /**
-   * Signature of dag-cbor encoded label.
-   */
-  sig?: Uint8Array
+  ver?: number
 
   /**
    * DID of the actor who created this label.
@@ -48,14 +28,34 @@ type Label = {
   uri: l.UriString
 
   /**
+   * Optionally, CID specifying the specific version of 'uri' resource this label applies to.
+   */
+  cid?: l.CidString
+
+  /**
    * The short string name of the value or type of this label.
    */
   val: string
 
   /**
-   * The AT Protocol version of the label object.
+   * If true, this is a negation label, overwriting a previous label.
    */
-  ver?: number
+  neg?: boolean
+
+  /**
+   * Timestamp when this label was created.
+   */
+  cts: l.DatetimeString
+
+  /**
+   * Timestamp at which this label expires (no longer applies).
+   */
+  exp?: l.DatetimeString
+
+  /**
+   * Signature of dag-cbor encoded label.
+   */
+  sig?: Uint8Array
 }
 
 export type { Label }
@@ -65,74 +65,19 @@ const label = l.typedObject<Label>(
   $nsid,
   'label',
   l.object({
-    cid: l.optional(l.string({ format: 'cid' })),
-    cts: l.string({ format: 'datetime' }),
-    exp: l.optional(l.string({ format: 'datetime' })),
-    neg: l.optional(l.boolean()),
-    sig: l.optional(l.bytes()),
+    ver: l.optional(l.integer()),
     src: l.string({ format: 'did' }),
     uri: l.string({ format: 'uri' }),
+    cid: l.optional(l.string({ format: 'cid' })),
     val: l.string({ maxLength: 128 }),
-    ver: l.optional(l.integer()),
+    neg: l.optional(l.boolean()),
+    cts: l.string({ format: 'datetime' }),
+    exp: l.optional(l.string({ format: 'datetime' })),
+    sig: l.optional(l.bytes()),
   }),
 )
 
 export { label }
-
-/** Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel. */
-type SelfLabel = {
-  $type?: 'com.atproto.label.defs#selfLabel'
-
-  /**
-   * The short string name of the value or type of this label.
-   */
-  val: string
-}
-
-export type { SelfLabel }
-
-/** Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel. */
-const selfLabel = l.typedObject<SelfLabel>(
-  $nsid,
-  'selfLabel',
-  l.object({ val: l.string({ maxLength: 128 }) }),
-)
-
-export { selfLabel }
-
-type LabelValue =
-  | '!hide'
-  | '!no-promote'
-  | '!warn'
-  | '!no-unauthenticated'
-  | 'dmca-violation'
-  | 'doxxing'
-  | 'porn'
-  | 'sexual'
-  | 'nudity'
-  | 'nsfl'
-  | 'gore'
-  | l.UnknownString
-
-export type { LabelValue }
-
-const labelValue = l.string<{
-  knownValues: [
-    '!hide',
-    '!no-promote',
-    '!warn',
-    '!no-unauthenticated',
-    'dmca-violation',
-    'doxxing',
-    'porn',
-    'sexual',
-    'nudity',
-    'nsfl',
-    'gore',
-  ]
-}>()
-
-export { labelValue }
 
 /** Metadata tags on an atproto record, published by the author within the record. */
 type SelfLabels = {
@@ -155,25 +100,30 @@ const selfLabels = l.typedObject<SelfLabels>(
 
 export { selfLabels }
 
+/** Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel. */
+type SelfLabel = {
+  $type?: 'com.atproto.label.defs#selfLabel'
+
+  /**
+   * The short string name of the value or type of this label.
+   */
+  val: string
+}
+
+export type { SelfLabel }
+
+/** Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel. */
+const selfLabel = l.typedObject<SelfLabel>(
+  $nsid,
+  'selfLabel',
+  l.object({ val: l.string({ maxLength: 128 }) }),
+)
+
+export { selfLabel }
+
 /** Declares a label value and its expected interpretations and behaviors. */
 type LabelValueDefinition = {
   $type?: 'com.atproto.label.defs#labelValueDefinition'
-
-  /**
-   * What should this label hide in the UI, if applied? 'content' hides all of the target; 'media' hides the images/video/audio; 'none' hides nothing.
-   */
-  blurs: 'content' | 'media' | 'none' | l.UnknownString
-  locales: LabelValueDefinitionStrings[]
-
-  /**
-   * How should a client visually convey this label? 'inform' means neutral and informational; 'alert' means negative and warning; 'none' means show nothing.
-   */
-  severity: 'inform' | 'alert' | 'none' | l.UnknownString
-
-  /**
-   * Does the user need to have adult content enabled in order to configure this label?
-   */
-  adultOnly?: boolean
 
   /**
    * The value of the label being defined. Must only include lowercase ascii and the '-' character ([a-z-]+).
@@ -181,9 +131,25 @@ type LabelValueDefinition = {
   identifier: string
 
   /**
+   * How should a client visually convey this label? 'inform' means neutral and informational; 'alert' means negative and warning; 'none' means show nothing.
+   */
+  severity: 'inform' | 'alert' | 'none' | l.UnknownString
+
+  /**
+   * What should this label hide in the UI, if applied? 'content' hides all of the target; 'media' hides the images/video/audio; 'none' hides nothing.
+   */
+  blurs: 'content' | 'media' | 'none' | l.UnknownString
+
+  /**
    * The default setting for this label.
    */
   defaultSetting?: 'ignore' | 'warn' | 'hide' | l.UnknownString
+
+  /**
+   * Does the user need to have adult content enabled in order to configure this label?
+   */
+  adultOnly?: boolean
+  locales: LabelValueDefinitionStrings[]
 }
 
 export type { LabelValueDefinition }
@@ -193,19 +159,19 @@ const labelValueDefinition = l.typedObject<LabelValueDefinition>(
   $nsid,
   'labelValueDefinition',
   l.object({
-    blurs: l.string<{ knownValues: ['content', 'media', 'none'] }>(),
-    locales: l.array(
-      l.ref<LabelValueDefinitionStrings>(
-        (() => labelValueDefinitionStrings) as any,
-      ),
-    ),
-    severity: l.string<{ knownValues: ['inform', 'alert', 'none'] }>(),
-    adultOnly: l.optional(l.boolean()),
     identifier: l.string({ maxLength: 100, maxGraphemes: 100 }),
+    severity: l.string<{ knownValues: ['inform', 'alert', 'none'] }>(),
+    blurs: l.string<{ knownValues: ['content', 'media', 'none'] }>(),
     defaultSetting: l.optional(
       l.withDefault(
         l.string<{ knownValues: ['ignore', 'warn', 'hide'] }>(),
         'warn',
+      ),
+    ),
+    adultOnly: l.optional(l.boolean()),
+    locales: l.array(
+      l.ref<LabelValueDefinitionStrings>(
+        (() => labelValueDefinitionStrings) as any,
       ),
     ),
   }),
@@ -241,9 +207,37 @@ const labelValueDefinitionStrings = l.typedObject<LabelValueDefinitionStrings>(
   'labelValueDefinitionStrings',
   l.object({
     lang: l.string({ format: 'language' }),
-    name: l.string({ maxLength: 640, maxGraphemes: 64 }),
-    description: l.string({ maxLength: 100000, maxGraphemes: 10000 }),
+    name: l.string({ maxGraphemes: 64, maxLength: 640 }),
+    description: l.string({ maxGraphemes: 10000, maxLength: 100000 }),
   }),
 )
 
 export { labelValueDefinitionStrings }
+
+type LabelValue =
+  | '!hide'
+  | '!warn'
+  | '!no-unauthenticated'
+  | 'porn'
+  | 'sexual'
+  | 'nudity'
+  | 'graphic-media'
+  | 'bot'
+  | l.UnknownString
+
+export type { LabelValue }
+
+const labelValue = l.string<{
+  knownValues: [
+    '!hide',
+    '!warn',
+    '!no-unauthenticated',
+    'porn',
+    'sexual',
+    'nudity',
+    'graphic-media',
+    'bot',
+  ]
+}>()
+
+export { labelValue }

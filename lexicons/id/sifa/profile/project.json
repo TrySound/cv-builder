@@ -1,0 +1,66 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.profile.project",
+  "description": "A project the user has worked on.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Record representing a single project.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxGraphemes": 256,
+            "maxLength": 2560,
+            "description": "Project name."
+          },
+          "description": {
+            "type": "string",
+            "maxGraphemes": 5000,
+            "maxLength": 50000,
+            "description": "Description of the project, the user's role, and outcomes."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the project (website, repository, demo, etc.)."
+          },
+          "projectRef": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Reference to the first-class id.sifa.project.self record, if this personal project entry corresponds to a collaborative project."
+          },
+          "position": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "Reference to the associated id.sifa.profile.position record, if applicable."
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Project start date."
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Project end date. Omit if ongoing."
+          },
+          "labels": {
+            "type": "union",
+            "description": "Self-label values for this project record.",
+            "refs": ["com.atproto.label.defs#selfLabels"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this record was originally created."
+          }
+        }
+      }
+    }
+  }
+}

@@ -105,7 +105,7 @@
     <h2 class="heading-2 subtle">Recommendations</h2>
 
     <!-- Write Recommendation Form -->
-    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe}
+    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe && data.profile.role === "member"}
       <form {...createRecommendation} class="form-stack">
         <input
           {...createRecommendation.fields.handle.as(

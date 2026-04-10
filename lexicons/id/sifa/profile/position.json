@@ -1,0 +1,100 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.profile.position",
+  "description": "A work experience entry in the user's professional profile.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Record representing a single work position or role.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["company", "title", "startedAt", "createdAt"],
+        "properties": {
+          "company": {
+            "type": "string",
+            "minLength": 1,
+            "maxGraphemes": 256,
+            "maxLength": 2560,
+            "description": "Company or organization name."
+          },
+          "companyDid": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the company's ATproto account, if one exists. Enables verified company linking."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxGraphemes": 256,
+            "maxLength": 2560,
+            "description": "Job title or role name."
+          },
+          "description": {
+            "type": "string",
+            "maxGraphemes": 5000,
+            "maxLength": 50000,
+            "description": "Description of responsibilities, achievements, and duties."
+          },
+          "employmentType": {
+            "type": "string",
+            "description": "Type of employment (full-time, part-time, contract, etc.).",
+            "knownValues": [
+              "id.sifa.defs#fullTime",
+              "id.sifa.defs#partTime",
+              "id.sifa.defs#contract",
+              "id.sifa.defs#freelance",
+              "id.sifa.defs#internship",
+              "id.sifa.defs#apprenticeship",
+              "id.sifa.defs#volunteer",
+              "id.sifa.defs#selfEmployed"
+            ]
+          },
+          "workplaceType": {
+            "type": "string",
+            "description": "Workplace arrangement (on-site, remote, hybrid).",
+            "knownValues": ["id.sifa.defs#onSite", "id.sifa.defs#remote", "id.sifa.defs#hybrid"]
+          },
+          "location": {
+            "type": "ref",
+            "ref": "id.sifa.defs#locationAddress",
+            "description": "Work location."
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Start date of the position. For month-precision imports, use first day of month at midnight UTC."
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "End date of the position. Omit if this is a current position."
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "id.sifa.defs#skillRef"
+            },
+            "description": "Skills used in this position. Each entry is a URI reference to an id.sifa.profile.skill record owned by the same DID.",
+            "maxLength": 50
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the user's primary current position, displayed on the identity card."
+          },
+          "labels": {
+            "type": "union",
+            "description": "Self-label values for this position record.",
+            "refs": ["com.atproto.label.defs#selfLabels"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this record was originally created."
+          }
+        }
+      }
+    }
+  }
+}

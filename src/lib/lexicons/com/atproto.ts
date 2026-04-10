@@ -3,5 +3,4 @@
  */
 
 export * as label from './atproto/label.js'
-export * as moderation from './atproto/moderation.js'
 export * as repo from './atproto/repo.js'

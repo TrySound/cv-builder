@@ -1,0 +1,41 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.profile.language",
+  "description": "A language spoken by the user with proficiency level.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Record representing a single language proficiency.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxGraphemes": 64,
+            "maxLength": 640,
+            "description": "Language name (e.g., 'English', 'Nederlands', 'Deutsch')."
+          },
+          "proficiency": {
+            "type": "string",
+            "description": "Proficiency level. Uses LinkedIn-compatible five-level scale.",
+            "knownValues": [
+              "id.sifa.defs#elementary",
+              "id.sifa.defs#limitedWorking",
+              "id.sifa.defs#professionalWorking",
+              "id.sifa.defs#fullProfessional",
+              "id.sifa.defs#native"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this record was originally created."
+          }
+        }
+      }
+    }
+  }
+}

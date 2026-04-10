@@ -1,0 +1,59 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.profile.externalAccount",
+  "description": "A linked external account or website not on AT Protocol. Displayed on the user's profile and optionally rendered in the ATmosphere Stream via feed ingestion.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Record representing a single external account or website linked by the user.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["platform", "url", "createdAt"],
+        "properties": {
+          "platform": {
+            "type": "string",
+            "description": "The platform or type of external account.",
+            "knownValues": [
+              "id.sifa.defs#platformRss",
+              "id.sifa.defs#platformFediverse",
+              "id.sifa.defs#platformTwitter",
+              "id.sifa.defs#platformInstagram",
+              "id.sifa.defs#platformGithub",
+              "id.sifa.defs#platformYoutube",
+              "id.sifa.defs#platformLinkedin",
+              "id.sifa.defs#platformWebsite",
+              "id.sifa.defs#platformOrcid",
+              "id.sifa.defs#platformOther"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The profile or site URL. Displayed as a clickable link on the user's profile."
+          },
+          "label": {
+            "type": "string",
+            "maxGraphemes": 64,
+            "maxLength": 640,
+            "description": "Optional display name for this account (e.g., 'My Blog', 'Photography')."
+          },
+          "feedUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional RSS or Atom feed URL. Auto-discovered or manually provided. Used for content rendering in the ATmosphere Stream."
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Whether this is the user's primary external link, displayed prominently on the profile card."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this record was originally created."
+          }
+        }
+      }
+    }
+  }
+}

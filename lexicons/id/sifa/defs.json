@@ -1,0 +1,247 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.defs",
+  "description": "Shared type definitions for Sifa professional profile lexicons.",
+  "defs": {
+    "employmentType": {
+      "type": "string",
+      "description": "The type of employment arrangement.",
+      "knownValues": [
+        "id.sifa.defs#fullTime",
+        "id.sifa.defs#partTime",
+        "id.sifa.defs#contract",
+        "id.sifa.defs#freelance",
+        "id.sifa.defs#internship",
+        "id.sifa.defs#apprenticeship",
+        "id.sifa.defs#volunteer",
+        "id.sifa.defs#selfEmployed"
+      ]
+    },
+    "fullTime": { "type": "token", "description": "Full-time employment." },
+    "partTime": { "type": "token", "description": "Part-time employment." },
+    "contract": { "type": "token", "description": "Contract/temporary employment." },
+    "freelance": { "type": "token", "description": "Freelance/independent work." },
+    "internship": { "type": "token", "description": "Internship position." },
+    "apprenticeship": { "type": "token", "description": "Apprenticeship position." },
+    "volunteer": {
+      "type": "token",
+      "description": "Volunteer work (when used as employment type)."
+    },
+    "selfEmployed": { "type": "token", "description": "Self-employed." },
+
+    "workplaceType": {
+      "type": "string",
+      "description": "The workplace arrangement.",
+      "knownValues": ["id.sifa.defs#onSite", "id.sifa.defs#remote", "id.sifa.defs#hybrid"]
+    },
+    "onSite": { "type": "token", "description": "On-site/in-office work." },
+    "remote": { "type": "token", "description": "Fully remote work." },
+    "hybrid": { "type": "token", "description": "Hybrid on-site and remote work." },
+
+    "proficiency": {
+      "type": "string",
+      "description": "Language proficiency level. Maps to LinkedIn's five-level scale for lossless import.",
+      "knownValues": [
+        "id.sifa.defs#elementary",
+        "id.sifa.defs#limitedWorking",
+        "id.sifa.defs#professionalWorking",
+        "id.sifa.defs#fullProfessional",
+        "id.sifa.defs#native"
+      ]
+    },
+    "elementary": { "type": "token", "description": "Elementary proficiency." },
+    "limitedWorking": { "type": "token", "description": "Limited working proficiency." },
+    "professionalWorking": { "type": "token", "description": "Professional working proficiency." },
+    "fullProfessional": { "type": "token", "description": "Full professional proficiency." },
+    "native": { "type": "token", "description": "Native or bilingual proficiency." },
+
+    "skillCategory": {
+      "type": "string",
+      "description": "Broad category for grouping skills.",
+      "knownValues": [
+        "id.sifa.defs#technical",
+        "id.sifa.defs#business",
+        "id.sifa.defs#creative",
+        "id.sifa.defs#interpersonal",
+        "id.sifa.defs#language",
+        "id.sifa.defs#industry"
+      ]
+    },
+    "technical": { "type": "token", "description": "Technical/engineering skills." },
+    "business": { "type": "token", "description": "Business and management skills." },
+    "creative": { "type": "token", "description": "Creative and design skills." },
+    "interpersonal": { "type": "token", "description": "Interpersonal and communication skills." },
+    "language": { "type": "token", "description": "Language and linguistic skills." },
+    "industry": { "type": "token", "description": "Industry-specific domain knowledge." },
+
+    "openToWorkStatus": {
+      "type": "string",
+      "description": "The type of opportunity the user is open to.",
+      "knownValues": [
+        "id.sifa.defs#fullTimeRoles",
+        "id.sifa.defs#partTimeRoles",
+        "id.sifa.defs#contractRoles",
+        "id.sifa.defs#boardPositions",
+        "id.sifa.defs#mentoringOthers",
+        "id.sifa.defs#beingMentored",
+        "id.sifa.defs#collaborations"
+      ]
+    },
+    "fullTimeRoles": {
+      "type": "token",
+      "description": "Open to full-time employment opportunities."
+    },
+    "partTimeRoles": {
+      "type": "token",
+      "description": "Open to part-time employment opportunities."
+    },
+    "contractRoles": { "type": "token", "description": "Open to contract or freelance work." },
+    "boardPositions": { "type": "token", "description": "Open to advisory or board positions." },
+    "mentoringOthers": { "type": "token", "description": "Open to mentoring others." },
+    "beingMentored": { "type": "token", "description": "Open to being mentored." },
+    "collaborations": { "type": "token", "description": "Open to project collaborations." },
+
+    "externalPlatform": {
+      "type": "string",
+      "description": "Platform type for an external account linked to a Sifa profile.",
+      "knownValues": [
+        "id.sifa.defs#platformRss",
+        "id.sifa.defs#platformFediverse",
+        "id.sifa.defs#platformTwitter",
+        "id.sifa.defs#platformInstagram",
+        "id.sifa.defs#platformGithub",
+        "id.sifa.defs#platformYoutube",
+        "id.sifa.defs#platformLinkedin",
+        "id.sifa.defs#platformSubstack",
+        "id.sifa.defs#platformWebsite",
+        "id.sifa.defs#platformOrcid",
+        "id.sifa.defs#platformOther"
+      ]
+    },
+    "platformRss": {
+      "type": "token",
+      "description": "RSS or Atom feed (blog, newsletter, podcast)."
+    },
+    "platformFediverse": {
+      "type": "token",
+      "description": "Fediverse account (Mastodon, Misskey, Pleroma, etc.)."
+    },
+    "platformTwitter": { "type": "token", "description": "Twitter/X account." },
+    "platformInstagram": { "type": "token", "description": "Instagram account." },
+    "platformGithub": { "type": "token", "description": "GitHub account." },
+    "platformYoutube": { "type": "token", "description": "YouTube channel." },
+    "platformLinkedin": { "type": "token", "description": "LinkedIn profile." },
+    "platformSubstack": { "type": "token", "description": "Substack newsletter." },
+    "platformWebsite": { "type": "token", "description": "Personal or professional website." },
+    "platformOrcid": { "type": "token", "description": "ORCID researcher identifier." },
+    "platformOther": {
+      "type": "token",
+      "description": "Other platform not covered by specific tokens."
+    },
+
+    "locationType": {
+      "type": "string",
+      "description": "The role a location plays in a user's professional profile.",
+      "knownValues": [
+        "id.sifa.defs#locationPrimary",
+        "id.sifa.defs#locationBusiness",
+        "id.sifa.defs#locationTravel"
+      ]
+    },
+    "locationPrimary": {
+      "type": "token",
+      "description": "Primary residence or home location."
+    },
+    "locationBusiness": {
+      "type": "token",
+      "description": "Business or operational location."
+    },
+    "locationTravel": {
+      "type": "token",
+      "description": "Frequent travel or temporary location."
+    },
+
+    "locationAddress": {
+      "type": "object",
+      "description": "A structured location address. countryCode is the single source of truth for the country; AppViews resolve it to a display name.",
+      "required": ["countryCode"],
+      "properties": {
+        "countryCode": {
+          "type": "string",
+          "description": "ISO 3166-1 alpha-2 country code (e.g. 'NL', 'US').",
+          "minLength": 2,
+          "maxLength": 2
+        },
+        "region": {
+          "type": "string",
+          "description": "Administrative region (state, province, etc.). Free text — AppViews display as-is.",
+          "maxGraphemes": 100,
+          "maxLength": 1000
+        },
+        "city": {
+          "type": "string",
+          "description": "City or locality name. Free text.",
+          "maxGraphemes": 100,
+          "maxLength": 1000
+        }
+      }
+    },
+
+    "skillRef": {
+      "type": "object",
+      "description": "A reference to an id.sifa.profile.skill record by AT-URI. No CID is required because skills are mutable records in the same user's repo.",
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the id.sifa.profile.skill record."
+        }
+      }
+    },
+
+    "projectRole": {
+      "type": "string",
+      "description": "Role within a collaborative project.",
+      "knownValues": [
+        "id.sifa.defs#projectOwner",
+        "id.sifa.defs#projectCore",
+        "id.sifa.defs#projectContributor"
+      ]
+    },
+    "projectOwner": {
+      "type": "token",
+      "description": "Project owner with full management permissions. Multiple owners are supported."
+    },
+    "projectCore": {
+      "type": "token",
+      "description": "Core team member with elevated involvement."
+    },
+    "projectContributor": {
+      "type": "token",
+      "description": "Project contributor."
+    },
+
+    "projectStatus": {
+      "type": "string",
+      "description": "Current status of a collaborative project.",
+      "knownValues": [
+        "id.sifa.defs#projectActive",
+        "id.sifa.defs#projectCompleted",
+        "id.sifa.defs#projectArchived"
+      ]
+    },
+    "projectActive": {
+      "type": "token",
+      "description": "Project is actively maintained or in development."
+    },
+    "projectCompleted": {
+      "type": "token",
+      "description": "Project has been completed."
+    },
+    "projectArchived": {
+      "type": "token",
+      "description": "Project is archived and no longer active."
+    }
+  }
+}

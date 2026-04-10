@@ -1,0 +1,86 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.profile.self",
+  "description": "Professional profile summary. Singleton record providing professional identity beyond the base ATproto profile. Does not duplicate displayName, avatar, or bio from app.bsky.actor.profile.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "The user's professional profile summary.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["createdAt"],
+        "properties": {
+          "headline": {
+            "type": "string",
+            "maxGraphemes": 120,
+            "maxLength": 1200,
+            "description": "Professional headline (e.g., 'Senior Engineer at Acme Corp'). Distinct from Bluesky's displayName."
+          },
+          "about": {
+            "type": "string",
+            "maxGraphemes": 5000,
+            "maxLength": 50000,
+            "description": "Professional summary or about section. Longer-form than Bluesky's description field."
+          },
+          "industry": {
+            "type": "string",
+            "maxGraphemes": 100,
+            "maxLength": 1000,
+            "description": "Primary professional industry."
+          },
+          "location": {
+            "type": "ref",
+            "ref": "id.sifa.defs#locationAddress",
+            "description": "Professional location (city, region, country)."
+          },
+          "openTo": {
+            "type": "array",
+            "maxLength": 10,
+            "items": {
+              "type": "string",
+              "knownValues": [
+                "id.sifa.defs#fullTimeRoles",
+                "id.sifa.defs#partTimeRoles",
+                "id.sifa.defs#contractRoles",
+                "id.sifa.defs#boardPositions",
+                "id.sifa.defs#mentoringOthers",
+                "id.sifa.defs#beingMentored",
+                "id.sifa.defs#collaborations"
+              ]
+            },
+            "description": "Types of opportunities the user is open to. Empty array or omitted means not actively seeking."
+          },
+          "preferredWorkplace": {
+            "type": "array",
+            "maxLength": 3,
+            "items": {
+              "type": "string",
+              "knownValues": ["id.sifa.defs#onSite", "id.sifa.defs#remote", "id.sifa.defs#hybrid"]
+            },
+            "description": "Preferred workplace arrangements. Orthogonal to openTo. Empty array or omitted means no preference."
+          },
+          "langs": {
+            "type": "array",
+            "maxLength": 3,
+            "items": {
+              "type": "string",
+              "format": "language"
+            },
+            "description": "BCP 47 language tags indicating the user's primary professional languages."
+          },
+          "labels": {
+            "type": "union",
+            "description": "Self-label values for the professional profile.",
+            "refs": ["com.atproto.label.defs#selfLabels"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this profile was originally created."
+          }
+        }
+      }
+    }
+  }
+}

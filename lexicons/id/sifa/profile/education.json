@@ -1,0 +1,85 @@
+{
+  "lexicon": 1,
+  "id": "id.sifa.profile.education",
+  "description": "An education entry in the user's professional profile.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Record representing a single education credential.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["institution", "createdAt"],
+        "properties": {
+          "institution": {
+            "type": "string",
+            "minLength": 1,
+            "maxGraphemes": 256,
+            "maxLength": 2560,
+            "description": "Name of the educational institution."
+          },
+          "institutionDid": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the institution's ATproto account, if one exists."
+          },
+          "degree": {
+            "type": "string",
+            "maxGraphemes": 256,
+            "maxLength": 2560,
+            "description": "Degree name (e.g., 'Bachelor of Science', 'Master of Arts')."
+          },
+          "fieldOfStudy": {
+            "type": "string",
+            "maxGraphemes": 256,
+            "maxLength": 2560,
+            "description": "Field of study or major."
+          },
+          "grade": {
+            "type": "string",
+            "maxGraphemes": 50,
+            "maxLength": 500,
+            "description": "Grade, GPA, or classification achieved."
+          },
+          "activities": {
+            "type": "string",
+            "maxGraphemes": 1000,
+            "maxLength": 10000,
+            "description": "Activities, societies, and extracurriculars."
+          },
+          "description": {
+            "type": "string",
+            "maxGraphemes": 5000,
+            "maxLength": 50000,
+            "description": "Additional description or notes about the education."
+          },
+          "location": {
+            "type": "ref",
+            "ref": "id.sifa.defs#locationAddress",
+            "description": "Institution location."
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Start date. For month-precision imports, use first day of month at midnight UTC."
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "End date (graduation or expected graduation). Omit if currently enrolled."
+          },
+          "labels": {
+            "type": "union",
+            "description": "Self-label values for this education record.",
+            "refs": ["com.atproto.label.defs#selfLabels"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Client-declared timestamp when this record was originally created."
+          }
+        }
+      }
+    }
+  }
+}
