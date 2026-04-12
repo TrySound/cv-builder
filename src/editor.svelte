@@ -803,9 +803,11 @@
         </div>
         <div class="cv-row-heading">
           <div>
-            <h4 class="heading-3">{edu.studyType || "Untitled Degree"}</h4>
             {#if edu.institution}
-              <p class="subtle">at {edu.institution}</p>
+              <h4 class="heading-3">{edu.institution}</h4>
+            {/if}
+            {#if edu.studyType}
+              <p class="subtle">at {edu.studyType}</p>
             {/if}
           </div>
           <div class="actions">
