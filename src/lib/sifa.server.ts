@@ -350,9 +350,9 @@ function getSifaWorkplaceType(
 // Parse location string into sifa location format
 function parseLocation(
   address: string | undefined,
-): sifa.profile.self.Main["location"] {
+): sifa.profile.self.Main["location"] | undefined {
   if (!address) {
-    return undefined;
+    return;
   }
   const parts = address.split(",").map((p) => p.trim());
   // Try to guess: city, region, countryCode
@@ -363,15 +363,6 @@ function parseLocation(
       countryCode: parts[2].toUpperCase(),
     };
   }
-  if (parts.length === 2) {
-    return {
-      city: parts[0],
-      region: parts[1],
-    };
-  }
-  return {
-    city: address,
-  };
 }
 
 // Helper to extract rkey from at:// URI

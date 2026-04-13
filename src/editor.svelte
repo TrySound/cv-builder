@@ -128,7 +128,8 @@
   function startEditing(section: string, index?: number) {
     if (readonly) return;
     // Create editing copy when starting to edit
-    editingResume ??= getEditableResume(resume);
+    // use snapshot to prevent structuredClone failing on proxy
+    editingResume ??= getEditableResume($state.snapshot(resume));
     const targetId = index !== undefined ? `${section}-${index}` : section;
     editingId = targetId;
   }
@@ -158,7 +159,7 @@
 
   function addExperience() {
     if (readonly) return;
-    editingResume ??= getEditableResume(resume);
+    editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.work.unshift({});
     // Start editing the new entry (index 0 after unshift)
     editingId = "experience-0";
@@ -166,7 +167,7 @@
 
   function removeExperience(index: number) {
     if (readonly) return;
-    editingResume ??= getEditableResume(resume);
+    editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.work.splice(index, 1);
     // If we were editing this card, stop editing
     stopEditing();
@@ -174,28 +175,28 @@
 
   function addEducation() {
     if (readonly) return;
-    editingResume ??= getEditableResume(resume);
+    editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.education.unshift({});
     editingId = "education-0";
   }
 
   function removeEducation(index: number) {
     if (readonly) return;
-    editingResume ??= getEditableResume(resume);
+    editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.education.splice(index, 1);
     stopEditing();
   }
 
   function addProject() {
     if (readonly) return;
-    editingResume ??= getEditableResume(resume);
+    editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.projects.unshift({});
     editingId = "projects-0";
   }
 
   function removeProject(index: number) {
     if (readonly) return;
-    editingResume ??= getEditableResume(resume);
+    editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.projects.splice(index, 1);
     stopEditing();
   }
