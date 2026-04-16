@@ -135,7 +135,12 @@
           ></textarea>
         </div>
         <div>
-          <button class="button" type="submit">Post</button>
+          <button
+            class="button"
+            data-state={createRecommendation.pending ? "loading" : "idle"}
+          >
+            Post
+          </button>
         </div>
       </form>
     {/if}

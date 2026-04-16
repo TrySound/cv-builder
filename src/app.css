@@ -52,6 +52,8 @@
   --color-primary: #888888;
   --color-primary-hover: #aaaaaa;
 
+  --color-accent: oklch(0.69 0.26 26.96);
+
   --color-text: #f0f0f0;
   --color-text-secondary: #c0c0c0;
   --color-text-tertiary: #888888;
@@ -127,6 +129,22 @@ body {
   }
 }
 
+@keyframes --button-loading-clip {
+  0%,
+  100% {
+    clip-path: inset(0 0 calc(100% - 2px) 0);
+  }
+  25% {
+    clip-path: inset(0 calc(100% - 2px) 0 0);
+  }
+  50% {
+    clip-path: inset(calc(100% - 2px) 0 0 0);
+  }
+  75% {
+    clip-path: inset(0 0 0 calc(100% - 2px));
+  }
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -142,8 +160,23 @@ body {
   transition: background-color var(--transition-base);
   /* reset decoration on links */
   text-decoration: none;
+  position: relative;
   &:hover {
     background: var(--color-bg-hover);
+  }
+  &[data-state="loading"] {
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border: 1px solid var(--color-accent);
+      border-radius: var(--radius-md);
+      animation: --button-loading-clip 8s linear infinite;
+    }
+    &::before {
+      animation-delay: -4s;
+    }
   }
 }
 

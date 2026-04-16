@@ -4,7 +4,7 @@ import { query } from "$app/server";
 
 const publicAgent = new Agent("https://public.api.bsky.app");
 
-export const searchActorsWithSifaProfiles = query(
+export const searchProfiles = query(
   v.object({ q: v.string() }),
   async ({ q }) => {
     if (!q.trim()) {

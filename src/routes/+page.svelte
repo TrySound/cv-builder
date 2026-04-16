@@ -1,11 +1,20 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { page } from "$app/state";
+  import { searchProfiles } from "$lib/search.remote.js";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
 
-  let query = $state(page.url.searchParams.get("q") ?? "");
+  // Input value (can differ from query during typing)
+  let inputValue = $state("");
+  // Query used for actual search (synced with URL)
+  let query = $state("");
+  let queryTimeoutId: ReturnType<typeof setTimeout>;
+  // do not invoke query initially to avoid reactivity issues
+  // "This query instance is no longer active and can no longer be used for reactive state access"
+  const searchQuery = $derived(
+    query.length > 0 ? searchProfiles({ q: query }) : undefined,
+  );
+
   // svelte-ignore state_referenced_locally
   let mode: "hero" | "search" = $state(query.length === 0 ? "hero" : "search");
 </script>
@@ -25,7 +34,8 @@
         </a>
       </div>
       -->
-      <form method="GET" class="search-form">
+
+      <div class="search-form">
         <input
           type="text"
           name="q"
@@ -33,34 +43,47 @@
           placeholder="Search for professionals..."
           class="form-input form-input-lg"
           bind:value={
-            () => query,
+            () => inputValue,
             (newValue) => {
-              query = newValue;
-              if (mode === "hero") {
+              inputValue = newValue;
+
+              // Trigger mode transition immediately for responsive UI
+              if (mode === "hero" && newValue.length > 0) {
                 document.startViewTransition(() => {
                   mode = "search";
                 });
               }
-              const newUrl = new URL(page.url);
-              newUrl.searchParams.set("q", newValue);
-              goto(newUrl);
+
+              clearTimeout(queryTimeoutId);
+              queryTimeoutId = setTimeout(() => {
+                query = newValue;
+              }, 300);
             }
           }
           onblur={() => {
-            if (query.length === 0 && mode === "search") {
+            if (inputValue.length === 0 && mode === "search") {
+              clearTimeout(queryTimeoutId);
               document.startViewTransition(() => {
                 mode = "hero";
               });
             }
           }}
         />
-        <button class="button button-lg">Search</button>
-      </form>
+        <button
+          class="button button-lg"
+          data-state={(inputValue.length > 0 && inputValue !== query) ||
+          searchQuery?.loading
+            ? "loading"
+            : "idle"}
+        >
+          Search
+        </button>
+      </div>
     </div>
 
-    {#if data.searchResults}
+    {#if mode === "search"}
       <div class="results-list">
-        {#each data.searchResults.results as result (result.handle)}
+        {#each searchQuery?.current?.results as result (result.handle)}
           <a href="/profile/{result.handle}" class="button result-item">
             {#if result.avatar}
               <img src={result.avatar} alt="" class="result-avatar" />
@@ -77,10 +100,11 @@
             </div>
           </a>
         {:else}
-          <p class="subtle">
-            No users found with SIFA profiles matching "{data.searchResults
-              .query}"
-          </p>
+          {#if !searchQuery?.loading}
+            <p class="subtle">
+              No users found matching "{searchQuery?.current?.query ?? ""}"
+            </p>
+          {/if}
         {/each}
       </div>
     {/if}

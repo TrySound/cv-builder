@@ -10,10 +10,11 @@ declare global {
       did?: string;
       handle?: string;
       role?: "member" | "visitor";
+      session?: OAuthSession;
     }
     // interface PageData {}
     // interface Platform {}
   }
 }
 
-export {};
+export { };
