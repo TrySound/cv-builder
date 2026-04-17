@@ -11,13 +11,18 @@ import {
   type NodeSavedStateStore,
   type NodeSavedSessionStore,
 } from "@atproto/oauth-client-node";
-import { Client } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
 
 export const handleResolver = createHandleResolver({
   handleResolver: "https://npmx.social",
 });
 export const didResolver = createDidResolver({});
+
+export const resolveHandleFromDid = async (did: string) => {
+  const doc = await didResolver.resolve(did as DidString);
+  return doc.alsoKnownAs?.at(0)?.slice("at://".length) ?? did;
+};
 
 export const SCOPE = [
   "atproto",

@@ -5,7 +5,7 @@ import { Agent } from "@atproto/api";
 import { query, form, getRequestEvent } from "$app/server";
 import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
-import { didResolver, getOAuthClient, handleResolver } from "./auth";
+import { getOAuthClient, handleResolver, resolveHandleFromDid } from "./auth";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
@@ -24,9 +24,9 @@ export const getProfileRecommendations = query(
 
     const recommendationsWithHandles = await Promise.all(
       recommendations.map(async (item) => {
-        const didDoc = await didResolver.resolve(item.author_did as DidString);
-        const authorHandle =
-          didDoc.alsoKnownAs?.at(0)?.slice("at://".length) ?? item.author_did;
+        const authorHandle = await resolveHandleFromDid(
+          item.author_did as DidString,
+        );
         return {
           id: item.uri,
           reason: item.reason,

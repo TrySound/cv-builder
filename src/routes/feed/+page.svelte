@@ -4,7 +4,9 @@
   let { data } = $props();
 
   function formatDate(dateString: string | undefined): string {
-    if (!dateString) return "";
+    if (!dateString) {
+      return "";
+    }
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -18,26 +20,22 @@
   <Topbar handle={data.handle} role={data.role} />
 
   <div class="recommendations-list">
-    {#each data.recommendations as rec}
+    {#each data.recommendations as item}
       <article>
         <div>
           <a
-            href="/profile/{rec.subject_handle}#recommendation-{rec.id}"
+            href="/profile/{item.subjectHandle}#recommendation-{item.uri}"
             class="link"
           >
-            {rec.subject_name || rec.subject_handle}
+            {item.subjectHandle}
           </a>
-          {#if rec.invitation_id}
-            <span class="subtle">joined by invitation from</span>
-          {:else}
-            <span class="subtle">was recommended by</span>
-          {/if}
-          <a href="/profile/{rec.author_handle}" class="link">
-            {rec.author_name || rec.author_handle}
+          <span class="subtle">was recommended by</span>
+          <a href="/profile/{item.authorHandle}" class="link">
+            {item.authorHandle}
           </a>
         </div>
         <div class="subtle">
-          {formatDate(rec.created_at)}
+          {formatDate(item.createdAt)}
         </div>
       </article>
     {/each}

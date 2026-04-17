@@ -5,7 +5,7 @@
     "main": {
       "type": "record",
       "description": "A professional recommendation from one user to another.",
-      "key": "literal:subject_did",
+      "key": "tid",
       "record": {
         "type": "object",
         "required": ["subject", "reason", "createdAt"],

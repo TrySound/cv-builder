@@ -37,9 +37,9 @@
   {/if}
 
   <nav class="nav">
+    <a href="/feed" class="link">Feed</a>
     {#if handle}
       {#if role === "member"}
-        <a href="/feed" class="link">Feed</a>
         <a href="/invite" class="link">Invite</a>
       {/if}
       <button
@@ -97,11 +97,11 @@
   onclick={(event) => event.currentTarget.hidePopover()}
 >
   <div class="menu" role="menu">
+    <!-- svelte-ignore a11y_autofocus -->
+    <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
     {#if handle}
       <a href="/profile/{handle}" role="menuitem" class="menuitem">@{handle}</a>
       {#if role === "member"}
-        <!-- svelte-ignore a11y_autofocus -->
-        <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
         <a href="/invite" role="menuitem" class="menuitem">Invite</a>
       {/if}
       <form method="POST" action="/auth/logout">

@@ -1,38 +1,36 @@
-import { redirect } from "@sveltejs/kit";
+import type { DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
+import { resolveHandleFromDid } from "$lib/auth";
 
 export const load = async ({ locals }) => {
-  if (!locals.did) {
-    redirect(302, "/");
-  }
-
-  // Only members can access this page
-  if (locals.role !== "member") {
-    redirect(302, "/unauthorized");
-  }
-
   const db = await getDB();
 
-  // Load all recommendations with author and subject info
+  // Load all recommendations from index
   const recommendations = await db
-    .selectFrom("recommendations as r")
-    .innerJoin("members as author", "r.author_did", "author.did")
-    .innerJoin("members as subject", "r.subject_did", "subject.did")
-    .select([
-      "r.id",
-      "r.invitation_id",
-      "r.created_at",
-      "author.name as author_name",
-      "author.handle as author_handle",
-      "subject.name as subject_name",
-      "subject.handle as subject_handle",
-    ])
-    .orderBy("r.created_at", "desc")
+    .selectFrom("recommendation_index")
+    .selectAll()
+    .orderBy("created_at", "desc")
     .execute();
+
+  // Resolve handles for all DIDs
+  const recommendationsWithHandles = await Promise.all(
+    recommendations.map(async (item) => {
+      const [authorHandle, subjectHandle] = await Promise.all([
+        resolveHandleFromDid(item.author_did as DidString),
+        resolveHandleFromDid(item.subject_did as DidString),
+      ]);
+      return {
+        uri: item.uri,
+        authorHandle: authorHandle,
+        subjectHandle: subjectHandle,
+        createdAt: item.created_at,
+      };
+    }),
+  );
 
   return {
     handle: locals.handle,
     role: locals.role,
-    recommendations,
+    recommendations: recommendationsWithHandles,
   };
 };
