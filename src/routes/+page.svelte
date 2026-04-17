@@ -20,20 +20,15 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} role={data.role} hideLogo={mode === "hero"} />
+  <Topbar handle={data.handle} hideLogo={mode === "hero"} />
 
   <main class="hero" data-mode={mode}>
     <div class="hero-base">
       <h1 class="hero-title" hidden={mode === "search"}>weareonhire!</h1>
-      <!--
-      <p>An community for professionals</p>
-      <p class="subtle">Population: {data.memberCount}, and counting</p>
-      <div class="hero-actions">
-        <a href="mailto:hire@weareonhire.com" class="button button-primary">
-          Hire an expert
-        </a>
-      </div>
-      -->
+      <p hidden={mode === "search"}>Professional community</p>
+      <p hidden={mode === "search"} class="subtle">
+        Population: {data.populationCount}, and counting
+      </p>
 
       <div class="search-form">
         <input
@@ -111,6 +106,18 @@
   </main>
 </div>
 
+<section class="recommendations">
+  <h2 class="heading-1">Recent Recommendations</h2>
+  <div class="recommendations-grid">
+    {#each data.lastRecommendations as rec}
+      <div class="recommendation-card">
+        <p class="recommendation-reason">{rec.reason}</p>
+        <p class="subtle">— @{rec.authorHandle}</p>
+      </div>
+    {/each}
+  </div>
+</section>
+
 <footer class="footer">
   <h2 class="heading-1">Get Involved</h2>
   <div class="get-involved-grid">
@@ -173,7 +180,7 @@
     font-size: var(--font-size-4xl);
     font-weight: var(--font-weight-bold);
     color: var(--color-text);
-    margin: 0 0 var(--space-8);
+    margin: 0 0 var(--space-4);
     letter-spacing: -0.02em;
     view-transition-name: logo;
   }
@@ -206,8 +213,46 @@
     padding: var(--space-6);
   }
 
+  .recommendations {
+    padding: var(--space-12) var(--space-8);
+    text-align: center;
+  }
+
+  .recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-8);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .recommendation-card {
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-align: left;
+    p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .recommendation-reason {
+    color: var(--color-text);
+    line-height: var(--line-height-relaxed);
+    margin: 0 0 var(--space-4);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 4;
+  }
+
   @media (max-width: 768px) {
     .get-involved-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recommendations-grid {
       grid-template-columns: 1fr;
     }
 
@@ -217,6 +262,7 @@
   }
 
   .search-form {
+    margin-top: var(--space-8);
     display: grid;
     align-items: center;
     grid-template-columns: 1fr max-content;

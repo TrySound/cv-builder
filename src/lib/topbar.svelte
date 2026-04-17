@@ -3,12 +3,10 @@
 
   let {
     handle,
-    role,
     inviteCode,
     hideLogo = false,
   }: {
     handle: undefined | string;
-    role?: "member" | "visitor";
     inviteCode?: string;
     hideLogo?: boolean;
   } = $props();
@@ -39,9 +37,6 @@
   <nav class="nav">
     <a href="/feed" class="link">Feed</a>
     {#if handle}
-      {#if role === "member"}
-        <a href="/invite" class="link">Invite</a>
-      {/if}
       <button
         class="link"
         commandfor="desktop-auth-menu"
@@ -101,9 +96,6 @@
     <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
     {#if handle}
       <a href="/profile/{handle}" role="menuitem" class="menuitem">@{handle}</a>
-      {#if role === "member"}
-        <a href="/invite" role="menuitem" class="menuitem">Invite</a>
-      {/if}
       <form method="POST" action="/auth/logout">
         <button role="menuitem" class="menuitem">Disconnect</button>
       </form>

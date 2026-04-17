@@ -9,17 +9,8 @@ import { getDB } from "./db";
 export const getMemberProfile = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const { locals } = getRequestEvent();
-    let resume;
-    // Logged in users: try local database first
-    if (locals.did) {
-      resume = await loadResume(handle);
-    }
-    // Non-logged in users: fetch from sifa.id
-    if (!resume) {
-      resume = await loadSifaResume(handle);
-    }
-    return resume;
+    // show local resume and fallback to sifa resume
+    return (await loadResume(handle)) ?? (await loadSifaResume(handle));
   },
 );
 
