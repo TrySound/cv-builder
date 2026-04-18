@@ -17,6 +17,7 @@ export const load = async ({ locals }) => {
     .selectFrom("recommendation_index")
     .selectAll()
     .orderBy("created_at", "desc")
+    .limit(50)
     .execute();
 
   // Resolve handles for all DIDs
