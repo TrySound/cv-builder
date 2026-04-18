@@ -153,7 +153,7 @@
       </div>
     {/if}
 
-    <div class="recommendations-list">
+    <div>
       {#each recommendations.recommendations as item}
         <article
           id="recommendation-{item.id}"
@@ -215,11 +215,6 @@
 
   .character-count {
     float: right;
-  }
-
-  .recommendations-list {
-    display: grid;
-    gap: var(--space-6);
   }
 
   .recommendation {
