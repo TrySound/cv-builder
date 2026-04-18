@@ -14,6 +14,9 @@
 
   let { data } = $props();
 
+  const mode = $derived(
+    page.url.searchParams.get("mode") === "cv" ? "cv" : "recommendation",
+  );
   const isOwnProfile = $derived(data.handle === data.profile.handle);
 
   // reset the form instantly hidden after submission
@@ -95,6 +98,7 @@
         resume={profile.current}
         onSave={handleSave}
         readonly={!isOwnProfile}
+        fullResume={mode === "cv"}
       />
     {:else}
       <div class="spinner-container">

@@ -8,10 +8,12 @@
     resume,
     onSave,
     readonly = false,
+    fullResume = false,
   }: {
     resume: Resume;
     onSave?: (resume: Resume) => void;
     readonly?: boolean;
+    fullResume?: boolean;
   } = $props();
 
   // Local state for editing - only populated while editing
@@ -434,7 +436,7 @@
           </a>
         {/if}
       </div>
-      <div class="row-main">
+      <div class="cv-row-main">
         {#if displayResume.basics?.label}
           <p class="subtle">{displayResume.basics.label}</p>
         {/if}
@@ -451,9 +453,9 @@
   {/if}
 </section>
 
-<details class="experience-container">
+<details class="experience-container" open={fullResume}>
   <!-- Work Experience -->
-  <section class="cv-section">
+  <section class="cv-section" hidden={readonly && work.length === 0}>
     <div class="row">
       <div><!-- skip column --></div>
       <heading class="cv-row-heading">
@@ -676,7 +678,7 @@
   </section>
 
   <!-- Education -->
-  <section class="cv-section">
+  <section class="cv-section" hidden={readonly && education.length === 0}>
     <div class="row">
       <div><!-- skip column --></div>
       <heading class="cv-row-heading">
@@ -854,7 +856,7 @@
   </section>
 
   <!-- Projects -->
-  <section class="cv-section">
+  <section class="cv-section" hidden={readonly && projects.length === 0}>
     <div class="row">
       <div><!-- skip column --></div>
       <header class="cv-row-heading">
@@ -1233,7 +1235,7 @@
     text-transform: uppercase;
   }
 
-  .cv-section {
+  .cv-section:not([hidden]) {
     display: grid;
     gap: var(--space-6);
     margin-bottom: var(--space-12);
@@ -1259,6 +1261,12 @@
     p {
       margin-top: 0;
       white-space: pre-line;
+    }
+    & > *:first-child {
+      margin-top: 0;
+    }
+    & > *:last-child {
+      margin-bottom: 0;
     }
   }
 
