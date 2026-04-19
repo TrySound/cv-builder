@@ -118,6 +118,21 @@ export interface DatabaseSchema {
     time_us: number;
     updated_at: string;
   };
+  profile_index: {
+    did: string;
+    name: string | null;
+    title: string | null;
+    country_code: string | null;
+    introduction: string | null;
+    created_at: string;
+  };
+  profile_private: {
+    did: string;
+    email: string | null;
+    status: "open_to_work" | "open_to_connect" | "hidden";
+    created_at?: string;
+    updated_at?: string;
+  };
 }
 
 let db: Kysely<DatabaseSchema> | null = null;

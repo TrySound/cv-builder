@@ -30,6 +30,7 @@ export const SCOPE = [
   "repo:app.bsky.actor.profile",
   // weareonhire records
   "repo:com.weareonhire.recommendation",
+  "repo:com.weareonhire.profile",
   // Sifa profile records
   "repo:id.sifa.profile.self",
   "repo:id.sifa.profile.position",

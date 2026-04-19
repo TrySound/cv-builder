@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "com.weareonhire.profile",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A user's professional profile for the weareonhire platform.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "User's full name, e.g., John Doe"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Professional title, e.g., Senior full-stack engineer"
+          },
+          "countryCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "ISO 3166-1 alpha-2 country code, e.g., US, NL, DE"
+          },
+          "introduction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "Professional introduction or summary"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

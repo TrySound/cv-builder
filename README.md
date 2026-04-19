@@ -1,18 +1,18 @@
 # weareonhire!
 
-A professional networking platform.
+A professional networking platform built on trust and accountability.
 
 ## What this is
 
-A members-only community where professionals maintain verified, recommendation-backed profiles. Think of it as a living resume that grows with your network.
+An open professional community where members maintain verified, recommendation-backed profiles. Think of it as a living resume that grows with your network — your professional reputation, backed by real people.
 
 ## How it works
 
-**By invitation only.** Someone in the community invites you with a personal recommendation. You join, set up your profile, then invite others you trust. This creates a chain of accountability: every profile comes with social proof.
+**Recommendation-based onboarding.** Join through a personal recommendation from an existing member. They write a recommendation about you, which becomes part of your public profile. This creates a chain of accountability: every profile comes with social proof.
 
 **Resume editor.** Upload a PDF and extract your experience automatically. Edit and print as PDF to share with recruiters compact CV.
 
-**Private by default.** Profiles aren't public or indexed by search engines. Only members can see the community. It's a space to be professional without the performance anxiety of public social media.
+**Public recommendations.** Your recommendations are publicly visible, showcasing your professional reputation. Profile pages and the recommendation feed are open to everyone — transparency builds trust.
 
 ## Shortcuts
 

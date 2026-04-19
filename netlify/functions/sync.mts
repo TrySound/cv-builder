@@ -5,19 +5,30 @@ import { Pool } from "pg";
 import * as weareonhire from "../../src/lib/lexicons/com/weareonhire";
 import type { DatabaseSchema } from "../../src/lib/db";
 
+const PROFILE_COLLECTION = "com.weareonhire.profile";
 const RECOMMENDATION_COLLECTION = "com.weareonhire.recommendation";
 const TIMEOUT_MS = 20_000;
 
 type Operation =
   | {
-      type: "set";
-      uri: string;
-      author_did: string;
-      subject_did: string;
-      reason: string;
-      created_at: string;
-    }
-  | { type: "delete"; uri: string };
+    type: "set_recommendation";
+    uri: string;
+    author_did: string;
+    subject_did: string;
+    reason: string;
+    created_at: string;
+  }
+  | { type: "delete_recommendation"; uri: string }
+  | {
+    type: "set_profile";
+    did: string;
+    name: string | null;
+    title: string | null;
+    country_code: string | null;
+    introduction: string | null;
+    created_at: string;
+  }
+  | { type: "delete_profile"; did: string };
 
 function createDB() {
   const connectionString = process.env.CONNECTION_STRING;
@@ -76,28 +87,49 @@ async function syncRecommendations(db: Kysely<DatabaseSchema>) {
       "wss://jetstream1.us-west.bsky.network/subscribe",
       "wss://jetstream2.us-west.bsky.network/subscribe",
     ],
-    wantedCollections: [RECOMMENDATION_COLLECTION],
+    wantedCollections: [RECOMMENDATION_COLLECTION, PROFILE_COLLECTION],
     ...(cursor !== undefined ? { cursor } : {}),
   });
 
   try {
     for await (const event of subscription) {
-      if (
-        event.kind === "commit" &&
-        event.commit.collection === RECOMMENDATION_COLLECTION
-      ) {
-        const { did, commit } = event;
+      if (event.kind !== "commit") {
+        continue;
+      }
+      const { did, commit } = event;
 
+      // Handle profile events (singleton record, rkey is always "self")
+      if (commit.collection === PROFILE_COLLECTION) {
+        if (commit.operation === "delete") {
+          pending.push({ type: "delete_profile", did });
+        }
+
+        if (commit.operation === "create" || commit.operation === "update") {
+          const record = weareonhire.profile.main.parse(commit.record);
+          pending.push({
+            type: "set_profile",
+            did,
+            name: record.name ?? null,
+            title: record.title ?? null,
+            country_code: record.countryCode ?? null,
+            introduction: record.introduction ?? null,
+            created_at: record.createdAt,
+          });
+        }
+      }
+
+      // Handle recommendation events
+      if (commit.collection === RECOMMENDATION_COLLECTION) {
         const uri = AtUri.make(did, commit.collection, commit.rkey).toString();
 
         if (commit.operation === "delete") {
-          pending.push({ type: "delete", uri });
+          pending.push({ type: "delete_recommendation", uri });
         }
 
         if (commit.operation === "create" || commit.operation === "update") {
           const record = weareonhire.recommendation.main.parse(commit.record);
           pending.push({
-            type: "set",
+            type: "set_recommendation",
             uri,
             author_did: did,
             subject_did: record.subject,
@@ -120,10 +152,42 @@ async function syncRecommendations(db: Kysely<DatabaseSchema>) {
 
   let processed = 0;
   let deleted = 0;
+  let profilesProcessed = 0;
+  let profilesDeleted = 0;
 
   for (const op of pending) {
     try {
-      if (op.type === "set") {
+      if (op.type === "set_profile") {
+        await db
+          .insertInto("profile_index")
+          .values({
+            did: op.did,
+            name: op.name,
+            title: op.title,
+            country_code: op.country_code,
+            introduction: op.introduction,
+            created_at: op.created_at,
+          })
+          .onConflict((oc) =>
+            oc.column("did").doUpdateSet({
+              name: op.name,
+              title: op.title,
+              country_code: op.country_code,
+              introduction: op.introduction,
+              created_at: op.created_at,
+            }),
+          )
+          .execute();
+        profilesProcessed++;
+      }
+      if (op.type === "delete_profile") {
+        await db
+          .deleteFrom("profile_index")
+          .where("did", "=", op.did)
+          .execute();
+        profilesDeleted++;
+      }
+      if (op.type === "set_recommendation") {
         await db
           .insertInto("recommendation_index")
           .values({
@@ -141,7 +205,7 @@ async function syncRecommendations(db: Kysely<DatabaseSchema>) {
           .execute();
         processed++;
       }
-      if (op.type === "delete") {
+      if (op.type === "delete_recommendation") {
         await db
           .deleteFrom("recommendation_index")
           .where("uri", "=", op.uri)
@@ -157,8 +221,8 @@ async function syncRecommendations(db: Kysely<DatabaseSchema>) {
 
   return {
     events: pending.length,
-    created: processed,
-    deleted,
+    recommendations: { created: processed, deleted },
+    profiles: { created: profilesProcessed, deleted: profilesDeleted },
     cursor: subscription.cursor ?? null,
   };
 }
