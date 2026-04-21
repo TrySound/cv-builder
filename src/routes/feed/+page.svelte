@@ -19,11 +19,11 @@
         <div class="margin-trim-block">
           <p>
             <a href="/profile/{item.authorHandle}" class="link">
-              {item.authorHandle}
+              {item.authorName || item.authorHandle}
             </a>
             <span class="subtle">recommended</span>
             <a href="/profile/{item.subjectHandle}" class="link">
-              {item.subjectHandle}
+              {item.subjectName || item.subjectHandle}
             </a>
           </p>
           <p>

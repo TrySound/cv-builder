@@ -270,6 +270,10 @@
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}
+        <a href="https://bsky.app/profile/{data.profile.handle}" target="_blank" class="link contact-item">
+          Bluesky
+          <svg width="14" height="14"><use href="#icon-bluesky" /></svg>
+        </a>
         {#each contacts.current?.contacts as contact}
           <a href={contact} target="_blank" class="link contact-item">
             {getLinkDisplayName(contact)}
@@ -355,7 +359,7 @@
           <div class="margin-trim-block">
             <p>
               <a href="/profile/{item.authorHandle}" class="link">
-                {item.authorHandle}
+                {item.authorName || item.authorHandle}
               </a>
             </p>
             <p>

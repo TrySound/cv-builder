@@ -112,7 +112,7 @@
     {#each data.lastRecommendations as rec}
       <div class="recommendation-card">
         <p class="recommendation-reason">{rec.reason}</p>
-        <p class="subtle">— @{rec.authorHandle}</p>
+        <p class="subtle">— {rec.authorName || rec.authorHandle}</p>
       </div>
     {/each}
   </div>

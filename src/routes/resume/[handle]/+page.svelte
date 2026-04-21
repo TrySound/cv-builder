@@ -112,7 +112,7 @@
           <div class="margin-trim-block">
             <p>
               <a href="/profile/{item.authorHandle}" class="link">
-                {item.authorHandle}
+                {item.authorName || item.authorHandle}
               </a>
             </p>
             <p>
@@ -160,6 +160,6 @@
   }
 
   .recommendation {
-    padding: var(--space-6);
+    padding: var(--space-6) 0;
   }
 </style>
