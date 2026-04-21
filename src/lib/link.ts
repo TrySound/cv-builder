@@ -18,6 +18,9 @@ export function getLinkDisplayName(url: string): string {
   if (lowerUrl.includes("t.me") || lowerUrl.includes("telegram.me")) {
     return "Telegram";
   }
+  if (lowerUrl.includes("bsky.app")) {
+    return "Bluesky";
+  }
   try {
     const hostname = new URL(url.startsWith("http") ? url : `https://${url}`)
       .hostname;
@@ -34,6 +37,12 @@ export function getLinkIcon(url: string): string {
   }
   if (lowerUrl.includes("linkedin.com")) {
     return "linkedin";
+  }
+  if (lowerUrl.includes("bsky.app")) {
+    return "bluesky";
+  }
+  if (lowerUrl.includes("t.me") || lowerUrl.includes("telegram.me")) {
+    return "telegram";
   }
   return "website";
 }
