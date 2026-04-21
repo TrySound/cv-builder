@@ -19,11 +19,21 @@ export const load = async ({ locals }) => {
 
   const populationCount = Number(result.rows[0]?.count || 0);
 
-  // Get last 4 recommendations
+  // Get last 4 recommendations with author and subject names
   const lastRecommendations = await db
     .selectFrom("recommendation_index")
-    .selectAll()
-    .orderBy("created_at", "desc")
+    .leftJoin("profile_index as author", "author.did", "recommendation_index.author_did")
+    .leftJoin("profile_index as subject", "subject.did", "recommendation_index.subject_did")
+    .select([
+      "recommendation_index.uri",
+      "recommendation_index.author_did",
+      "recommendation_index.subject_did",
+      "recommendation_index.reason",
+      "recommendation_index.created_at",
+      "author.name as author_name",
+      "subject.name as subject_name",
+    ])
+    .orderBy("recommendation_index.created_at", "desc")
     .limit(4)
     .execute();
 
@@ -37,7 +47,9 @@ export const load = async ({ locals }) => {
       return {
         reason: item.reason,
         authorHandle,
+        authorName: item.author_name,
         subjectHandle,
+        subjectName: item.subject_name,
       };
     }),
   );

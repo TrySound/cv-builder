@@ -355,7 +355,7 @@
           <div class="margin-trim-block">
             <p>
               <a href="/profile/{item.authorHandle}" class="link">
-                {item.authorHandle}
+                {item.authorName || item.authorHandle}
               </a>
             </p>
             <p>

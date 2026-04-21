@@ -18,8 +18,15 @@ export const getProfileRecommendations = query(
     const recommendations = await db
       .selectFrom("recommendation_index")
       .where("recommendation_index.subject_did", "=", profileDid)
+      .leftJoin("profile_index as author", "author.did", "recommendation_index.author_did")
       .orderBy("recommendation_index.created_at", "desc")
-      .selectAll()
+      .select([
+        "recommendation_index.uri",
+        "recommendation_index.author_did",
+        "recommendation_index.reason",
+        "recommendation_index.created_at",
+        "author.name as author_name",
+      ])
       .execute();
 
     const recommendationsWithHandles = await Promise.all(
@@ -31,6 +38,7 @@ export const getProfileRecommendations = query(
           id: item.uri,
           reason: item.reason,
           authorHandle: authorHandle,
+          authorName: item.author_name,
           createdAt: item.created_at,
         };
       }),
