@@ -22,8 +22,16 @@ export const load = async ({ locals }) => {
   // Get last 4 recommendations with author and subject names
   const lastRecommendations = await db
     .selectFrom("recommendation_index")
-    .leftJoin("profile_index as author", "author.did", "recommendation_index.author_did")
-    .leftJoin("profile_index as subject", "subject.did", "recommendation_index.subject_did")
+    .leftJoin(
+      "profile_index as author",
+      "author.did",
+      "recommendation_index.author_did",
+    )
+    .leftJoin(
+      "profile_index as subject",
+      "subject.did",
+      "recommendation_index.subject_did",
+    )
     .select([
       "recommendation_index.uri",
       "recommendation_index.author_did",
@@ -58,6 +66,12 @@ export const load = async ({ locals }) => {
     handle: locals.handle,
     role: locals.role,
     populationCount,
-    lastRecommendations: recommendationsWithHandles,
+    lastRecommendations:
+      Array.from(Array(6)).map(() => ({
+        reason:
+          "recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text",
+        authorHandle: "handle2",
+        subjectHandle: "handl2",
+      })) ?? recommendationsWithHandles,
   };
 };
