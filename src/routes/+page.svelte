@@ -37,7 +37,7 @@
 
   <section class="section">
     <h2 class="section-title">Why This Exists</h2>
-    <div class="columns">
+    <div class="columns-3">
       <article class="margin-trim-block text-align-center">
         <p>
           <svg class="subtle" width="48" height="48">
@@ -180,7 +180,7 @@
 
   <section class="section">
     <h2 class="section-title">Recent Recommendations</h2>
-    <div class="columns">
+    <div class="columns-2">
       {#each data.lastRecommendations as rec}
         <div class="margin-trim-block">
           <p class="text-wrap-pretty">{rec.reason}</p>
@@ -192,7 +192,7 @@
 
   <footer class="section">
     <h2 class="section-title">Get Involved</h2>
-    <div class="columns">
+    <div class="columns-3">
       <a class="button" target="_blank" href="https://repo.weareonhire.com">
         <div class="involved-card margin-trim-block">
           <p>
@@ -301,9 +301,17 @@
     text-underline-offset: 6px;
   }
 
-  .columns {
-    display: grid;
+  .columns-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .columns-3 {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .columns-2,
+  .columns-3 {
+    display: grid;
     gap: var(--space-8);
     @media (max-width: 640px) {
       grid-template-columns: 1fr;
