@@ -1,68 +1,185 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import { searchProfiles } from "$lib/search.remote.js";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
+
+  const title = "Home | weareonhire!";
+  const description =
+    "A professional networking platform built on trust and accountability.";
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "weareonhire!",
+    url: "https://weareonhire.com",
+    description,
+  };
 
   // Input value (can differ from query during typing)
   let inputValue = $state("");
   // Query used for actual search (synced with URL)
   let query = $state("");
   let queryTimeoutId: ReturnType<typeof setTimeout>;
+  // Track whether to show search results - prevents reactivity issues
+  let showResults = $state(false);
   // do not invoke query initially to avoid reactivity issues
   // "This query instance is no longer active and can no longer be used for reactive state access"
   const searchQuery = $derived(
     query.length > 0 ? searchProfiles({ q: query }) : undefined,
   );
-
-  // svelte-ignore state_referenced_locally
-  let mode: "hero" | "search" = $state(query.length === 0 ? "hero" : "search");
 </script>
 
+<svelte:head>
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="weareonhire!" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={page.url.toString()} />
+  <meta property="og:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Structured Data -->
+  {@html `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>`}
+</svelte:head>
+
 <div class="container">
-  <Topbar handle={data.handle} hideLogo={mode === "hero"} />
+  <Topbar handle={data.handle} hideLogo />
 
-  <main class="hero" data-mode={mode}>
-    <div class="hero-base">
-      <h1 class="hero-title" hidden={mode === "search"}>weareonhire!</h1>
-      <p hidden={mode === "search"}>Professional community</p>
-      <p hidden={mode === "search"} class="subtle">
-        Population: {data.populationCount}, and counting
-      </p>
+  <section class="hero">
+    <h1 class="hero-title">weareonhire!</h1>
+    <p class="hero-tagline">Your professional story, backed by your peers</p>
+    <div class="hero-actions">
+      {#if data.handle}
+        <a
+          class="button button-primary button-lg"
+          href="/profile/{data.handle}"
+        >
+          My Profile
+        </a>
+      {:else}
+        <button
+          class="button button-primary button-lg"
+          commandfor="topbar-login-dialog"
+          command="show-modal"
+        >
+          Connect to Atmosphere
+        </button>
+      {/if}
+    </div>
+  </section>
 
+  <section class="section">
+    <h2 class="section-title">Why This Exists</h2>
+    <div class="columns-3">
+      <article class="margin-trim-block text-align-center">
+        <p>
+          <svg class="subtle" width="48" height="48">
+            <use href="#icon-users" />
+          </svg>
+        </p>
+        <h3 class="heading-2">Algorithms Don't Know You</h3>
+        <p class="text-wrap-balance">
+          ATS filters throw away great candidates over missing keywords. Your
+          real skills get buried under buzzword games.
+        </p>
+      </article>
+      <article class="margin-trim-block text-align-center">
+        <p>
+          <svg class="subtle" width="48" height="48">
+            <use href="#icon-print" />
+          </svg>
+        </p>
+        <h3 class="heading-2">Resumes Are Broken</h3>
+        <p class="text-wrap-balance">
+          Everyone exaggerates to beat the system. Nobody trusts what they read
+          anymore.
+        </p>
+      </article>
+      <article class="margin-trim-block text-align-center">
+        <p>
+          <svg class="subtle" width="48" height="48">
+            <use href="#icon-clock" />
+          </svg>
+        </p>
+        <h3 class="heading-2">Months Wasted</h3>
+        <p class="text-wrap-balance">
+          You apply to hundreds of roles. Ghosted. Companies interview dozens of
+          poor fits. <strong>We need human connection back.</strong>
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-sm">
+    <h2 class="section-title">How It Works</h2>
+    <div class="works-list">
+      <article class="margin-trim-block">
+        <h3 class="heading-2">Tell Your Story</h3>
+        <p class="text-wrap-pretty">
+          Skip the keyword games. Just write about what you've actually built,
+          what you learned, and what you're proud of. Your profile becomes a
+          living story, not a document you send into the void.
+        </p>
+      </article>
+      <article class="margin-trim-block">
+        <h3 class="heading-2">Get Endorsed</h3>
+        <p class="text-wrap-pretty">
+          Ask colleagues or open source collaborators who know your work to
+          write a few sentences about what it's like working with you. Real
+          validation beats self-reported expertise every time.
+        </p>
+      </article>
+      <article class="margin-trim-block">
+        <h3 class="heading-2">Pay It Forward</h3>
+        <p class="text-wrap-pretty">
+          Vouch for people you'd happily work with again. It's how good people
+          help each other find the right opportunities.
+        </p>
+      </article>
+      <article class="margin-trim-block">
+        <h3 class="heading-2">Built on AT Protocol</h3>
+        <p class="text-wrap-pretty">
+          Your professional profile lives on the Atmosphere, the open network
+          behind Bluesky. Leave weareonhire! and all recommendations stays with
+          you.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- temporary hide the section -->
+  {#if 1 > 5}
+    <section class="section section-sm">
+      <h2 class="section-title">Find Professionals</h2>
       <div class="search-form">
         <input
           type="text"
           name="q"
           autocomplete="off"
-          placeholder="Search for professionals..."
+          placeholder="Search by name, handle, or expertise..."
           class="form-input form-input-lg"
           bind:value={
             () => inputValue,
             (newValue) => {
               inputValue = newValue;
-
-              // Trigger mode transition immediately for responsive UI
-              if (mode === "hero" && newValue.length > 0) {
-                document.startViewTransition(() => {
-                  mode = "search";
-                });
-              }
-
+              showResults = newValue.length > 0;
               clearTimeout(queryTimeoutId);
               queryTimeoutId = setTimeout(() => {
                 query = newValue;
               }, 300);
             }
           }
-          onblur={() => {
-            if (inputValue.length === 0 && mode === "search") {
-              clearTimeout(queryTimeoutId);
-              document.startViewTransition(() => {
-                mode = "hero";
-              });
-            }
-          }}
         />
         <button
           class="button button-lg"
@@ -74,106 +191,108 @@
           Search
         </button>
       </div>
-    </div>
 
-    {#if mode === "search"}
-      <div class="results-list">
-        {#each searchQuery?.current?.results as result (result.handle)}
-          <a href="/profile/{result.handle}" class="button result-item">
-            {#if result.avatar}
-              <img src={result.avatar} alt="" class="result-avatar" />
-            {:else}
-              <div class="result-avatar-placeholder"></div>
-            {/if}
-            <div class="result-item-content">
-              <div class="result-handle">@{result.handle}</div>
-              {#if result.displayName}
-                <div class="subtle">
-                  {result.displayName}
-                </div>
+      {#if showResults}
+        <div class="results-list">
+          {#each searchQuery?.current?.results as result (result.handle)}
+            <a href="/profile/{result.handle}" class="button result-item">
+              {#if result.avatar}
+                <img src={result.avatar} alt="" class="result-avatar" />
+              {:else}
+                <div class="result-avatar-placeholder"></div>
               {/if}
-            </div>
-          </a>
-        {:else}
-          {#if !searchQuery?.loading}
-            <p class="subtle">
-              No users found matching "{searchQuery?.current?.query ?? ""}"
-            </p>
-          {/if}
-        {/each}
-      </div>
-    {/if}
-  </main>
+              <div class="result-item-content">
+                <div class="result-handle">@{result.handle}</div>
+                {#if result.displayName}
+                  <div class="subtle">
+                    {result.displayName}
+                  </div>
+                {/if}
+              </div>
+            </a>
+          {:else}
+            {#if !searchQuery?.loading}
+              <p class="subtle">
+                No users found matching "{searchQuery?.current?.query ?? ""}"
+              </p>
+            {/if}
+          {/each}
+        </div>
+      {/if}
+    </section>
+  {/if}
+
+  <section class="section">
+    <h2 class="section-title">Recent Recommendations</h2>
+    <div class="columns-2">
+      {#each data.lastRecommendations as rec}
+        <div class="margin-trim-block">
+          <p class="text-wrap-pretty">{rec.reason}</p>
+          <p class="subtle">— {rec.authorName || rec.authorHandle}</p>
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <footer class="section">
+    <h2 class="section-title">Get Involved</h2>
+    <div class="columns-3">
+      <a class="button" target="_blank" href="https://repo.weareonhire.com">
+        <div class="involved-card margin-trim-block">
+          <p>
+            <svg width="32" height="32">
+              <use href="#icon-github" />
+            </svg>
+          </p>
+          <h3 class="heading-2">Contribute</h3>
+          <p class="subtle">Help us build weareonhire!</p>
+          <p>View on GitHub</p>
+        </div>
+      </a>
+      <a class="button" target="_blank" href="https://chat.weareonhire.com">
+        <div class="involved-card margin-trim-block">
+          <p>
+            <svg width="32" height="32">
+              <use href="#icon-discord" />
+            </svg>
+          </p>
+          <h3 class="heading-2">Join the Community</h3>
+          <p class="subtle">Chat, ask questions, and share ideas.</p>
+          <p>Join Discord</p>
+        </div>
+      </a>
+      <a class="button" target="_blank" href="https://social.weareonhire.com">
+        <div class="involved-card margin-trim-block">
+          <p>
+            <svg width="32" height="32">
+              <use href="#icon-bluesky" />
+            </svg>
+          </p>
+          <h3 class="heading-2">Stay Updated</h3>
+          <p class="subtle">Get the latest updates and announcements.</p>
+          <p>Follow on Bluesky</p>
+        </div>
+      </a>
+    </div>
+  </footer>
 </div>
-
-<section class="recommendations">
-  <h2 class="heading-1">Recent Recommendations</h2>
-  <div class="recommendations-grid">
-    {#each data.lastRecommendations as rec}
-      <div class="recommendation-card">
-        <p class="recommendation-reason">{rec.reason}</p>
-        <p class="subtle">— {rec.authorName || rec.authorHandle}</p>
-      </div>
-    {/each}
-  </div>
-</section>
-
-<footer class="footer">
-  <h2 class="heading-1">Get Involved</h2>
-  <div class="get-involved-grid">
-    <a class="button" target="_blank" href="https://repo.weareonhire.com">
-      <div class="involved-card">
-        <h3 class="heading-2">Contribute</h3>
-        <p class="subtle">Help us build weareonhire!</p>
-        <p>View on GitHub</p>
-      </div>
-    </a>
-    <a class="button" target="_blank" href="https://chat.weareonhire.com">
-      <div class="involved-card">
-        <h3 class="heading-2">Join the Community</h3>
-        <p class="subtle">Chat, ask questions, and share ideas.</p>
-        <p>Join Discord</p>
-      </div>
-    </a>
-    <a class="button" target="_blank" href="https://social.weareonhire.com">
-      <div class="involved-card">
-        <h3 class="heading-2">Stay Updated</h3>
-        <p class="subtle">Get the latest updates and announcements.</p>
-        <p>Follow on Bluesky</p>
-      </div>
-    </a>
-  </div>
-</footer>
 
 <style>
   .container {
-    min-height: 100dvh;
+    min-height: auto;
     display: grid;
-    grid-template-rows: max-content 1fr;
+    grid-template-rows: max-content;
   }
 
-  .heading-1 {
-    text-transform: uppercase;
-    margin-bottom: var(--space-8);
-  }
-
+  /* Hero Section */
   .hero {
-    display: grid;
-    justify-self: center;
-    align-items: center;
-    gap: var(--space-8);
+    padding: var(--space-12) var(--space-8);
     text-align: center;
-    max-width: 480px;
-    width: 100%;
-    padding: var(--space-8) 0;
-    &[data-mode="search"] {
-      grid-auto-rows: max-content;
-      align-items: start;
-    }
-  }
-
-  .hero-base {
-    view-transition-name: match-element;
+    min-height: calc(100dvh - 96px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   .hero-title {
@@ -182,87 +301,68 @@
     color: var(--color-text);
     margin: 0 0 var(--space-4);
     letter-spacing: -0.02em;
-    view-transition-name: logo;
   }
 
-  /*
+  .hero-tagline {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    margin: 0 0 var(--space-6);
+    line-height: var(--line-height-tight);
+  }
+
   .hero-actions {
-    display: flex;
-    gap: var(--space-3);
-    justify-content: center;
-    flex-wrap: wrap;
     margin-top: var(--space-8);
-  }
-*/
-
-  .footer {
-    padding: var(--space-12) var(--space-8);
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
   }
 
-  .get-involved-grid {
+  .section {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-8);
-    max-width: 900px;
-    margin: 0 auto;
+    gap: var(--space-12);
+    margin: var(--space-12) 0;
   }
 
-  .involved-card {
+  .section-sm {
+    width: 100%;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Section Titles */
+  .section-title {
+    text-transform: uppercase;
     text-align: center;
-    padding: var(--space-6);
-  }
-
-  .recommendations {
-    padding: var(--space-12) var(--space-8);
-    text-align: center;
-  }
-
-  .recommendations-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-8);
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  .recommendation-card {
-    padding: var(--space-6);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    text-align: left;
-    p:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .recommendation-reason {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text);
-    line-height: var(--line-height-relaxed);
-    margin: 0 0 var(--space-4);
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-clamp: 4;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 6px;
   }
 
-  @media (max-width: 768px) {
-    .get-involved-grid {
-      grid-template-columns: 1fr;
-    }
+  .columns-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-    .recommendations-grid {
-      grid-template-columns: 1fr;
-    }
+  .columns-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
-    .hero-title {
-      font-size: var(--font-size-3xl);
+  .columns-2,
+  .columns-3 {
+    display: grid;
+    gap: var(--space-8);
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
     }
   }
 
   .search-form {
-    margin-top: var(--space-8);
     display: grid;
     align-items: center;
     grid-template-columns: 1fr max-content;
@@ -303,5 +403,31 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+  }
+
+  .involved-card {
+    text-align: center;
+    padding: var(--space-4);
+  }
+
+  .works-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero {
+      padding: var(--space-12) var(--space-6);
+    }
+
+    .hero-title {
+      font-size: var(--font-size-3xl);
+    }
+
+    .hero-tagline {
+      font-size: var(--font-size-lg);
+    }
   }
 </style>

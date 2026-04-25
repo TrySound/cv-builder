@@ -5,8 +5,13 @@
   import { updateMemberProfile } from "$lib/profile.remote";
   import { createRecommendation as createRecommendationRaw } from "$lib/recommendation.remote";
   import { getChecks } from "./checks.remote";
+  import { page } from "$app/state";
 
   const { data } = $props();
+
+  const title = "Getting Started | weareonhire!";
+  const description =
+    "Welcome to weareonhire! Complete your profile setup by uploading your resume, giving recommendations, and inviting your peers to the community.";
 
   const checks = getChecks();
 
@@ -33,6 +38,24 @@
     }
   }
 </script>
+
+<svelte:head>
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={page.url.toString()} />
+  <meta property="og:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="{page.url.origin}/og-image.png" />
+</svelte:head>
 
 <div class="container">
   <Topbar handle={data.handle} hideLogo />

@@ -468,7 +468,6 @@ body {
   color: #1e40af;
 }
 
-/* Dialog */
 .dialog {
   padding: 0;
   border: none;
@@ -480,10 +479,48 @@ body {
   background: var(--color-bg);
   /* color is not inherited from the root */
   color: var(--color-text-secondary);
-}
+  overscroll-behavior: contain;
 
-.dialog::backdrop {
-  background: var(--color-backdrop);
+  &,
+  &::backdrop {
+    transition:
+      display var(--transition-base) allow-discrete,
+      overlay var(--transition-base) allow-discrete,
+      opacity var(--transition-base);
+
+    /* Exit Stage To */
+    opacity: 0;
+  }
+
+  /* On Stage */
+  &[open] {
+    opacity: 1;
+
+    &::backdrop {
+      opacity: 0.8;
+    }
+  }
+
+  html:has(&[open]) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  /* Enter Stage From */
+  @starting-style {
+    &[open],
+    &[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  &::backdrop {
+    background: var(--color-backdrop);
+
+    /* prevent scrolling page */
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
 }
 
 .dialog-header {
@@ -596,4 +633,16 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.text-wrap-balance {
+  text-wrap: balance;
+}
+
+.text-wrap-pretty {
+  text-wrap: pretty;
+}
+
+.text-align-center {
+  text-align: center;
 }

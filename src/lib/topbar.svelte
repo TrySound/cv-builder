@@ -228,6 +228,28 @@
     border: 0;
     min-width: 120px;
     color: inherit;
+
+    & {
+      transition:
+        display var(--transition-fast) allow-discrete,
+        overlay var(--transition-fast) allow-discrete,
+        opacity var(--transition-fast);
+
+      /* Exit Stage To */
+      opacity: 0;
+    }
+
+    /* On Stage */
+    &:popover-open {
+      opacity: 1;
+    }
+
+    /* Enter Stage From */
+    @starting-style {
+      &:popover-open {
+        opacity: 0;
+      }
+    }
   }
 
   form {

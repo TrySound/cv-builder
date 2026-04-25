@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Private pages - do not index
+Disallow: /invite/
+Disallow: /members
+Disallow: /getting-started
+Disallow: /unauthorized
+Disallow: /api/
