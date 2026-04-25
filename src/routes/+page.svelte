@@ -184,7 +184,7 @@
       {#each data.lastRecommendations as rec}
         <div class="margin-trim-block">
           <p class="text-wrap-pretty">{rec.reason}</p>
-          <p class="subtle">— {rec.authorHandle}</p>
+          <p class="subtle">— {rec.authorName || rec.authorHandle}</p>
         </div>
       {/each}
     </div>

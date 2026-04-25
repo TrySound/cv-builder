@@ -27,19 +27,12 @@ export const load = async ({ locals }) => {
       "author.did",
       "recommendation_index.author_did",
     )
-    .leftJoin(
-      "profile_index as subject",
-      "subject.did",
-      "recommendation_index.subject_did",
-    )
     .select([
       "recommendation_index.uri",
       "recommendation_index.author_did",
-      "recommendation_index.subject_did",
       "recommendation_index.reason",
       "recommendation_index.created_at",
       "author.name as author_name",
-      "subject.name as subject_name",
     ])
     .orderBy("recommendation_index.created_at", "desc")
     .limit(4)
@@ -48,16 +41,13 @@ export const load = async ({ locals }) => {
   // Resolve handles for authors and subjects
   const recommendationsWithHandles = await Promise.all(
     lastRecommendations.map(async (item) => {
-      const [authorHandle, subjectHandle] = await Promise.all([
-        resolveHandleFromDid(item.author_did as DidString),
-        resolveHandleFromDid(item.subject_did as DidString),
-      ]);
+      const authorHandle = await resolveHandleFromDid(
+        item.author_did as DidString,
+      );
       return {
         reason: item.reason,
         authorHandle,
         authorName: item.author_name,
-        subjectHandle,
-        subjectName: item.subject_name,
       };
     }),
   );
