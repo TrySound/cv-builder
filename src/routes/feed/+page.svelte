@@ -1,9 +1,32 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import { formatDate } from "$lib/date";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
+
+  const title = "Feed | weareonhire!";
+  const description =
+    "Discover the latest peer recommendations from the weareonhire! community. See what professionals are saying about their colleagues.";
 </script>
+
+<svelte:head>
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={page.url.toString()} />
+  <meta property="og:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="{page.url.origin}/og-image.png" />
+</svelte:head>
 
 <div class="container">
   <Topbar handle={data.handle} />

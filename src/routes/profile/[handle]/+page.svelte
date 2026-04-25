@@ -19,6 +19,30 @@
 
   let { data } = $props();
 
+  // await triggers reactivity loss warning but does not blink on the page
+  const profile = $derived(await getProfile({ handle: data.profile.handle }));
+
+  // SEO metadata
+  const profileName = $derived(profile.name ?? data.profile.handle);
+  const profileDescription = $derived(
+    `View ${profileName}'s professional profile on weareonhire!`,
+  );
+  const seoTitle = $derived(
+    profile.title
+      ? `${profileName} - ${profile.title} | weareonhire!`
+      : `${profileName} | weareonhire!`,
+  );
+  const personSchema = $derived({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profileName,
+    identifier: data.profile.handle,
+    jobTitle: profile.title ?? undefined,
+    description: profileDescription,
+    url: `https://weareonhire.com/profile/${data.profile.handle}`,
+    sameAs: [`https://bsky.app/profile/${data.profile.handle}`],
+  });
+
   countries.registerLocale(countriesEnLocale);
 
   const countriesList = Object.entries(
@@ -34,9 +58,6 @@
   const createRecommendation = $derived(
     createRecommendationRaw.for(data.profile.handle),
   );
-
-  // await triggers reactivity loss warning but does not blink on the page
-  const profile = $derived(await getProfile({ handle: data.profile.handle }));
 
   const recommendations = $derived(
     // await triggers reactivity loss warning but does not blink on the page
@@ -74,6 +95,28 @@
     }
   };
 </script>
+
+<svelte:head>
+  <title>{seoTitle}</title>
+  <meta name="description" content={profileDescription} />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={seoTitle} />
+  <meta property="og:description" content={profileDescription} />
+  <meta property="og:type" content="profile" />
+  <meta property="og:url" content={page.url.toString()} />
+  <meta property="og:image" content="{page.url.origin}/og-image.png" />
+  <meta property="profile:username" content={data.profile.handle} />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={seoTitle} />
+  <meta name="twitter:description" content={profileDescription} />
+  <meta name="twitter:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Structured Data -->
+  {@html `<script type="application/ld+json">${JSON.stringify(personSchema)}</script>`}
+</svelte:head>
 
 <div class="container">
   <Topbar handle={data.handle} />
@@ -270,7 +313,11 @@
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}
-        <a href="https://bsky.app/profile/{data.profile.handle}" target="_blank" class="link contact-item">
+        <a
+          href="https://bsky.app/profile/{data.profile.handle}"
+          target="_blank"
+          class="link contact-item"
+        >
           Bluesky
           <svg width="14" height="14"><use href="#icon-bluesky" /></svg>
         </a>

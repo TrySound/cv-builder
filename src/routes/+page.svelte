@@ -1,8 +1,21 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import { searchProfiles } from "$lib/search.remote.js";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
+
+  const title = "weareonhire!";
+  const description =
+    "A professional networking platform built on trust and accountability.";
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "weareonhire!",
+    url: "https://weareonhire.com",
+    description,
+  };
 
   // Input value (can differ from query during typing)
   let inputValue = $state("");
@@ -17,6 +30,28 @@
     query.length > 0 ? searchProfiles({ q: query }) : undefined,
   );
 </script>
+
+<svelte:head>
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="weareonhire!" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={page.url.toString()} />
+  <meta property="og:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Structured Data -->
+  {@html `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>`}
+</svelte:head>
 
 <div class="container">
   <Topbar handle={data.handle} hideLogo />

@@ -3,12 +3,42 @@
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import { getProfileRecommendations } from "$lib/recommendation.remote";
-  import { getMemberProfile, updateMemberProfile } from "$lib/profile.remote";
+  import {
+    getMemberProfile,
+    getProfile,
+    updateMemberProfile,
+  } from "$lib/profile.remote";
   import { formatDate } from "$lib/date";
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
+  import { page } from "$app/state";
 
   let { data } = $props();
+
+  const basicProfile = $derived(
+    await getProfile({ handle: data.profile.handle }),
+  );
+
+  // SEO metadata
+  const profileName = $derived(basicProfile.name ?? data.profile.handle);
+  const profileDescription = $derived(
+    `View ${profileName}'s professional profile on weareonhire!`,
+  );
+  const seoTitle = $derived(
+    basicProfile.title
+      ? `${profileName} - ${basicProfile.title} | weareonhire!`
+      : `${profileName} | weareonhire!`,
+  );
+  const personSchema = $derived({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profileName,
+    identifier: data.profile.handle,
+    jobTitle: basicProfile.title ?? undefined,
+    description: profileDescription,
+    url: `https://weareonhire.com/profile/${data.profile.handle}`,
+    sameAs: [`https://bsky.app/profile/${data.profile.handle}`],
+  });
 
   const isOwnProfile = $derived(data.handle === data.profile.handle);
 
@@ -34,6 +64,27 @@
     }
   }
 </script>
+
+<svelte:head>
+  <title>{seoTitle}</title>
+  <meta name="description" content={profileDescription} />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={seoTitle} />
+  <meta property="og:description" content={profileDescription} />
+  <meta property="og:type" content="profile" />
+  <meta property="og:url" content={page.url.toString()} />
+  <meta property="og:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={seoTitle} />
+  <meta name="twitter:description" content={profileDescription} />
+  <meta name="twitter:image" content="{page.url.origin}/og-image.png" />
+
+  <!-- Structured Data -->
+  {@html `<script type="application/ld+json">${JSON.stringify(personSchema)}</script>`}
+</svelte:head>
 
 <div class="container">
   <Topbar handle={data.handle} />
