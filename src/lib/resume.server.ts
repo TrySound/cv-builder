@@ -1,10 +1,9 @@
 import type { Kysely } from "kysely";
 import { Agent } from "@atproto/api";
 import { Client, type DatetimeString, type DidString } from "@atproto/lex";
-import { extractPdsUrl } from "@atproto/oauth-client-node";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
-import { didResolver, getOAuthClient } from "./auth";
+import { getOAuthClient } from "./auth";
 import { getDB } from "./db";
 import type {
   Resume,
@@ -14,6 +13,7 @@ import type {
   EmploymentType,
 } from "./jsonresume";
 import type { DatabaseSchema } from "./db";
+import { getPdsClient } from "./atproto";
 
 export async function loadResume(did: DidString): Promise<Resume | undefined> {
   const db = await getDB();
@@ -322,13 +322,6 @@ export async function updateResume(did: string, resume: Resume): Promise<void> {
     await updateResumeData(trx, did, resume);
   });
 }
-
-const getPdsClient = async (did: DidString) => {
-  // Create type-safe client pointing to the user's PDS
-  const didDoc = await didResolver.resolve(did);
-  const pdsEndpoint = extractPdsUrl(didDoc);
-  return new Client(pdsEndpoint);
-};
 
 type ResumeBasicsData = {
   name?: string;

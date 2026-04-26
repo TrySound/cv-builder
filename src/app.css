@@ -180,6 +180,7 @@ body {
     background: var(--color-bg-hover);
   }
   &[data-state="loading"] {
+    pointer-events: none;
     &::before,
     &::after {
       content: "";

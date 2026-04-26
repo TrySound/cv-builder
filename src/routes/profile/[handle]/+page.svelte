@@ -71,15 +71,42 @@
   // Track which recommendation is currently targeted via URL hash
   const targetedId = $derived(page.url.hash.slice(1));
 
-  // Local state for contacts to bind with MultiSelectCombobox
+  // Local state for contacts to bind with MultiSelectCombobox (just URLs)
   let editingContacts = $state<string[]>([]);
 
   let isEditing = $state(false);
 
   const startEditing = () => {
     isEditing = true;
-    editingContacts = [...(contacts.current?.contacts ?? [])];
+    editingContacts = (contacts.current?.contacts ?? []).map(
+      (item) => item.url,
+    );
   };
+
+  type ContactOperation =
+    | { op: "add"; value: string }
+    | { op: "delete"; value: string };
+
+  // Generate contact operations from diff between original and edited contacts
+  const contactOperations = $derived.by(() => {
+    const originalContacts = contacts.current?.contacts ?? [];
+    const originalUrls = new Set(originalContacts.map((item) => item.url));
+    const editingUrls = new Set(editingContacts);
+    const operations: ContactOperation[] = [];
+    // Find deleted contacts
+    for (const contact of originalContacts) {
+      if (!editingUrls.has(contact.url)) {
+        operations.push({ op: "delete", value: contact.rkey });
+      }
+    }
+    // Find added contacts
+    for (const url of editingUrls) {
+      if (!originalUrls.has(url)) {
+        operations.push({ op: "add", value: url });
+      }
+    }
+    return operations;
+  });
 
   type ProfileStatus = DatabaseSchema["profile_private"]["status"];
 
@@ -219,9 +246,18 @@
             placeholder="Add URL (e.g., https://github.com/username)"
             bind:selected={editingContacts}
           />
-          <!-- Hidden inputs to submit contacts array -->
-          {#each editingContacts as contact, i}
-            <input type="hidden" name="contacts[{i}]" value={contact} />
+          <!-- Hidden inputs to submit contact operations -->
+          {#each contactOperations as operation, i}
+            <input
+              type="hidden"
+              name="contactOperations[{i}].op"
+              value={operation.op}
+            />
+            <input
+              type="hidden"
+              name="contactOperations[{i}].value"
+              value={operation.value}
+            />
           {/each}
         </div>
 
@@ -322,10 +358,10 @@
           <svg width="14" height="14"><use href="#icon-bluesky" /></svg>
         </a>
         {#each contacts.current?.contacts as contact}
-          <a href={contact} target="_blank" class="link contact-item">
-            {getLinkDisplayName(contact)}
+          <a href={contact.url} target="_blank" class="link contact-item">
+            {getLinkDisplayName(contact.url)}
             <svg width="14" height="14">
-              <use href="#icon-{getLinkIcon(contact)}" />
+              <use href="#icon-{getLinkIcon(contact.url)}" />
             </svg>
           </a>
         {/each}

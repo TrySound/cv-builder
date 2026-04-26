@@ -12,9 +12,19 @@ import {
 } from "./resume.server";
 import { loadSifaResume, updateSifaResume } from "./sifa.server";
 import { handleResolver } from "./auth";
-import { loadProfile, updateProfileData } from "./profile.server";
-import { loadProfileContacts, updateProfileContacts } from "./sifa.server";
-import { normalizeUrl } from "./link";
+import {
+  loadProfile,
+  loadProfileContacts,
+  updateProfileContacts,
+  updateProfileData,
+} from "./profile.server";
+
+const ContactOperationSchema = v.variant("op", [
+  // value is new contact url
+  v.object({ op: v.literal("add"), value: v.string() }),
+  // value is RecordKeyString
+  v.object({ op: v.literal("delete"), value: v.string() }),
+]);
 
 export const getProfile = query(
   v.object({ handle: v.string() }),
@@ -71,7 +81,7 @@ const ProfileSchema = v.object({
       v.literal("hidden"),
     ]),
   ),
-  contacts: v.optional(v.array(v.string())),
+  contactOperations: v.optional(v.array(ContactOperationSchema)),
 });
 
 export const updateProfile = form(
@@ -83,7 +93,7 @@ export const updateProfile = form(
     countryCode,
     email,
     status,
-    contacts,
+    contactOperations,
   }) => {
     const event = getRequestEvent();
     const did = event.locals.did as undefined | DidString;
@@ -103,8 +113,8 @@ export const updateProfile = form(
       status,
     });
 
-    // Update contacts in SIFA external accounts
-    await updateProfileContacts(did, contacts ?? []);
+    // Update contacts in SIFA external accounts using atomic operations
+    await updateProfileContacts(did, contactOperations ?? []);
 
     getProfile({ handle }).set({
       name,
@@ -114,9 +124,7 @@ export const updateProfile = form(
       email,
       status,
     });
-    getProfileContacts({ handle }).set({
-      contacts: (contacts ?? []).map(normalizeUrl),
-    });
+    getProfileContacts({ handle }).refresh();
   },
 );
 
@@ -126,12 +134,12 @@ const ResumeBasicsSchema = v.object({
   email: v.optional(v.string()),
   countryCode: v.optional(v.string()),
   summary: v.optional(v.string()),
-  contacts: v.optional(v.array(v.string())),
+  contactOperations: v.optional(v.array(ContactOperationSchema)),
 });
 
 export const updateResumeBasics = form(
   ResumeBasicsSchema,
-  async ({ name, title, email, countryCode, summary, contacts }) => {
+  async ({ name, title, email, countryCode, summary, contactOperations }) => {
     const event = getRequestEvent();
     const did = event.locals.did as DidString;
     const handle = event.locals.handle;
@@ -150,7 +158,7 @@ export const updateResumeBasics = form(
     });
 
     // Update profiles/contacts in SIFA external accounts
-    await updateProfileContacts(did, contacts ?? []);
+    await updateProfileContacts(did, contactOperations ?? []);
 
     getResumeBasics({ handle }).set({
       name,
@@ -159,9 +167,7 @@ export const updateResumeBasics = form(
       countryCode,
       summary,
     });
-    getProfileContacts({ handle }).set({
-      contacts: (contacts ?? []).map(normalizeUrl),
-    });
+    getProfileContacts({ handle }).refresh();
   },
 );
 
