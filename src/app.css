@@ -1,3 +1,15 @@
+html {
+  color-scheme: light dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 :root {
   /* Typography */
   --font-family: ui-sans-serif, system-ui, sans-serif;
@@ -45,30 +57,31 @@
   /* Z-Index Scale */
   --z-dropdown: 100;
   --z-dialog: 200;
-}
 
-/* Dark Mode (Default) */
-:root {
-  --color-primary: #888888;
-  --color-primary-hover: #aaaaaa;
+  /* Colors using light-dark() */
+  --color-primary: light-dark(#666666, #888888);
+  --color-primary-hover: light-dark(#444444, #aaaaaa);
 
   --color-accent: oklch(0.69 0.26 26.96);
 
-  --color-text: #f0f0f0;
-  --color-text-secondary: #c0c0c0;
-  --color-text-tertiary: #888888;
-  --color-text-muted: #666666;
-  --color-text-placeholder: #555555;
+  --color-text: light-dark(#1a1a1a, #f0f0f0);
+  --color-text-secondary: light-dark(#444444, #c0c0c0);
+  --color-text-tertiary: light-dark(#666666, #888888);
+  --color-text-muted: light-dark(#888888, #666666);
+  --color-text-placeholder: light-dark(#999999, #555555);
 
-  --color-bg: oklch(17.1% 0 0);
-  --color-bg-elevated: oklch(20% 0 0);
-  --color-bg-hover: oklch(25% 0 0);
+  --color-bg: light-dark(oklch(100% 0.015 96), oklch(17.1% 0 0));
+  --color-bg-elevated: light-dark(oklch(100% 0.01 96), oklch(20% 0 0));
+  --color-bg-hover: light-dark(oklch(95% 0.02 96), oklch(25% 0 0));
 
-  --color-border: #2a2a2a;
-  --color-border-input: #444444;
+  --color-border: light-dark(#e0e0e0, #2a2a2a);
+  --color-border-input: light-dark(#cccccc, #444444);
 
-  --color-backdrop: oklch(24% 0 0 / 0.75);
-  --color-focus-ring: rgba(136, 136, 136, 0.3);
+  --color-backdrop: light-dark(oklch(80% 0 0 / 0.75), oklch(24% 0 0 / 0.75));
+  --color-focus-ring: light-dark(
+    rgba(136, 136, 136, 0.2),
+    rgba(136, 136, 136, 0.3)
+  );
 }
 
 /* Base Styles */
@@ -183,14 +196,13 @@ body {
 }
 
 .button-primary {
-  background: #dddddd;
-  color: black;
+  background: light-dark(#333333, #dddddd);
+  color: light-dark(#ffffff, #000000);
   border: none;
   transition: background var(--transition-fast);
-}
-
-.button-primary:hover {
-  background: #ffffff;
+  &:hover {
+    background: light-dark(#000000, #ffffff);
+  }
 }
 
 .button-lg {

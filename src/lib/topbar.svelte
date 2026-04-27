@@ -1,5 +1,10 @@
 <script lang="ts">
   import { isAtIdentifierString } from "@atproto/lex";
+  import {
+    getTheme,
+    toggleTheme,
+    type Theme,
+  } from "$lib/theme";
 
   let {
     handle,
@@ -10,6 +15,16 @@
     inviteCode?: string;
     hideLogo?: boolean;
   } = $props();
+
+  let currentTheme: Theme = $state("dark");
+
+  $effect(() => {
+    currentTheme = getTheme() ;
+  });
+
+  const handleThemeToggle = () => {
+    currentTheme = toggleTheme(currentTheme);
+  };
 
   const handleConnectSubmit = (event: SubmitEvent) => {
     const form = event.currentTarget as HTMLFormElement;
@@ -72,18 +87,29 @@
         Connect to Atmosphere
       </button>
     {/if}
-  </nav>
 
-  <button
-    class="icon-button mobile-menu-trigger"
-    commandfor="topbar-menu"
-    command="toggle-popover"
-    aria-label="Menu"
-  >
-    <svg width="24" height="24">
-      <use href="#icon-menu" />
-    </svg>
-  </button>
+    <button
+      class="icon-button"
+      aria-label={currentTheme === "light"
+        ? "Switch to dark mode"
+        : "Switch to light mode"}
+      onclick={handleThemeToggle}
+    >
+      <svg width="20" height="20" aria-hidden="true">
+        <use href="#icon-sun" />
+      </svg>
+    </button>
+    <button
+      class="icon-button mobile-menu-trigger"
+      commandfor="topbar-menu"
+      command="toggle-popover"
+      aria-label="Menu"
+    >
+      <svg width="24" height="24">
+        <use href="#icon-menu" />
+      </svg>
+    </button>
+  </nav>
 </header>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
