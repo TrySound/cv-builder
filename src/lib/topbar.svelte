@@ -1,10 +1,6 @@
 <script lang="ts">
   import { isAtIdentifierString } from "@atproto/lex";
-  import {
-    getTheme,
-    toggleTheme,
-    type Theme,
-  } from "$lib/theme";
+  import { getTheme, toggleTheme, type Theme } from "$lib/theme";
 
   let {
     handle,
@@ -19,7 +15,7 @@
   let currentTheme: Theme = $state("dark");
 
   $effect(() => {
-    currentTheme = getTheme() ;
+    currentTheme = getTheme();
   });
 
   const handleThemeToggle = () => {
@@ -50,43 +46,45 @@
   {/if}
 
   <nav class="nav">
-    <a href="/feed" class="link">Feed</a>
-    {#if handle}
-      <button
-        class="link"
-        commandfor="desktop-auth-menu"
-        command="toggle-popover"
-      >
-        Account
-      </button>
-      <div id="desktop-auth-menu" popover class="menu-popover">
-        <div class="menu" role="menu">
-          <!-- svelte-ignore a11y_autofocus -->
-          <a
-            href="/profile/{handle}"
-            role="menuitem"
-            class="menuitem"
-            autofocus
-          >
-            @{handle}
-          </a>
-          <a href="/resume/{handle}" role="menuitem" class="menuitem">
-            Resume
-          </a>
-          <form method="POST" action="/auth/logout">
-            <button role="menuitem" class="menuitem">Disconnect</button>
-          </form>
+    <div class="nav-links">
+      <a href="/feed" class="link">Feed</a>
+      {#if handle}
+        <button
+          class="link"
+          commandfor="desktop-auth-menu"
+          command="toggle-popover"
+        >
+          Account
+        </button>
+        <div id="desktop-auth-menu" popover class="menu-popover">
+          <div class="menu" role="menu">
+            <!-- svelte-ignore a11y_autofocus -->
+            <a
+              href="/profile/{handle}"
+              role="menuitem"
+              class="menuitem"
+              autofocus
+            >
+              @{handle}
+            </a>
+            <a href="/resume/{handle}" role="menuitem" class="menuitem">
+              Resume
+            </a>
+            <form method="POST" action="/auth/logout">
+              <button role="menuitem" class="menuitem">Disconnect</button>
+            </form>
+          </div>
         </div>
-      </div>
-    {:else}
-      <button
-        class="link"
-        commandfor="topbar-login-dialog"
-        command="show-modal"
-      >
-        Connect to Atmosphere
-      </button>
-    {/if}
+      {:else}
+        <button
+          class="link"
+          commandfor="topbar-login-dialog"
+          command="show-modal"
+        >
+          Connect to Atmosphere
+        </button>
+      {/if}
+    </div>
 
     <button
       class="icon-button"
@@ -238,12 +236,22 @@
 
   .nav {
     display: flex;
-    gap: var(--space-8);
+    gap: var(--space-6);
     align-items: center;
+  }
+
+  .nav-links {
+    display: contents;
+    @media (max-width: 640px) {
+      display: none;
+    }
   }
 
   .mobile-menu-trigger {
     display: none;
+    @media (max-width: 640px) {
+      display: flex;
+    }
   }
 
   .menu-popover {
@@ -280,14 +288,5 @@
 
   form {
     display: grid;
-  }
-
-  @media (max-width: 640px) {
-    .nav {
-      display: none;
-    }
-    .mobile-menu-trigger {
-      display: block;
-    }
   }
 </style>

@@ -1,9 +1,12 @@
-import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import * as v from "valibot";
+import { Client, type DidString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
 import { getDB } from "./db";
+import { normalizeUrl } from "./link";
+import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
 
 export interface ProfileData {
   name: string | undefined;
@@ -70,7 +73,7 @@ export async function updateProfileData(
         title: data.title ?? null,
         introduction: data.introduction ?? null,
         country_code: data.countryCode ?? null,
-        created_at: new Date().toISOString(),
+        created_at: getNow(),
       })
       .onConflict((oc) =>
         oc.column("did").doUpdateSet({
@@ -89,14 +92,14 @@ export async function updateProfileData(
         did,
         email: data.email ?? null,
         status: data.status ?? "hidden",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: getNow(),
+        updated_at: getNow(),
       })
       .onConflict((oc) =>
         oc.column("did").doUpdateSet({
           email: data.email ?? null,
           status: data.status ?? "hidden",
-          updated_at: new Date().toISOString(),
+          updated_at: getNow(),
         }),
       )
       .execute();
@@ -120,7 +123,7 @@ export async function updateProfileData(
   }
 
   // Update com.weareonhire.profile record
-  const now = new Date().toISOString() as DatetimeString;
+  const now = getNow();
   await client.put(weareonhire.profile.main, {
     createdAt: now,
     name: data.name,
@@ -134,4 +137,63 @@ export async function updateProfileData(
     about: currentSummary,
     location: data.countryCode ? { countryCode: data.countryCode } : undefined,
   });
+}
+
+export const ContactOperationSchema = v.variant("op", [
+  // value is new contact url
+  v.object({ op: v.literal("add"), value: v.string() }),
+  // value is RecordKeyString
+  v.object({ op: v.literal("delete"), value: v.string() }),
+]);
+
+export type ContactOperation = v.InferOutput<typeof ContactOperationSchema>;
+
+// Load profile contacts from SIFA external accounts
+export async function loadProfileContacts(did: DidString) {
+  const client = await getPdsClient(did);
+  const externalAccountsResponse = await client
+    .list(sifa.profile.externalAccount, {
+      repo: did,
+      limit: 100,
+    })
+    .catch((error) => {
+      console.error("Error loading external accounts:", error);
+    });
+  const contacts = externalAccountsResponse?.records?.map((record) => {
+    const value = sifa.profile.externalAccount.main.$cast(record.value);
+    return {
+      url: value.url as string,
+      rkey: getRkey(record.uri),
+    };
+  });
+  return contacts ?? [];
+}
+
+export async function updateProfileContacts(
+  did: string,
+  operations: ContactOperation[],
+) {
+  // Create typed client with authenticated session
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+  const agent = new Agent(session);
+  const now = getNow();
+  if (operations.length > 0) {
+    await applyWrites(agent, (client) => {
+      for (const operation of operations) {
+        if (operation.op === "add") {
+          client.create(sifa.profile.externalAccount, {
+            createdAt: now,
+            url: normalizeUrl(operation.value.trim()) as `${string}:${string}`,
+            platform: "id.sifa.defs#platformOther",
+          });
+        }
+        if (operation.op === "delete") {
+          client.delete(sifa.profile.externalAccount, {
+            rkey: operation.value,
+          });
+        }
+      }
+    });
+  }
 }
