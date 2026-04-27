@@ -5,7 +5,8 @@ import { Agent } from "@atproto/api";
 import { query, form, getRequestEvent } from "$app/server";
 import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
-import { getOAuthClient, handleResolver, resolveHandleFromDid } from "./auth";
+import { getOAuthClient, resolveHandleFromDid } from "./auth";
+import { resolveIdentifier } from "./atproto";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
@@ -13,12 +14,19 @@ export const getProfileRecommendations = query(
     const event = getRequestEvent();
     const db = await getDB();
 
-    const profileDid = await handleResolver.resolve(handle);
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
+    }
 
     const recommendations = await db
       .selectFrom("recommendation_index")
-      .where("recommendation_index.subject_did", "=", profileDid)
-      .leftJoin("profile_index as author", "author.did", "recommendation_index.author_did")
+      .where("recommendation_index.subject_did", "=", resolved.did)
+      .leftJoin(
+        "profile_index as author",
+        "author.did",
+        "recommendation_index.author_did",
+      )
       .orderBy("recommendation_index.created_at", "desc")
       .select([
         "recommendation_index.uri",
@@ -67,11 +75,12 @@ export const createRecommendation = form(
       error(401);
     }
 
-    const targetDid = await handleResolver.resolve(handle);
-    if (!targetDid) {
-      error(404, "Handle not found");
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
     }
-    if (event.locals.did === targetDid) {
+
+    if (event.locals.did === resolved.did) {
       error(400, "Cannot recommend yourself");
     }
 
@@ -80,7 +89,7 @@ export const createRecommendation = form(
       .selectFrom("recommendation_index")
       .select("uri")
       .where("author_did", "=", event.locals.did)
-      .where("subject_did", "=", targetDid)
+      .where("subject_did", "=", resolved.did)
       .executeTakeFirst();
     if (existingRecommendation) {
       error(400, "Already recommended this person");
@@ -92,7 +101,7 @@ export const createRecommendation = form(
     const session = await oauthClient.restore(event.locals.did);
     const client = new Client(new Agent(session));
     const createdRecommendation = await client.create(weareonhire.main, {
-      subject: targetDid,
+      subject: resolved.did,
       reason,
       createdAt,
     });
@@ -101,7 +110,7 @@ export const createRecommendation = form(
       .values({
         uri: createdRecommendation.uri,
         author_did: event.locals.did,
-        subject_did: targetDid,
+        subject_did: resolved.did,
         reason,
         created_at: createdAt,
       })

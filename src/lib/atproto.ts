@@ -1,7 +1,8 @@
 import { Agent, type ComAtprotoRepoApplyWrites } from "@atproto/api";
-import { Client, getMain } from "@atproto/lex";
+import { Client, getMain, isDidIdentifier } from "@atproto/lex";
 import type {
   $Typed,
+  AtIdentifierString,
   CreateOptions,
   DatetimeString,
   DeleteOptions,
@@ -13,7 +14,7 @@ import type {
   RecordSchema,
 } from "@atproto/lex";
 import { extractPdsUrl } from "@atproto/oauth-client-node";
-import { didResolver } from "./auth";
+import { didResolver, handleResolver, resolveHandleFromDid } from "./auth";
 
 export const getPdsClient = async (did: DidString) => {
   // Create type-safe client pointing to the user's PDS
@@ -27,6 +28,25 @@ export const getRkey = (uri: string) =>
   (uri.split("/").pop() ?? "") as RecordKeyString;
 
 export const getNow = () => new Date().toISOString() as DatetimeString;
+
+/**
+ * Resolve an identifier (either a handle or DID) to both DID and handle.
+ * Returns an object with both did and handle properties.
+ */
+export const resolveIdentifier = async (
+  identifier: string,
+): Promise<undefined | { did: DidString; handle: string }> => {
+  if (isDidIdentifier(identifier as AtIdentifierString)) {
+    const handle = await resolveHandleFromDid(identifier);
+    return { did: identifier as DidString, handle };
+  } else {
+    const did = await handleResolver.resolve(identifier);
+    if (!did) {
+      return;
+    }
+    return { did, handle: identifier };
+  }
+};
 
 function getLiteralRecordKey<const T extends RecordSchema>(
   schema: T,
