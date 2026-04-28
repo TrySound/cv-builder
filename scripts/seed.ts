@@ -47,6 +47,7 @@ const NAMES = [
   "Ryan Mitchell",
   "Mei Wong",
   "Christopher Brown",
+  /*
   "Aisha Johnson",
   "Matthew Davis",
   "Lucia Fernandez",
@@ -75,6 +76,7 @@ const NAMES = [
   "Derek Foster",
   "Amara Osei",
   "Jason Reed",
+  */
 ];
 
 const POSITIONS = [
@@ -361,6 +363,77 @@ export async function seedDatabase(db: Kysely<DatabaseSchema>) {
 
   await db.insertInto("recommendations").values(recommendations).execute();
   console.log(`Inserted ${recommendations.length} recommendations`);
+
+  // Insert profile_index for each member
+  const profileIndexes: DatabaseSchema["profile_index"][] = members.map((member) => {
+    // Extract title from headline (e.g., "Software Engineer at Stripe" -> "Software Engineer")
+    const titleMatch = member.headline?.match(/^(.+?)\s+at\s+/i);
+    const title = titleMatch ? titleMatch[1] : member.headline;
+
+    // Derive country_code from location
+    let countryCode: string | null = null;
+    if (member.location) {
+      const parts = member.location.split(",").map((p) => p.trim());
+      const lastPart = parts[parts.length - 1];
+      // Map country names to ISO codes
+      const countryMap: Record<string, string> = {
+        "USA": "us",
+        "UK": "gb",
+        "Germany": "de",
+        "Canada": "ca",
+        "Netherlands": "nl",
+        "Singapore": "sg",
+      };
+      countryCode = countryMap[lastPart] || null;
+    }
+
+    return {
+      did: member.did,
+      name: member.name,
+      title: title || null,
+      country_code: countryCode,
+      introduction: member.summary || null,
+      created_at: member.created_at ?? now,
+    };
+  });
+  await db.insertInto("profile_index").values(profileIndexes).execute();
+  console.log(`Inserted ${profileIndexes.length} profile_index records`);
+
+  // Insert profile_private for each member
+  const profilePrivates: DatabaseSchema["profile_private"][] = members.map((member) => {
+    const statuses: Array<"open_to_work" | "open_to_connect" | "hidden"> = [
+      "open_to_work",
+      "open_to_connect",
+      "hidden",
+    ];
+    // Use a deterministic status based on member index for consistency
+    const status = statuses[member.did.length % 3];
+
+    return {
+      did: member.did,
+      email: member.email,
+      status,
+      created_at: member.created_at,
+      updated_at: member.created_at,
+    };
+  });
+  await db.insertInto("profile_private").values(profilePrivates).execute();
+  console.log(`Inserted ${profilePrivates.length} profile_private records`);
+
+  // Insert recommendation_index for each recommendation
+  const recommendationIndexes: DatabaseSchema["recommendation_index"][] =
+    recommendations.map((rec) => ({
+      uri: `at://did:web:${rec.author_did}/recommendation/${rec.id}`,
+      author_did: rec.author_did,
+      subject_did: rec.subject_did,
+      reason: rec.text,
+      created_at: rec.created_at ?? now,
+    }));
+  await db
+    .insertInto("recommendation_index")
+    .values(recommendationIndexes)
+    .execute();
+  console.log(`Inserted ${recommendationIndexes.length} recommendation_index records`);
 
   console.log("✓ Seeding completed successfully!");
   console.log("\nSample invitation codes:");
