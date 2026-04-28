@@ -121,5 +121,7 @@ export const GET = async ({ url, cookies }) => {
     maxAge: 60 * 60 * 24 * 30,
   });
 
-  redirect(302, `/profile/${handle}`);
+  const redirectUrl = cookies.get("redirect");
+  cookies.delete("redirect", { path: "/" });
+  redirect(302, redirectUrl || `/profile/${handle}`);
 };

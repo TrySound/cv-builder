@@ -11,13 +11,13 @@ import {
   updateResumeBasicsData,
 } from "./resume.server";
 import { loadSifaResume, updateSifaResume } from "./sifa.server";
-import { handleResolver } from "./auth";
 import {
   loadProfile,
   loadProfileContacts,
   updateProfileContacts,
   updateProfileData,
 } from "./profile.server";
+import { resolveIdentifier } from "./atproto";
 
 const ContactOperationSchema = v.variant("op", [
   // value is new contact url
@@ -30,12 +30,12 @@ export const getProfile = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
     const event = getRequestEvent();
-    const isOwnProfile = event.locals.handle === handle;
-    const did = await handleResolver.resolve(handle);
-    if (!did) {
-      error(404, `Cannot resolve did from ${handle}`);
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
     }
-    const profile = await loadProfile(did, isOwnProfile);
+    const isOwnProfile = event.locals.did === resolved.did;
+    const profile = await loadProfile(resolved.did, isOwnProfile);
     return profile;
   },
 );
@@ -44,12 +44,12 @@ export const getResumeBasics = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
     const event = getRequestEvent();
-    const isOwnProfile = event.locals.handle === handle;
-    const did = await handleResolver.resolve(handle);
-    if (!did) {
-      error(404, `Cannot resolve did from ${handle}`);
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
     }
-    const basics = await loadResumeBasicsData(did, isOwnProfile);
+    const isOwnProfile = event.locals.did === resolved.did;
+    const basics = await loadResumeBasicsData(resolved.did, isOwnProfile);
     return basics;
   },
 );
@@ -57,11 +57,11 @@ export const getResumeBasics = query(
 export const getProfileContacts = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const did = await handleResolver.resolve(handle);
-    if (!did) {
-      error(404, `Cannot resolve did from ${handle}`);
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
     }
-    const contacts = await loadProfileContacts(did);
+    const contacts = await loadProfileContacts(resolved.did);
     return {
       contacts,
     };
@@ -176,13 +176,16 @@ export const getMemberProfile = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
     const { locals } = getRequestEvent();
-    const did = await handleResolver.resolve(handle);
-    if (!did) {
-      error(404);
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
     }
     // show local resume and fallback to sifa resume
-    const isOwnProfile = did === locals.did;
-    return (await loadResume(did)) ?? (await loadSifaResume(did, isOwnProfile));
+    const isOwnProfile = resolved.did === locals.did;
+    return (
+      (await loadResume(resolved.did)) ??
+      (await loadSifaResume(resolved.did, isOwnProfile))
+    );
   },
 );
 

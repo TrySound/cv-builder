@@ -1,5 +1,6 @@
 <script lang="ts">
   import { isAtIdentifierString } from "@atproto/lex";
+  import { page } from "$app/state";
   import { getTheme, toggleTheme, type Theme } from "$lib/theme";
 
   let {
@@ -11,6 +12,8 @@
     inviteCode?: string;
     hideLogo?: boolean;
   } = $props();
+
+  const redirectUrl = $derived(page.url.pathname);
 
   let currentTheme: Theme = $state("dark");
 
@@ -71,6 +74,7 @@
               Resume
             </a>
             <form method="POST" action="/auth/logout">
+              <input type="hidden" name="redirect" value={redirectUrl} />
               <button role="menuitem" class="menuitem">Disconnect</button>
             </form>
           </div>
@@ -124,6 +128,7 @@
     {#if handle}
       <a href="/profile/{handle}" role="menuitem" class="menuitem">@{handle}</a>
       <form method="POST" action="/auth/logout">
+        <input type="hidden" name="redirect" value={redirectUrl} />
         <button role="menuitem" class="menuitem">Disconnect</button>
       </form>
     {:else}
@@ -189,6 +194,7 @@
     >
       <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="login" />
+      <input type="hidden" name="redirect" value={redirectUrl} />
       <div class="form-group">
         <label for="topbar-login-handle-input" class="form-label">Handle</label>
         <!-- svelte-ignore a11y_autofocus -->
@@ -213,6 +219,7 @@
     <form method="get" action="/auth/login">
       <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="create" />
+      <input type="hidden" name="redirect" value={redirectUrl} />
       <button class="button">Create a new account</button>
     </form>
   </div>
