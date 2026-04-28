@@ -1,9 +1,9 @@
 import { redirect } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
 
-export const load = async ({ locals }) => {
+export const load = async ({ locals, url }) => {
   if (!locals.did) {
-    redirect(302, "/");
+    redirect(302, `/?redirect=${encodeURIComponent(url.pathname)}`);
   }
 
   // Only members can access this page

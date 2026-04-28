@@ -1,8 +1,8 @@
 import { redirect } from "@sveltejs/kit";
 
-export const load = async ({ locals }) => {
+export const load = async ({ locals, url }) => {
   if (!locals.did || !locals.handle) {
-    redirect(302, "/");
+    redirect(302, `/?redirect=${encodeURIComponent(url.pathname)}`);
   }
 
   // Only members can access invitations
