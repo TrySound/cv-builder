@@ -1,7 +1,10 @@
 <script lang="ts">
   import { isAtIdentifierString } from "@atproto/lex";
   import { page } from "$app/state";
+  import { goto } from "$app/navigation";
   import { getTheme, toggleTheme, type Theme } from "$lib/theme";
+  import { searchProfiles } from "$lib/search.remote.js";
+  import Combobox from "$lib/combobox.svelte";
 
   let {
     handle,
@@ -20,6 +23,47 @@
   $effect(() => {
     currentTheme = getTheme();
   });
+
+  // Search state
+  let searchInput = $state("");
+  let searchQuery = $state("");
+  let queryTimeoutId = $state<undefined | ReturnType<typeof setTimeout>>();
+
+  const searchResults = $derived(
+    searchQuery.trim().length > 0
+      ? searchProfiles({ q: searchQuery })
+      : undefined,
+  );
+
+  const isLoading = $derived(
+    // prevent accessing stale search results when query is empty
+    searchQuery.length > 0 && searchResults?.loading === true,
+  );
+  const isPending = $derived(queryTimeoutId != undefined || isLoading);
+
+  const searchOptions = $derived.by(() => {
+    // prevent accessing stale search results when query is empty
+    if (searchQuery.length === 0) {
+      return [];
+    }
+    return (
+      searchResults?.current?.results.map((result) => ({
+        value: result.handle,
+        handle: result.handle,
+        displayName: result.displayName,
+        avatar: result.avatar,
+      })) ?? []
+    );
+  });
+
+  function handleSearchInput(value: string) {
+    searchInput = value;
+    clearTimeout(queryTimeoutId);
+    queryTimeoutId = setTimeout(() => {
+      queryTimeoutId = undefined;
+      searchQuery = value;
+    }, 200);
+  }
 
   const handleThemeToggle = () => {
     currentTheme = toggleTheme(currentTheme);
@@ -47,6 +91,40 @@
   {:else}
     <span></span>
   {/if}
+
+  <div class="search-wrapper">
+    <Combobox
+      id="topbar-search"
+      bind:value={searchInput}
+      options={searchOptions}
+      placeholder="Search users..."
+      loading={isPending}
+      oninput={handleSearchInput}
+      onfocus={() => {}}
+      onblur={() => {}}
+      onselect={(option) => {
+        goto(`/profile/${option.handle}`);
+        searchInput = "";
+        searchQuery = "";
+      }}
+    >
+      {#snippet optionSnippet(option)}
+        <div class="search-result-item">
+          {#if option.avatar}
+            <img src={option.avatar} alt="" class="search-result-avatar" />
+          {:else}
+            <div class="search-result-avatar-placeholder"></div>
+          {/if}
+          <div class="search-result-info">
+            {#if option.displayName}
+              <div class="truncate">{option.displayName}</div>
+            {/if}
+            <div class="subtle truncate">@{option.handle}</div>
+          </div>
+        </div>
+      {/snippet}
+    </Combobox>
+  </div>
 
   <nav class="nav">
     <div class="nav-links">
@@ -101,6 +179,7 @@
         <use href="#icon-sun" />
       </svg>
     </button>
+
     <button
       class="icon-button mobile-menu-trigger"
       commandfor="topbar-menu"
@@ -127,6 +206,7 @@
     <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
     {#if handle}
       <a href="/profile/{handle}" role="menuitem" class="menuitem">@{handle}</a>
+      <a href="/resume/{handle}" role="menuitem" class="menuitem">Resume</a>
       <form method="POST" action="/auth/logout">
         <input type="hidden" name="redirect" value={redirectUrl} />
         <button role="menuitem" class="menuitem">Disconnect</button>
@@ -227,9 +307,11 @@
 
 <style>
   .topbar {
-    display: flex;
-    justify-content: space-between;
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
+    gap: var(--space-4);
     padding: var(--space-2) 0;
     min-height: 60px;
     margin-bottom: var(--space-12);
@@ -241,9 +323,50 @@
     view-transition-name: logo;
   }
 
+  .search-wrapper {
+    background: var(--color-bg);
+    display: grid;
+    align-items: center;
+    width: 100%;
+    justify-self: center;
+  }
+
+  @media (max-width: 640px) {
+    .search-wrapper:has(:global(input):focus) {
+      position: absolute;
+      inset: 0;
+    }
+  }
+
+  .search-result-item {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-2) 0;
+  }
+
+  .search-result-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .search-result-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--color-border);
+  }
+
+  .search-result-info {
+    display: grid;
+  }
+
   .nav {
     display: flex;
-    gap: var(--space-6);
+    gap: var(--space-4);
     align-items: center;
   }
 
