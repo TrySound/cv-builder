@@ -5,6 +5,7 @@
     "target": "es2023",
     "skipLibCheck": true,
     "strict": true,
+    "allowImportingTsExtensions": true,
     "plugins": [
       {
         "name": "typescript-svelte-plugin"

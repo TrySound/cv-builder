@@ -9,6 +9,28 @@ const truncate = (text: string, limit: number) => {
   return `${text.slice(0, limit)}...`;
 };
 
+export type FeedRecommendation = {
+  type: "recommendation";
+  uri: string;
+  authorHandle: string;
+  authorName: string | null;
+  subjectHandle: string;
+  subjectName: string | null;
+  createdAt: string;
+  reason: string;
+};
+
+export type FeedUser = {
+  type: "user";
+  did: string;
+  handle: string;
+  name: string | null;
+  createdAt: string;
+  introduction: string | null;
+};
+
+export type FeedItem = FeedRecommendation | FeedUser;
+
 export const load = async ({ locals }) => {
   const db = await getDB();
 
@@ -30,28 +52,57 @@ export const load = async ({ locals }) => {
     .limit(50)
     .execute();
 
-  // Resolve handles for all DIDs
-  const recommendationsWithHandles = await Promise.all(
-    recommendations.map(async (item) => {
-      const [authorHandle, subjectHandle] = await Promise.all([
-        resolveHandleFromDid(item.author_did as DidString),
-        resolveHandleFromDid(item.subject_did as DidString),
-      ]);
-      return {
-        uri: item.uri,
-        authorHandle: authorHandle,
-        authorName: item.author_name,
-        subjectHandle: subjectHandle,
-        subjectName: item.subject_name,
-        createdAt: item.created_at,
-        reason: truncate(item.reason, 200),
-      };
-    }),
-  );
+  // Load newly joined users from profile_index
+  const newUsers = await db
+    .selectFrom("profile_index")
+    .select(["did", "name", "introduction", "created_at"])
+    .orderBy("created_at", "desc")
+    .limit(50)
+    .execute();
+
+  // Resolve handles and build feed items
+  const [recommendationItems, userItems] = await Promise.all([
+    Promise.all(
+      recommendations.map(async (item): Promise<FeedRecommendation> => {
+        const [authorHandle, subjectHandle] = await Promise.all([
+          resolveHandleFromDid(item.author_did as DidString),
+          resolveHandleFromDid(item.subject_did as DidString),
+        ]);
+        return {
+          type: "recommendation",
+          uri: item.uri,
+          authorHandle: authorHandle,
+          authorName: item.author_name,
+          subjectHandle: subjectHandle,
+          subjectName: item.subject_name,
+          createdAt: item.created_at,
+          reason: truncate(item.reason, 200),
+        };
+      }),
+    ),
+    Promise.all(
+      newUsers.map(async (item): Promise<FeedUser> => {
+        const handle = await resolveHandleFromDid(item.did as DidString);
+        return {
+          type: "user",
+          did: item.did,
+          handle: handle,
+          name: item.name,
+          createdAt: item.created_at,
+          introduction: item.introduction ? truncate(item.introduction, 200) : null,
+        };
+      }),
+    ),
+  ]);
+
+  // Combine and sort by created_at desc, limit to 50
+  const feed: FeedItem[] = [...recommendationItems, ...userItems]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 50);
 
   return {
     handle: locals.handle,
     role: locals.role,
-    recommendations: recommendationsWithHandles,
+    feed,
   };
 };

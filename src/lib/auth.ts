@@ -20,8 +20,13 @@ export const handleResolver = createHandleResolver({
 export const didResolver = createDidResolver({});
 
 export const resolveHandleFromDid = async (did: string) => {
-  const doc = await didResolver.resolve(did as DidString);
-  return doc.alsoKnownAs?.at(0)?.slice("at://".length) ?? did;
+  try {
+    const doc = await didResolver.resolve(did as DidString);
+    return doc.alsoKnownAs?.at(0)?.slice("at://".length) ?? did;
+  } catch {
+    // Fallback to DID if resolution fails (e.g., for seeded/test data)
+    return did;
+  }
 };
 
 export const SCOPE = [

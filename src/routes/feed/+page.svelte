@@ -7,7 +7,7 @@
 
   const title = "Feed | weareonhire!";
   const description =
-    "Discover the latest peer recommendations from the weareonhire! community. See what professionals are saying about their colleagues.";
+    "Discover the latest peer recommendations and new members from the weareonhire! community.";
 </script>
 
 <svelte:head>
@@ -31,8 +31,8 @@
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <main class="recommendations-list">
-    {#each data.recommendations as item}
+  <main class="feed-list">
+    {#each data.feed as item}
       <article class="row link-area">
         <div>
           <time class="subtle" datetime={item.createdAt}>
@@ -40,31 +40,51 @@
           </time>
         </div>
         <div class="margin-trim-block">
-          <p>
-            <a href="/profile/{item.authorHandle}" class="link">
-              {item.authorName || item.authorHandle}
-            </a>
-            <span class="subtle">recommended</span>
-            <a href="/profile/{item.subjectHandle}" class="link">
-              {item.subjectName || item.subjectHandle}
-            </a>
-          </p>
-          <p>
-            {item.reason}
-          </p>
+          {#if item.type === "user"}
+            <p class="subtle">
+              <a href="/profile/{item.handle}" class="link">
+                {item.name || item.handle}
+              </a>
+              <span>joined weareonhire!</span>
+            </p>
+            {#if item.introduction}
+              <p>{item.introduction}</p>
+            {/if}
+          {/if}
+          {#if item.type === "recommendation"}
+            <p class="subtle">
+              <a href="/profile/{item.authorHandle}" class="link">
+                {item.authorName || item.authorHandle}
+              </a>
+              <span>recommended</span>
+              <a href="/profile/{item.subjectHandle}" class="link">
+                {item.subjectName || item.subjectHandle}
+              </a>
+            </p>
+            <p>{item.reason}</p>
+          {/if}
         </div>
-        <a
-          class="link-target"
-          href="/profile/{item.subjectHandle}#recommendation-{item.uri}"
-          aria-label="Full post"
-        ></a>
+        {#if item.type === "user"}
+          <a
+            class="link-target"
+            href="/profile/{item.handle}"
+            aria-label="View profile"
+          ></a>
+        {/if}
+        {#if item.type === "recommendation"}
+          <a
+            class="link-target"
+            href="/profile/{item.subjectHandle}#recommendation-{item.uri}"
+            aria-label="View full recommendation"
+          ></a>
+        {/if}
       </article>
     {/each}
   </main>
 </div>
 
 <style>
-  .recommendations-list {
+  .feed-list {
     display: grid;
     margin: var(--space-12) 0;
   }

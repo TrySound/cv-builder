@@ -622,7 +622,7 @@ body {
 .link-area {
   position: relative;
   padding: var(--space-6) var(--space-4);
-  transition: background-color var(--transition-fast);
+  transition: all var(--transition-fast);
 
   &:where(a) {
     text-decoration: none;
