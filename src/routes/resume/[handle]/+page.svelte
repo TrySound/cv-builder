@@ -287,7 +287,7 @@
       <div class="margin-trim-block">
         <div class="space-between">
           <h2 class="heading-1">
-            {basicProfile.name || "Your Name"}
+            {basicProfile.name || data.profile.handle}
           </h2>
           <div class="actions">
             {#if isOwnProfile}
