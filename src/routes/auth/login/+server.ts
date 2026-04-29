@@ -6,7 +6,12 @@ export const GET = async ({ url, cookies }) => {
     url.searchParams.get("prompt") === "login" ? "login" : "create";
   const code = url.searchParams.get("code");
   const handle = url.searchParams.get("handle");
-  const redirectUrl = url.searchParams.get("redirect");
+  // redirect to provided url
+  let redirectUrl = url.searchParams.get("redirect");
+  // except for home page which should be redirected to user profile
+  if (redirectUrl === "/") {
+    redirectUrl = `/profile/${handle}`;
+  }
 
   let authUrl;
   try {
