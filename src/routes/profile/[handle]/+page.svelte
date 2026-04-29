@@ -14,7 +14,7 @@
   } from "$lib/recommendation.remote";
   import { formatDate } from "$lib/date";
   import type { DatabaseSchema } from "$lib/db";
-  import MultiSelectCombobox from "../../../multi-select-combobox.svelte";
+  import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import { getLinkDisplayName, getLinkIcon } from "$lib/link";
 
   let { data } = $props();

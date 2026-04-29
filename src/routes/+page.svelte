@@ -73,7 +73,7 @@
           commandfor="topbar-login-dialog"
           command="show-modal"
         >
-          Connect to Atmosphere
+          Get Started
         </button>
       {/if}
     </div>

@@ -86,6 +86,6 @@
 <style>
   .feed-list {
     display: grid;
-    margin: var(--space-12) 0;
+    margin: var(--space-12) calc(var(--space-4) * -1);
   }
 </style>

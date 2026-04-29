@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Resume } from "$lib/jsonresume";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
-  import MultiSelectCombobox from "./multi-select-combobox.svelte";
+  import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import DatePicker from "$lib/date-picker.svelte";
 
   let {

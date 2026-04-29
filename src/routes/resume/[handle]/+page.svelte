@@ -15,7 +15,7 @@
   } from "$lib/profile.remote";
   import { formatDate } from "$lib/date";
   import { getLinkDisplayName, getLinkIcon } from "$lib/link";
-  import MultiSelectCombobox from "../../../multi-select-combobox.svelte";
+  import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
 
@@ -287,7 +287,7 @@
       <div class="margin-trim-block">
         <div class="space-between">
           <h2 class="heading-1">
-            {basicProfile.name || "Your Name"}
+            {basicProfile.name || data.profile.handle}
           </h2>
           <div class="actions">
             {#if isOwnProfile}
