@@ -322,8 +322,8 @@
   .logo-and-search {
     min-width: 0;
     display: grid;
-    gap: var(--space-4);
-    grid-template-columns: max-content 1fr;
+    gap: var(--space-8);
+    grid-template-columns: var(--row-side-size) 1fr;
     align-items: center;
   }
 
@@ -340,6 +340,11 @@
   }
 
   @media (max-width: 640px) {
+    .logo-and-search {
+      gap: var(--space-4);
+      grid-template-columns: max-content 1fr;
+    }
+
     .search-wrapper {
       max-width: none;
       &:has(:global(input):focus) {

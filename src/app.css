@@ -82,6 +82,8 @@ html[data-theme="dark"] {
     rgba(136, 136, 136, 0.2),
     rgba(136, 136, 136, 0.3)
   );
+
+  --row-side-size: 160px;
 }
 
 /* Base Styles */
@@ -331,7 +333,7 @@ body {
 
 .row {
   display: grid;
-  grid-template-columns: 160px 1fr;
+  grid-template-columns: var(--row-side-size) 1fr;
   column-gap: var(--space-8);
   row-gap: var(--space-4);
 
