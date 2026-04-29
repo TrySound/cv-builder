@@ -98,7 +98,7 @@
         id="topbar-search"
         bind:value={searchInput}
         options={searchOptions}
-        placeholder="Find your peers..."
+        placeholder="Find your peers on Atmosphere..."
         loading={isPending}
         oninput={handleSearchInput}
         onfocus={() => {}}
