@@ -86,44 +86,46 @@
 </script>
 
 <header class="topbar">
-  {#if !hideLogo}
-    <a class="heading-1 topbar-logo" href="/">WAOH!</a>
-  {:else}
-    <span></span>
-  {/if}
+  <div class="logo-and-search">
+    {#if !hideLogo}
+      <a class="heading-1 topbar-logo" href="/">WAOH!</a>
+    {:else}
+      <span></span>
+    {/if}
 
-  <div class="search-wrapper">
-    <Combobox
-      id="topbar-search"
-      bind:value={searchInput}
-      options={searchOptions}
-      placeholder="Search users..."
-      loading={isPending}
-      oninput={handleSearchInput}
-      onfocus={() => {}}
-      onblur={() => {}}
-      onselect={(option) => {
-        goto(`/profile/${option.handle}`);
-        searchInput = "";
-        searchQuery = "";
-      }}
-    >
-      {#snippet optionSnippet(option)}
-        <div class="search-result-item">
-          {#if option.avatar}
-            <img src={option.avatar} alt="" class="search-result-avatar" />
-          {:else}
-            <div class="search-result-avatar-placeholder"></div>
-          {/if}
-          <div class="search-result-info">
-            {#if option.displayName}
-              <div class="truncate">{option.displayName}</div>
+    <div class="search-wrapper">
+      <Combobox
+        id="topbar-search"
+        bind:value={searchInput}
+        options={searchOptions}
+        placeholder="Find your peers..."
+        loading={isPending}
+        oninput={handleSearchInput}
+        onfocus={() => {}}
+        onblur={() => {}}
+        onselect={(option) => {
+          goto(`/profile/${option.handle}`);
+          searchInput = "";
+          searchQuery = "";
+        }}
+      >
+        {#snippet optionSnippet(option)}
+          <div class="search-result-item">
+            {#if option.avatar}
+              <img src={option.avatar} alt="" class="search-result-avatar" />
+            {:else}
+              <div class="search-result-avatar-placeholder"></div>
             {/if}
-            <div class="subtle truncate">@{option.handle}</div>
+            <div class="search-result-info">
+              {#if option.displayName}
+                <div class="truncate">{option.displayName}</div>
+              {/if}
+              <div class="subtle truncate">@{option.handle}</div>
+            </div>
           </div>
-        </div>
-      {/snippet}
-    </Combobox>
+        {/snippet}
+      </Combobox>
+    </div>
   </div>
 
   <nav class="nav">
@@ -309,13 +311,20 @@
   .topbar {
     position: relative;
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
     gap: var(--space-4);
+    grid-template-columns: 1fr max-content;
     padding: var(--space-2) 0;
     min-height: 60px;
     margin-bottom: var(--space-12);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .logo-and-search {
+    min-width: 0;
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: max-content 1fr;
+    align-items: center;
   }
 
   .topbar-logo {
@@ -327,14 +336,16 @@
     background: var(--color-bg);
     display: grid;
     align-items: center;
-    width: 100%;
-    justify-self: center;
+    max-width: 320px;
   }
 
   @media (max-width: 640px) {
-    .search-wrapper:has(:global(input):focus) {
-      position: absolute;
-      inset: 0;
+    .search-wrapper {
+      max-width: none;
+      &:has(:global(input):focus) {
+        position: absolute;
+        inset: 0;
+      }
     }
   }
 
