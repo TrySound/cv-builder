@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import type { Kysely } from "kysely";
 import { Agent } from "@atproto/api";
 import { Client, type DatetimeString, type DidString } from "@atproto/lex";
@@ -13,7 +14,7 @@ import type {
   EmploymentType,
 } from "./jsonresume";
 import type { DatabaseSchema } from "./db";
-import { getPdsClient } from "./atproto";
+import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
 
 export async function loadResume(did: DidString): Promise<Resume | undefined> {
   const db = await getDB();
@@ -472,4 +473,64 @@ export async function updateResumeBasicsData(
     about: data.summary,
     location: data.countryCode ? { countryCode: data.countryCode } : undefined,
   });
+}
+
+/* SKILLS */
+
+export const SkillOperationSchema = v.variant("op", [
+  // value is new skill name
+  v.object({ op: v.literal("add"), value: v.string() }),
+  // value is RecordKeyString
+  v.object({ op: v.literal("delete"), value: v.string() }),
+]);
+
+export type SkillOperation = v.InferOutput<typeof SkillOperationSchema>;
+
+// Load resume skills from SIFA
+export async function loadResumeSkillsData(did: DidString) {
+  const client = await getPdsClient(did);
+  const skillsResponse = await client
+    .list(sifa.profile.skill, {
+      repo: did,
+      limit: 100, // max limit already
+    })
+    .catch((error) => {
+      console.error("Error loading skills:", error);
+    });
+  const skills = skillsResponse?.records?.map((record) => {
+    const value = sifa.profile.skill.main.$cast(record.value);
+    return {
+      name: value.name,
+      rkey: getRkey(record.uri),
+    };
+  });
+  return skills ?? [];
+}
+
+export async function updateResumeSkillsData(
+  did: string,
+  operations: SkillOperation[],
+) {
+  // Create typed client with authenticated session
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+  const agent = new Agent(session);
+  const now = getNow();
+  if (operations.length > 0) {
+    await applyWrites(agent, (client) => {
+      for (const operation of operations) {
+        if (operation.op === "add") {
+          client.create(sifa.profile.skill, {
+            createdAt: now,
+            name: operation.value.trim().toLowerCase(),
+          });
+        }
+        if (operation.op === "delete") {
+          client.delete(sifa.profile.skill, {
+            rkey: operation.value,
+          });
+        }
+      }
+    });
+  }
 }

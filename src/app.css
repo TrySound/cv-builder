@@ -695,3 +695,11 @@ body {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}

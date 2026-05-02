@@ -1,24 +1,30 @@
 <script lang="ts">
   import Combobox from "./combobox.svelte";
 
+  interface Option {
+    value: string;
+    label: string;
+  }
+
   let {
     options,
     selected = $bindable(),
     placeholder = "Search or add...",
     id = "combobox",
   }: {
-    options: string[];
-    selected: string[];
+    options: Option[];
+    selected: Option[];
     placeholder?: string;
     id?: string;
   } = $props();
 
   let inputValue = $state("");
+  let newItemCounter = $state(0);
 
-  // Flatten all options and remove duplicates
+  // Flatten all options and remove duplicates (by value)
   const allOptions = $derived(
     [...new Set([...options, ...selected])].sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase()),
+      a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
     ),
   );
 
@@ -27,31 +33,39 @@
     inputValue.trim()
       ? allOptions.filter(
           (opt) =>
-            opt.toLowerCase().includes(inputValue.toLowerCase()) &&
-            !selected.some((s) => s.toLowerCase() === opt.toLowerCase()),
+            opt.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+            !selected.some(
+              (s) => s.label.toLowerCase() === opt.label.toLowerCase(),
+            ),
         )
       : allOptions.filter(
-          (opt) => !selected.some((s) => s.toLowerCase() === opt.toLowerCase()),
+          (opt) =>
+            !selected.some(
+              (s) => s.label.toLowerCase() === opt.label.toLowerCase(),
+            ),
         ),
   );
 
-  function addOption(option: string) {
-    const trimmed = option.trim();
+  function addOption(option: Option) {
+    const trimmed = option.label.trim();
     if (!trimmed) return;
 
     // Check if option already exists (case-insensitive)
     const exists = selected.some(
-      (s) => s.toLowerCase() === trimmed.toLowerCase(),
+      (s) => s.label.toLowerCase() === trimmed.toLowerCase(),
     );
     if (!exists) {
-      selected = selected.concat([trimmed]);
+      newItemCounter += 1;
+      selected = selected.concat([
+        { value: `new-${newItemCounter}`, label: trimmed },
+      ]);
     }
     inputValue = "";
   }
 
-  function removeOption(option: string) {
+  function removeOption(option: Option) {
     const index = selected.findIndex(
-      (s) => s.toLowerCase() === option.toLowerCase(),
+      (s) => s.value === option.value,
     );
     if (index !== -1) {
       selected = selected.toSpliced(index, 1);
@@ -70,12 +84,12 @@
   <div class="selected-chips">
     {#each selected as option}
       <span class="chip" role="listitem">
-        {option}
+        {option.label}
         <button
           type="button"
           class="chip-remove"
           onclick={() => removeOption(option)}
-          aria-label={`Remove ${option}`}
+          aria-label={`Remove ${option.label}`}
         >
           ×
         </button>

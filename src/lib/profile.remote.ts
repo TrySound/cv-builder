@@ -7,8 +7,11 @@ import { getDB } from "./db";
 import {
   loadResume,
   loadResumeBasicsData,
+  loadResumeSkillsData,
+  SkillOperationSchema,
   updateResume,
   updateResumeBasicsData,
+  updateResumeSkillsData,
 } from "./resume.server";
 import { loadSifaResume, updateSifaResume } from "./sifa.server";
 import {
@@ -64,6 +67,20 @@ export const getProfileContacts = query(
     const contacts = await loadProfileContacts(resolved.did);
     return {
       contacts,
+    };
+  },
+);
+
+export const getResumeSkills = query(
+  v.object({ handle: v.string() }),
+  async ({ handle }) => {
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
+    }
+    const skills = await loadResumeSkillsData(resolved.did);
+    return {
+      skills,
     };
   },
 );
@@ -143,12 +160,10 @@ export const updateResumeBasics = form(
     const event = getRequestEvent();
     const did = event.locals.did as DidString;
     const handle = event.locals.handle;
-
     if (!did || !handle) {
       error(401, "Unauthorized");
     }
 
-    // Update resume basics data (preserves weareonhire introduction)
     await updateResumeBasicsData(did as DidString, {
       name,
       title,
@@ -156,8 +171,6 @@ export const updateResumeBasics = form(
       countryCode,
       summary,
     });
-
-    // Update profiles/contacts in SIFA external accounts
     await updateProfileContacts(did, contactOperations ?? []);
 
     getResumeBasics({ handle }).set({
@@ -168,6 +181,26 @@ export const updateResumeBasics = form(
       summary,
     });
     getProfileContacts({ handle }).refresh();
+  },
+);
+
+const SkillsUpdateSchema = v.object({
+  skillOperations: v.array(SkillOperationSchema),
+});
+
+export const updateResumeSkills = form(
+  SkillsUpdateSchema,
+  async ({ skillOperations }) => {
+    const event = getRequestEvent();
+    const did = event.locals.did as DidString;
+    const handle = event.locals.handle;
+    if (!did || !handle) {
+      error(401, "Unauthorized");
+    }
+
+    await updateResumeSkillsData(did, skillOperations);
+
+    getResumeSkills({ handle }).refresh();
   },
 );
 

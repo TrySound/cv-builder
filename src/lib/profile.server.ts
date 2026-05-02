@@ -139,6 +139,8 @@ export async function updateProfileData(
   });
 }
 
+/* CONTACTS */
+
 export const ContactOperationSchema = v.variant("op", [
   // value is new contact url
   v.object({ op: v.literal("add"), value: v.string() }),
