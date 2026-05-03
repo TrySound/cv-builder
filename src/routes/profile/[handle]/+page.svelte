@@ -248,6 +248,7 @@
           <MultiSelectCombobox
             id="profile-contacts"
             options={[]}
+            allowCustom
             placeholder="Add URL (e.g., https://github.com/username)"
             bind:selected={editingContacts}
           />

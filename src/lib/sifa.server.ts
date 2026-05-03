@@ -32,8 +32,12 @@ function getEmploymentType(
 }
 
 // Map sifa workplace type to jsonresume workplace type
-function getWorkplaceType(
-  type: sifa.profile.position.Main["workplaceType"],
+export function getWorkplaceType(
+  type:
+    | sifa.profile.position.Main["workplaceType"]
+    | (sifa.profile.self.Main["preferredWorkplace"] extends (infer U)[]
+      ? U
+      : never),
 ): WorkplaceType | undefined {
   switch (type) {
     case "id.sifa.defs#onSite":
@@ -302,9 +306,14 @@ function getSifaEmploymentType(
 }
 
 // Reverse mapping: jsonresume workplace type to sifa workplace type
-function getSifaWorkplaceType(
+export function getSifaWorkplaceType(
   type: WorkplaceType | undefined,
-): sifa.profile.position.Main["workplaceType"] | undefined {
+):
+  | sifa.profile.position.Main["workplaceType"]
+  | (sifa.profile.self.Main["preferredWorkplace"] extends (infer U)[]
+    ? U
+    : never)
+  | undefined {
   switch (type) {
     case "onsite":
       return "id.sifa.defs#onSite";

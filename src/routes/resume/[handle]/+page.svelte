@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { Resume } from "$lib/jsonresume";
   import countries from "i18n-iso-countries";
   import countriesEnLocale from "i18n-iso-countries/langs/en.json";
   import { page } from "$app/state";
+  import type { Resume } from "$lib/jsonresume";
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import { getProfileRecommendations } from "$lib/recommendation.remote";
@@ -80,6 +80,8 @@
   // State for editing basics
   let isEditingBasics = $state(false);
   let editingContacts = $state<{ value: string; label: string }[]>([]);
+  let editingLanguages = $state<{ value: string; label: string }[]>([]);
+  let editingWorkplaces = $state<{ value: string; label: string }[]>([]);
 
   async function handleSave(resume: Resume) {
     // optimistically update resume before mutation
@@ -90,14 +92,6 @@
     } catch {
       // empty block
     }
-  }
-
-  function startEditingBasics() {
-    isEditingBasics = true;
-    editingContacts = (contacts.current?.contacts ?? []).map((item) => ({
-      value: item.rkey,
-      label: item.url,
-    }));
   }
 
   type ContactOperation =
@@ -124,6 +118,79 @@
     }
     return operations;
   });
+
+  type LanguageOperation =
+    | { op: "add"; value: string }
+    | { op: "delete"; value: string };
+
+  // Generate language operations from diff between original and edited languages
+  const languageOperations = $derived.by(() => {
+    const originalLanguages = basicProfile.languages ?? [];
+    const originalKeys = new Set(originalLanguages.map((l) => l.rkey));
+    const editingKeys = new Set(editingLanguages.map((l) => l.value));
+    const operations: LanguageOperation[] = [];
+    // deleted languages
+    for (const lang of originalLanguages) {
+      if (!editingKeys.has(lang.rkey)) {
+        operations.push({ op: "delete", value: lang.rkey });
+      }
+    }
+    // added languages
+    for (const item of editingLanguages) {
+      if (!originalKeys.has(item.value)) {
+        operations.push({ op: "add", value: item.label });
+      }
+    }
+    return operations;
+  });
+
+  // Language options for the combobox
+  const languageOptions = [
+    "English",
+    "Spanish",
+    "French",
+    "German",
+    "Italian",
+    "Portuguese",
+    "Russian",
+    "Chinese",
+    "Japanese",
+    "Korean",
+    "Arabic",
+    "Hindi",
+    "Dutch",
+    "Swedish",
+    "Polish",
+    "Turkish",
+    "Vietnamese",
+    "Thai",
+    "Indonesian",
+    "Hebrew",
+  ].map((value) => ({ value, label: value }));
+
+  const workplaceOptions = [
+    { value: "onsite", label: "Onsite" },
+    { value: "remote", label: "Remote" },
+    { value: "hybrid", label: "Hybrid" },
+  ];
+
+  function startEditingBasics() {
+    isEditingBasics = true;
+    editingContacts = (contacts.current?.contacts ?? []).map((item) => ({
+      value: item.rkey,
+      label: item.url,
+    }));
+    editingWorkplaces = (basicProfile.preferredWorkplaces ?? []).map(
+      (item) => ({
+        value: item,
+        label: item,
+      }),
+    );
+    editingLanguages = (basicProfile.languages ?? []).map((item) => ({
+      value: item.rkey,
+      label: item.name,
+    }));
+  }
 
   let isEditingSkills = $state(false);
   let editingSkills = $state<{ value: string; label: string }[]>([]);
@@ -164,7 +231,7 @@
   // Create flat list of all skills from taxonomy (as { value, label } objects)
   const allSkills = [...new Set(Object.values(SKILLS_TAXONOMY).flat())]
     .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-    .map((name) => ({ value: name, label: name }));
+    .map((name, index) => ({ value: `new-${index}`, label: name }));
 
   // Group skills by category for display
   function groupSkillsByCategory(
@@ -295,6 +362,7 @@
           <MultiSelectCombobox
             id="profile-contacts"
             options={[]}
+            allowCustom
             placeholder="Add URL (e.g., https://github.com/username)"
             bind:selected={editingContacts}
           />
@@ -311,6 +379,50 @@
               value={operation.value}
             />
           {/each}
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="profile-workplaces" class="form-label">
+              Workplace Preferences
+            </label>
+            <MultiSelectCombobox
+              id="profile-workplaces"
+              options={workplaceOptions}
+              placeholder="Select workplace preferences"
+              bind:selected={editingWorkplaces}
+            />
+            <!-- Hidden inputs to submit workplace preferences -->
+            {#each editingWorkplaces as workplace, i}
+              <input
+                type="hidden"
+                name="preferredWorkplaces[{i}]"
+                value={workplace.value}
+              />
+            {/each}
+          </div>
+          <div class="form-group">
+            <label for="profile-languages" class="form-label">Languages</label>
+            <MultiSelectCombobox
+              id="profile-languages"
+              options={languageOptions}
+              allowCustom
+              placeholder="Select or add languages"
+              bind:selected={editingLanguages}
+            />
+            <!-- Hidden inputs to submit language operations -->
+            {#each languageOperations as operation, i}
+              <input
+                type="hidden"
+                name="languageOperations[{i}].op"
+                value={operation.op}
+              />
+              <input
+                type="hidden"
+                name="languageOperations[{i}].value"
+                value={operation.value}
+              />
+            {/each}
+          </div>
         </div>
         <div class="form-group">
           <label for="contact-summary" class="form-label">
@@ -402,7 +514,7 @@
         {#if basicProfile.title}
           <p class="subtle">{basicProfile.title}</p>
         {/if}
-        <p class="subtle">
+        <p class="subtle chip-group">
           <span class="chip">
             {#if basicProfile.countryCode}
               {countries.getName(basicProfile.countryCode, "en", {
@@ -413,6 +525,17 @@
             {/if}
             <svg width="14" height="14"><use href="#icon-location" /></svg>
           </span>
+          {#each basicProfile.preferredWorkplaces as workplace}
+            <span class="chip">
+              {workplaceOptions.find((option) => option.value === workplace)
+                ?.label}
+            </span>
+          {/each}
+          {#each basicProfile.languages as language}
+            <span class="chip">
+              {language.name}
+            </span>
+          {/each}
         </p>
       </div>
     </div>
@@ -468,6 +591,7 @@
           <MultiSelectCombobox
             id="profile-skills"
             options={allSkills}
+            allowCustom
             placeholder="e.g., TypeScript"
             bind:selected={editingSkills}
           />

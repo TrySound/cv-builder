@@ -8,9 +8,11 @@ import {
   loadResume,
   loadResumeBasicsData,
   loadResumeSkillsData,
+  LanguageOperationSchema,
   SkillOperationSchema,
   updateResume,
   updateResumeBasicsData,
+  updateResumeLanguagesData,
   updateResumeSkillsData,
 } from "./resume.server";
 import { loadSifaResume, updateSifaResume } from "./sifa.server";
@@ -151,12 +153,27 @@ const ResumeBasicsSchema = v.object({
   email: v.optional(v.string()),
   countryCode: v.optional(v.string()),
   summary: v.optional(v.string()),
+  preferredWorkplaces: v.optional(
+    v.array(
+      v.union([v.literal("onsite"), v.literal("remote"), v.literal("hybrid")]),
+    ),
+  ),
   contactOperations: v.optional(v.array(ContactOperationSchema)),
+  languageOperations: v.optional(v.array(LanguageOperationSchema)),
 });
 
 export const updateResumeBasics = form(
   ResumeBasicsSchema,
-  async ({ name, title, email, countryCode, summary, contactOperations }) => {
+  async ({
+    name,
+    title,
+    email,
+    countryCode,
+    summary,
+    preferredWorkplaces,
+    contactOperations,
+    languageOperations,
+  }) => {
     const event = getRequestEvent();
     const did = event.locals.did as DidString;
     const handle = event.locals.handle;
@@ -170,16 +187,13 @@ export const updateResumeBasics = form(
       email,
       countryCode,
       summary,
+      preferredWorkplaces,
     });
     await updateProfileContacts(did, contactOperations ?? []);
+    await updateResumeLanguagesData(did, languageOperations ?? []);
 
-    getResumeBasics({ handle }).set({
-      name,
-      title,
-      email,
-      countryCode,
-      summary,
-    });
+    // cannot use set because languages should be refreshed
+    getResumeBasics({ handle }).refresh();
     getProfileContacts({ handle }).refresh();
   },
 );

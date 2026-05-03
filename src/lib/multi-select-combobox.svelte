@@ -10,11 +10,13 @@
     options,
     selected = $bindable(),
     placeholder = "Search or add...",
+    allowCustom = false,
     id = "combobox",
   }: {
     options: Option[];
     selected: Option[];
     placeholder?: string;
+    allowCustom?: boolean;
     id?: string;
   } = $props();
 
@@ -47,8 +49,15 @@
   );
 
   function addOption(option: Option) {
+    // combobox gives string for custom options
+    // @todo improve type safety
+    if (typeof option === "string") {
+      option = { value: option, label: option };
+    }
     const trimmed = option.label.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return;
+    }
 
     // Check if option already exists (case-insensitive)
     const exists = selected.some(
@@ -56,17 +65,13 @@
     );
     if (!exists) {
       newItemCounter += 1;
-      selected = selected.concat([
-        { value: `new-${newItemCounter}`, label: trimmed },
-      ]);
+      selected = selected.concat([option]);
     }
     inputValue = "";
   }
 
   function removeOption(option: Option) {
-    const index = selected.findIndex(
-      (s) => s.value === option.value,
-    );
+    const index = selected.findIndex((s) => s.value === option.value);
     if (index !== -1) {
       selected = selected.toSpliced(index, 1);
     }
@@ -81,7 +86,7 @@
 
 <div class="multi-select-combobox">
   <!-- Selected option chips -->
-  <div class="selected-chips">
+  <div class="chip-group">
     {#each selected as option}
       <span class="chip" role="listitem">
         {option.label}
@@ -103,24 +108,23 @@
     bind:value={inputValue}
     options={filteredOptions}
     {placeholder}
-    allowCustom={true}
+    {allowCustom}
     stayOpenOnSelect={true}
     onselect={addOption}
     onkeydown={handleKeydown}
-  />
+  >
+    {#snippet optionSnippet(option)}
+      {option.label}
+    {/snippet}
+  </Combobox>
 </div>
 
 <style>
-  .selected-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
+  .chip-group {
     margin-bottom: var(--space-2);
-    min-height: 2rem;
-  }
-
-  .selected-chips:empty {
-    display: none;
+    &:empty {
+      display: none;
+    }
   }
 
   .chip-remove {

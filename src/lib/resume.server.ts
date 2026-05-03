@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import type { Kysely } from "kysely";
 import { Agent } from "@atproto/api";
-import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
@@ -15,6 +15,7 @@ import type {
 } from "./jsonresume";
 import type { DatabaseSchema } from "./db";
 import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
+import { getSifaWorkplaceType, getWorkplaceType } from "./sifa.server";
 
 export async function loadResume(did: DidString): Promise<Resume | undefined> {
   const db = await getDB();
@@ -330,12 +331,17 @@ type ResumeBasicsData = {
   email?: string;
   countryCode?: string;
   summary?: string;
+  preferredWorkplaces?: WorkplaceType[];
 };
 
 export async function loadResumeBasicsData(
   did: DidString,
   isOwnProfile: boolean,
-) {
+): Promise<
+  ResumeBasicsData & {
+    languages: { name: string; rkey: string }[];
+  }
+> {
   const db = await getDB();
 
   // Load public profile data from profile_index
@@ -345,11 +351,18 @@ export async function loadResumeBasicsData(
     .where("did", "=", did)
     .executeTakeFirst();
 
-  const result: ResumeBasicsData = {
+  // Load languages from SIFA
+  const languages = await loadResumeLanguagesData(did);
+
+  const result: ResumeBasicsData & {
+    languages: { name: string; rkey: string }[];
+  } = {
     name: profileIndex?.name ?? undefined,
     title: profileIndex?.title ?? undefined,
     countryCode: profileIndex?.country_code ?? undefined,
+    languages,
   };
+
   try {
     const client = await getPdsClient(did);
     const existingProfile = await client.get(sifa.profile.self, {
@@ -357,6 +370,9 @@ export async function loadResumeBasicsData(
       repo: did,
     });
     result.summary = existingProfile.value.about;
+    result.preferredWorkplaces = existingProfile.value.preferredWorkplace
+      ?.map(getWorkplaceType)
+      .filter((item) => item !== undefined);
   } catch {
     // Profile doesn't exist yet
   }
@@ -444,12 +460,13 @@ export async function updateResumeBasicsData(
   // Create typed client with authenticated session
   const oauthClient = await getOAuthClient();
   const session = await oauthClient.restore(did);
-  const client = new Client(new Agent(session));
+  const agent = new Agent(session);
+  const client = new Client(agent);
 
   // Get current weareonhire profile to preserve introduction
   let currentIntroduction: string | undefined;
   try {
-    const existingProfile = await client.get(weareonhire.profile.main, {
+    const existingProfile = await client.get(weareonhire.profile, {
       rkey: "self",
       repo: did,
     });
@@ -459,20 +476,87 @@ export async function updateResumeBasicsData(
   }
 
   // Update com.weareonhire.profile record (preserves introduction)
-  const now = new Date().toISOString() as DatetimeString;
-  await client.put(weareonhire.profile.main, {
-    createdAt: now,
-    name: data.name,
-    title: data.title,
-    introduction: currentIntroduction,
-    countryCode: data.countryCode,
+  const now = getNow();
+
+  await applyWrites(agent, (client) => {
+    client.put(weareonhire.profile, {
+      createdAt: now,
+      name: data.name,
+      title: data.title,
+      introduction: currentIntroduction,
+      countryCode: data.countryCode,
+    });
+
+    client.put(sifa.profile.self, {
+      createdAt: now,
+      headline: data.title,
+      about: data.summary,
+      location: data.countryCode
+        ? { countryCode: data.countryCode }
+        : undefined,
+      preferredWorkplace: data.preferredWorkplaces
+        ?.map(getSifaWorkplaceType)
+        .filter((item) => item !== undefined),
+    });
   });
-  await client.put(sifa.profile.self.main, {
-    createdAt: now,
-    headline: data.title,
-    about: data.summary,
-    location: data.countryCode ? { countryCode: data.countryCode } : undefined,
-  });
+}
+
+/* LANGUAGES */
+
+export const LanguageOperationSchema = v.variant("op", [
+  // value is new language name
+  v.object({ op: v.literal("add"), value: v.string() }),
+  // value is RecordKeyString
+  v.object({ op: v.literal("delete"), value: v.string() }),
+]);
+
+export type LanguageOperation = v.InferOutput<typeof LanguageOperationSchema>;
+
+// Load resume languages from SIFA
+export async function loadResumeLanguagesData(did: DidString) {
+  const client = await getPdsClient(did);
+  const languagesResponse = await client
+    .list(sifa.profile.language, {
+      repo: did,
+      limit: 100,
+    })
+    .catch((error) => console.error("Error loading languages:", error));
+  const languages = [];
+  for (const record of languagesResponse?.records ?? []) {
+    languages.push({
+      name: record.value.name,
+      rkey: getRkey(record.uri),
+    });
+  }
+  return languages ?? [];
+}
+
+export async function updateResumeLanguagesData(
+  did: DidString,
+  operations: LanguageOperation[],
+) {
+  // Create typed client with authenticated session
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+  const agent = new Agent(session);
+  const now = getNow();
+  if (operations.length > 0) {
+    await applyWrites(agent, (client) => {
+      for (const operation of operations) {
+        if (operation.op === "add") {
+          client.create(sifa.profile.language, {
+            createdAt: now,
+            name: operation.value.trim(),
+          });
+        }
+        if (operation.op === "delete") {
+          client.delete(sifa.profile.language, {
+            rkey: operation.value,
+          });
+        }
+      }
+    });
+  }
 }
 
 /* SKILLS */
@@ -494,16 +578,14 @@ export async function loadResumeSkillsData(did: DidString) {
       repo: did,
       limit: 100, // max limit already
     })
-    .catch((error) => {
-      console.error("Error loading skills:", error);
-    });
-  const skills = skillsResponse?.records?.map((record) => {
-    const value = sifa.profile.skill.main.$cast(record.value);
-    return {
-      name: value.name,
+    .catch((error) => console.error("Error loading skills:", error));
+  const skills = [];
+  for (const record of skillsResponse?.records ?? []) {
+    skills.push({
+      name: record.value.name,
       rkey: getRkey(record.uri),
-    };
-  });
+    });
+  }
   return skills ?? [];
 }
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import countries from "i18n-iso-countries";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import type { Resume } from "$lib/jsonresume";
 
@@ -44,8 +45,12 @@
       <h2 class="display">{resume.basics.name}</h2>
     {/if}
     <div class="contact-info">
-      {#if resume.basics?.location?.address}
-        <span class="body">{resume.basics.location.address}</span>
+      {#if resume.basics?.location?.countryCode}
+        <span class="body">
+          {countries.getName(resume.basics.location.countryCode, "en", {
+            select: "alias",
+          })}
+        </span>
       {/if}
       {#if resume.basics?.email}
         {#if resume.basics?.location?.address}
