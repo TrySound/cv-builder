@@ -5,15 +5,15 @@
 
   let { data } = $props();
 
-  const title = "Home | weareonhire!";
+  const title = "weareonhire!";
   const description =
     "A professional networking platform built on trust and accountability.";
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "weareonhire!",
     url: "https://weareonhire.com",
+    name: title,
     description,
   };
 

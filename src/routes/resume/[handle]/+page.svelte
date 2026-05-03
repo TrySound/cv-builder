@@ -10,9 +10,12 @@
     getMemberProfile,
     getProfileContacts,
     getResumeBasics,
+    getResumeSkills,
     updateMemberProfile,
     updateResumeBasics,
+    updateResumeSkills,
   } from "$lib/profile.remote";
+  import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import { formatDate } from "$lib/date";
   import { getLinkDisplayName, getLinkIcon } from "$lib/link";
   import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
@@ -54,7 +57,7 @@
     sameAs: [`https://bsky.app/profile/${data.profile.handle}`],
   });
 
-  const isOwnProfile = $derived(data.handle === data.profile.handle);
+  const isProfileOwner = $derived(data.handle === data.profile.handle);
 
   // Load resume via remote query
   const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
@@ -64,35 +67,39 @@
     getProfileContacts({ handle: data.profile.handle }),
   );
 
+  // Load skills via remote query
+  const skills = $derived(getResumeSkills({ handle: data.profile.handle }));
+
   // Load recommendations via remote query
   const recommendations = $derived(
     getProfileRecommendations({ handle: data.profile.handle }),
   );
 
-  let saveMessage = $state("");
+  const isProfileLoading = $derived(profile.loading || skills.loading);
 
   // State for editing basics
   let isEditingBasics = $state(false);
-  let editingContacts = $state<string[]>([]);
+  let editingContacts = $state<{ value: string; label: string }[]>([]);
 
   async function handleSave(resume: Resume) {
-    saveMessage = "";
     // optimistically update resume before mutation
     profile.set(resume);
     try {
       await updateMemberProfile(resume);
       // Query will be refreshed automatically by the command
-    } catch (e: any) {
-      saveMessage = e.message || "Failed to save profile";
+    } catch {
+      // empty block
     }
   }
 
   function startEditingBasics() {
     isEditingBasics = true;
-    editingContacts = (contacts.current?.contacts ?? []).map(
-      (item) => item.url,
-    );
+    editingContacts = (contacts.current?.contacts ?? []).map((item) => ({
+      value: item.rkey,
+      label: item.url,
+    }));
   }
+
   type ContactOperation =
     | { op: "add"; value: string }
     | { op: "delete"; value: string };
@@ -100,23 +107,89 @@
   // Generate contact operations from diff between original and edited contacts
   const contactOperations = $derived.by(() => {
     const originalContacts = contacts.current?.contacts ?? [];
-    const originalUrls = new Set(originalContacts.map((c) => c.url));
-    const editingUrls = new Set(editingContacts);
+    const originalKeys = new Set(originalContacts.map((c) => c.rkey));
+    const editingKeys = new Set(editingContacts.map((c) => c.value));
     const operations: ContactOperation[] = [];
-    // Find deleted contacts
+    // deleted contacts
     for (const contact of originalContacts) {
-      if (!editingUrls.has(contact.url)) {
+      if (!editingKeys.has(contact.rkey)) {
         operations.push({ op: "delete", value: contact.rkey });
       }
     }
-    // Find added contacts
-    for (const url of editingUrls) {
-      if (!originalUrls.has(url)) {
-        operations.push({ op: "add", value: url });
+    // added contacts
+    for (const item of editingContacts) {
+      if (!originalKeys.has(item.value)) {
+        operations.push({ op: "add", value: item.label });
       }
     }
     return operations;
   });
+
+  let isEditingSkills = $state(false);
+  let editingSkills = $state<{ value: string; label: string }[]>([]);
+
+  type SkillOperation =
+    | { op: "add"; value: string }
+    | { op: "delete"; value: string };
+
+  // Generate skill operations from diff between original and edited skills
+  const skillOperations = $derived.by(() => {
+    const originalSkills = skills.current?.skills ?? [];
+    const originalKeys = new Set(originalSkills.map((s) => s.rkey));
+    const editingKeys = new Set(editingSkills.map((s) => s.value));
+    const operations: SkillOperation[] = [];
+    // deleted skills
+    for (const skill of originalSkills) {
+      if (!editingKeys.has(skill.rkey)) {
+        operations.push({ op: "delete", value: skill.rkey });
+      }
+    }
+    // added skills
+    for (const item of editingSkills) {
+      if (!originalKeys.has(item.value)) {
+        operations.push({ op: "add", value: item.label });
+      }
+    }
+    return operations;
+  });
+
+  function startEditingSkills() {
+    isEditingSkills = true;
+    editingSkills = (skills.current?.skills ?? []).map((item) => ({
+      value: item.rkey,
+      label: item.name,
+    }));
+  }
+
+  // Create flat list of all skills from taxonomy (as { value, label } objects)
+  const allSkills = [...new Set(Object.values(SKILLS_TAXONOMY).flat())]
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+    .map((name) => ({ value: name, label: name }));
+
+  // Group skills by category for display
+  function groupSkillsByCategory(
+    skillsList: { name: string }[],
+  ): Record<string, string[]> {
+    const grouped: Record<string, string[]> = {};
+    const profileSkills = skillsList.map((s) => s.name ?? "");
+    for (const [category, categorySkills] of Object.entries(SKILLS_TAXONOMY)) {
+      const matched = categorySkills.filter((skill) =>
+        profileSkills.some((s) => s.toLowerCase() === skill.toLowerCase()),
+      );
+      if (matched.length > 0) {
+        grouped[category] = matched;
+      }
+    }
+    // Add "Other" category for custom skills not in taxonomy
+    const taxonomySkills = new Set(Object.values(SKILLS_TAXONOMY).flat());
+    const otherSkills = profileSkills.filter(
+      (skill) => !taxonomySkills.has(skill.toLowerCase()),
+    );
+    if (otherSkills.length > 0) {
+      grouped["Other"] = otherSkills;
+    }
+    return grouped;
+  }
 </script>
 
 <svelte:head>
@@ -290,7 +363,7 @@
             {basicProfile.name || data.profile.handle}
           </h2>
           <div class="actions">
-            {#if isOwnProfile}
+            {#if isProfileOwner}
               <button
                 type="button"
                 class="icon-button"
@@ -298,7 +371,7 @@
                 commandfor="upload-resume-dialog"
                 command="show-modal"
               >
-                <svg width="20" height="20">
+                <svg width="16" height="16">
                   <use href="#icon-upload" />
                 </svg>
               </button>
@@ -309,11 +382,11 @@
               aria-label="Print resume"
               onclick={() => window.print()}
             >
-              <svg width="20" height="20">
+              <svg width="16" height="16">
                 <use href="#icon-print" />
               </svg>
             </button>
-            {#if isOwnProfile}
+            {#if isProfileOwner}
               <button
                 class="icon-button"
                 aria-label="Edit contacts and summary"
@@ -362,7 +435,9 @@
       </div>
       <div class="margin-trim-block">
         {#if basicProfile.summary}
-          <p class="white-space-preserve-line">{basicProfile.summary}</p>
+          <p class="white-space-preserve-line overflow-wrap-anywhere">
+            {basicProfile.summary}
+          </p>
         {:else}
           <p class="subtle">
             Add a professional summary to describe your background and
@@ -373,14 +448,112 @@
     </div>
   </section>
 
+  <section
+    class="cv-section"
+    aria-label="Edit skills"
+    hidden={!isEditingSkills}
+  >
+    <div class="row">
+      <div><!-- skip column --></div>
+      <form
+        class="form-stack"
+        {...updateResumeSkills.enhance(async ({ submit }) => {
+          await submit();
+          isEditingSkills = false;
+        })}
+      >
+        <div class="form-group">
+          <label for="profile-skills" class="form-label">Technical Skills</label
+          >
+          <MultiSelectCombobox
+            id="profile-skills"
+            options={allSkills}
+            placeholder="e.g., TypeScript"
+            bind:selected={editingSkills}
+          />
+          <!-- Hidden inputs to submit skill operations -->
+          {#each skillOperations as operation, i}
+            <input
+              type="hidden"
+              name="skillOperations[{i}].op"
+              value={operation.op}
+            />
+            <input
+              type="hidden"
+              name="skillOperations[{i}].value"
+              value={operation.value}
+            />
+          {/each}
+        </div>
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="button"
+            data-state={updateResumeSkills.pending ? "loading" : "idle"}
+          >
+            Save Skills
+          </button>
+          <button
+            type="button"
+            class="button"
+            onclick={() => (isEditingSkills = false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section
+    class="cv-section section-skills margin-trim-block"
+    aria-label="Skills"
+    hidden={isEditingSkills ||
+      isProfileLoading ||
+      // hide empty skills for other users
+      (!isProfileOwner && (skills.current?.skills.length ?? 0) === 0)}
+  >
+    <div class="row" hidden={isEditingSkills}>
+      <div><!-- skip column --></div>
+      <div class="space-between">
+        <h2 class="heading-2 uppercase subtle">Technical Skills</h2>
+        {#if isProfileOwner}
+          <button
+            class="icon-button"
+            aria-label="Edit skills"
+            onclick={startEditingSkills}
+          >
+            <svg width="16" height="16">
+              <use href="#icon-pencil" />
+            </svg>
+          </button>
+        {/if}
+      </div>
+    </div>
+    {#each Object.entries(groupSkillsByCategory(skills.current?.skills ?? [])) as [category, categorySkills]}
+      <div class="row" hidden={isEditingSkills}>
+        <div class="subtle">{category}</div>
+        <div>{categorySkills.join(", ")}</div>
+      </div>
+    {:else}
+      <div class="row" hidden={isEditingSkills}>
+        <span><!-- skip column --></span>
+        <div class="margin-trim-block">
+          <p class="subtle">No skills added yet. Click Edit to add skills.</p>
+        </div>
+      </div>
+    {/each}
+  </section>
+
   <div class="editor-container">
     {#if profile.current}
       <Editor
         resume={profile.current}
         onSave={handleSave}
-        readonly={!isOwnProfile}
+        readonly={!isProfileOwner}
       />
-    {:else}
+    {/if}
+    {#if isProfileLoading}
       <div class="spinner-container">
         <div class="spinner"></div>
         <span class="subtle">Loading profile...</span>
@@ -412,7 +585,7 @@
                 {item.authorName || item.authorHandle}
               </a>
             </p>
-            <p>
+            <p class="overflow-wrap-anywhere">
               {item.reason}
             </p>
           </div>
@@ -448,6 +621,12 @@
 
   .cv-section {
     margin-bottom: var(--space-12);
+  }
+
+  :where(.section-skills .row) {
+    @media (max-width: 640px) {
+      margin-bottom: var(--space-4);
+    }
   }
 
   .editor-container {

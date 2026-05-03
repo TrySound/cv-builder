@@ -71,16 +71,17 @@
   // Track which recommendation is currently targeted via URL hash
   const targetedId = $derived(page.url.hash.slice(1));
 
-  // Local state for contacts to bind with MultiSelectCombobox (just URLs)
-  let editingContacts = $state<string[]>([]);
+  // Local state for contacts to bind with MultiSelectCombobox
+  let editingContacts = $state<{ value: string; label: string }[]>([]);
 
   let isEditing = $state(false);
 
   const startEditing = () => {
     isEditing = true;
-    editingContacts = (contacts.current?.contacts ?? []).map(
-      (item) => item.url,
-    );
+    editingContacts = (contacts.current?.contacts ?? []).map((item) => ({
+      value: item.rkey,
+      label: item.url,
+    }));
   };
 
   type ContactOperation =
@@ -88,23 +89,27 @@
     | { op: "delete"; value: string };
 
   // Generate contact operations from diff between original and edited contacts
+  // editingContacts uses { value: rkey | new-id, label: url }
   const contactOperations = $derived.by(() => {
     const originalContacts = contacts.current?.contacts ?? [];
-    const originalUrls = new Set(originalContacts.map((item) => item.url));
-    const editingUrls = new Set(editingContacts);
+    const originalRkeys = new Set(originalContacts.map((item) => item.rkey));
+    const editingRkeys = new Set(editingContacts.map((c) => c.value));
     const operations: ContactOperation[] = [];
-    // Find deleted contacts
+
+    // Find deleted contacts (present in original but not in editing)
     for (const contact of originalContacts) {
-      if (!editingUrls.has(contact.url)) {
+      if (!editingRkeys.has(contact.rkey)) {
         operations.push({ op: "delete", value: contact.rkey });
       }
     }
-    // Find added contacts
-    for (const url of editingUrls) {
-      if (!originalUrls.has(url)) {
-        operations.push({ op: "add", value: url });
+
+    // Find added contacts (new-* IDs in editing)
+    for (const item of editingContacts) {
+      if (!originalRkeys.has(item.value)) {
+        operations.push({ op: "add", value: item.label });
       }
     }
+
     return operations;
   });
 
@@ -368,7 +373,7 @@
       </div>
       <div class="margin-trim-block">
         <p
-          class="white-space-preserve-line"
+          class="white-space-preserve-line overflow-wrap-anywhere"
           class:subtle={!profile.introduction}
         >
           {profile.introduction ??
@@ -440,12 +445,12 @@
             </time>
           </div>
           <div class="margin-trim-block">
-            <p>
+            <p class="subtle">
               <a href="/profile/{item.authorHandle}" class="link">
                 {item.authorName || item.authorHandle}
               </a>
             </p>
-            <p>
+            <p class="overflow-wrap-anywhere">
               {item.reason}
             </p>
           </div>

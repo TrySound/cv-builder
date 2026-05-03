@@ -48,7 +48,7 @@
               <span>joined weareonhire!</span>
             </p>
             {#if item.introduction}
-              <p>{item.introduction}</p>
+              <p class="overflow-wrap-anywhere">{item.introduction}</p>
             {/if}
           {/if}
           {#if item.type === "recommendation"}
@@ -61,7 +61,7 @@
                 {item.subjectName || item.subjectHandle}
               </a>
             </p>
-            <p>{item.reason}</p>
+            <p class="overflow-wrap-anywhere">{item.reason}</p>
           {/if}
         </div>
         {#if item.type === "user"}

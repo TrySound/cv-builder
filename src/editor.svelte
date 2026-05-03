@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Resume } from "$lib/jsonresume";
-  import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import DatePicker from "$lib/date-picker.svelte";
 
@@ -44,58 +43,34 @@
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
   let editingId = $state<string | null>(null);
 
-  // Define options for comboboxes
-  const workplaceOptions = ["onsite", "remote", "hybrid"];
-  const languageOptions = [
-    "English",
-    "Spanish",
-    "French",
-    "German",
-    "Italian",
-    "Portuguese",
-    "Russian",
-    "Chinese",
-    "Japanese",
-    "Korean",
-    "Arabic",
-    "Hindi",
-    "Dutch",
-    "Swedish",
-    "Polish",
-    "Turkish",
-    "Vietnamese",
-    "Thai",
-    "Indonesian",
-    "Hebrew",
+  // Define options for comboboxes (as {value, label} objects)
+  const workplaceOptions = [
+    { value: "onsite", label: "onsite" },
+    { value: "remote", label: "remote" },
+    { value: "hybrid", label: "hybrid" },
   ];
-
-  // Create flat list of all skills from taxonomy
-  const allSkills = [...new Set(Object.values(SKILLS_TAXONOMY).flat())].sort(
-    (a, b) => a.toLowerCase().localeCompare(b.toLowerCase()),
-  );
-
-  // Group skills by category for display
-  const skillsByCategory = $derived(() => {
-    const grouped: Record<string, string[]> = {};
-    const profileSkills = displayResume.skills?.map((s) => s.name ?? "") ?? [];
-    for (const [category, skills] of Object.entries(SKILLS_TAXONOMY)) {
-      const matched = skills.filter((skill) =>
-        profileSkills.some((s) => s.toLowerCase() === skill.toLowerCase()),
-      );
-      if (matched.length > 0) {
-        grouped[category] = matched;
-      }
-    }
-    // Add "Other" category for custom skills not in taxonomy
-    const taxonomySkills = new Set(Object.values(SKILLS_TAXONOMY).flat());
-    const otherSkills = profileSkills.filter(
-      (skill) => !taxonomySkills.has(skill.toLowerCase()),
-    );
-    if (otherSkills.length > 0) {
-      grouped["Other"] = otherSkills;
-    }
-    return grouped;
-  });
+  const languageOptions = [
+    { value: "English", label: "English" },
+    { value: "Spanish", label: "Spanish" },
+    { value: "French", label: "French" },
+    { value: "German", label: "German" },
+    { value: "Italian", label: "Italian" },
+    { value: "Portuguese", label: "Portuguese" },
+    { value: "Russian", label: "Russian" },
+    { value: "Chinese", label: "Chinese" },
+    { value: "Japanese", label: "Japanese" },
+    { value: "Korean", label: "Korean" },
+    { value: "Arabic", label: "Arabic" },
+    { value: "Hindi", label: "Hindi" },
+    { value: "Dutch", label: "Dutch" },
+    { value: "Swedish", label: "Swedish" },
+    { value: "Polish", label: "Polish" },
+    { value: "Turkish", label: "Turkish" },
+    { value: "Vietnamese", label: "Vietnamese" },
+    { value: "Thai", label: "Thai" },
+    { value: "Indonesian", label: "Indonesian" },
+    { value: "Hebrew", label: "Hebrew" },
+  ];
 
   function isEditing(section: string, index?: number): boolean {
     const targetId = index !== undefined ? `${section}-${index}` : section;
@@ -771,76 +746,6 @@
   {/each}
 </section>
 
-<!-- Skills -->
-<section class="cv-section">
-  <div class="row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Technical Skills</h2>
-      {#if !readonly}
-        {#if isEditing("skills")}
-          <button
-            class="icon-button"
-            aria-label="Save skills"
-            onclick={() => stopEditing()}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        {:else}
-          <button
-            class="icon-button"
-            aria-label="Edit skills"
-            onclick={() => startEditing("skills")}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-pencil" />
-            </svg>
-          </button>
-        {/if}
-      {/if}
-    </header>
-  </div>
-
-  {#if isEditing("skills") && editingResume}
-    <div class="row">
-      <div><!-- skip column --></div>
-      <div class="cv-row-main">
-        <MultiSelectCombobox
-          options={allSkills}
-          placeholder="e.g., TypeScript"
-          id="skills-combobox"
-          bind:selected={
-            () => editingResume?.skills.map((item) => item.name ?? "") ?? [],
-            (newSkills) => {
-              if (editingResume) {
-                editingResume.skills = newSkills.map((name) => ({ name }));
-              }
-            }
-          }
-        />
-      </div>
-    </div>
-  {:else if (displayResume.skills?.length ?? 0) > 0}
-    <div>
-      {#each Object.entries(skillsByCategory()) as [category, skills]}
-        <div class="row">
-          <div class="cv-row-side subtle">{category}</div>
-          <div class="cv-row-main">{skills.join(", ")}</div>
-        </div>
-      {/each}
-    </div>
-  {:else}
-    <div class="row">
-      <span><!-- skip columns --></span>
-      <span class="cv-row-main">
-        <p class="subtle">No skills added yet. Click Edit to add skills.</p>
-      </span>
-    </div>
-  {/if}
-</section>
-
 <!-- Workplace Preferences -->
 <section class="cv-section">
   <div class="row">
@@ -882,10 +787,16 @@
           options={workplaceOptions}
           placeholder="Select workplace preferences"
           bind:selected={
-            () => editingResume?.extension?.preferredWorkplaces ?? [],
+            () =>
+              (editingResume?.extension?.preferredWorkplaces ?? []).map((w) => ({
+                value: w,
+                label: w,
+              })),
             (newWorkplaces) => {
               if (editingResume) {
-                editingResume.extension.preferredWorkplaces = newWorkplaces;
+                editingResume.extension.preferredWorkplaces = newWorkplaces.map(
+                  (w) => w.label,
+                );
               }
             }
           }
@@ -951,13 +862,14 @@
           placeholder="Select or add languages"
           bind:selected={
             () =>
-              (editingResume?.languages ?? []).map(
-                (item) => item.language ?? "",
-              ),
+              (editingResume?.languages ?? []).map((item) => ({
+                value: item.language ?? "",
+                label: item.language ?? "",
+              })),
             (newLanguages) => {
               if (editingResume) {
-                editingResume.languages = newLanguages.map((language) => ({
-                  language,
+                editingResume.languages = newLanguages.map((item) => ({
+                  language: item.label,
                 }));
               }
             }

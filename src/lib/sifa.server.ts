@@ -399,22 +399,6 @@ const updateProjects = async (client: Client, resume: Resume) => {
   }
 };
 
-const updateSkills = async (client: Client, resume: Resume) => {
-  const now = new Date().toISOString() as DatetimeString;
-  const existingSkills = await client.list(sifa.profile.skill);
-  for (const record of existingSkills.records) {
-    await client.delete(sifa.profile.skill, {
-      rkey: getRkey(record.uri),
-    });
-  }
-  for (const skill of resume.skills ?? []) {
-    await client.create(sifa.profile.skill, {
-      createdAt: now,
-      name: skill.name ?? "",
-    });
-  }
-};
-
 const updateLanguages = async (client: Client, resume: Resume) => {
   const now = new Date().toISOString() as DatetimeString;
   const existingLanguages = await client.list(sifa.profile.language.main);
@@ -446,7 +430,6 @@ export async function updateSifaResume(
     updateWork(client, resume),
     updateEducation(client, resume),
     updateProjects(client, resume),
-    updateSkills(client, resume),
     updateLanguages(client, resume),
   ]);
 }

@@ -73,6 +73,18 @@
     </section>
   {/if}
 
+  {#if resume.skills && resume.skills.length > 0}
+    <section class="section">
+      <h3 class="heading">Skills</h3>
+      {#each Object.entries(groupSkillsByCategory(resume.skills)) as [category, skills]}
+        <div>
+          <span class="label">{category}:</span>
+          <span class="caption">{Array.from(skills).join(", ")}</span>
+        </div>
+      {/each}
+    </section>
+  {/if}
+
   {#if resume.work && resume.work.length > 0}
     <section class="section">
       <h3 class="heading">Experience</h3>
@@ -151,18 +163,6 @@
     </section>
   {/if}
   -->
-
-  {#if resume.skills && resume.skills.length > 0}
-    <section class="section">
-      <h3 class="heading">Skills</h3>
-      {#each Object.entries(groupSkillsByCategory(resume.skills)) as [category, skills]}
-        <div>
-          <span class="label">{category}:</span>
-          <span class="caption">{Array.from(skills).join(", ")}</span>
-        </div>
-      {/each}
-    </section>
-  {/if}
 </div>
 
 <style>
