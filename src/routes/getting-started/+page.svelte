@@ -58,7 +58,7 @@
 </svelte:head>
 
 <div class="container">
-  <Topbar handle={data.handle} hideLogo />
+  <Topbar hideLogo />
 
   <main class="content">
     <h1 class="heading-1">Welcome to weareonhire!</h1>

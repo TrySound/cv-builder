@@ -6,13 +6,11 @@
     getMyInvitations,
   } from "$lib/invitation.remote.js";
 
-  let { data } = $props();
-
   const invitations = getMyInvitations();
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar />
 
   <h1 class="heading-2">Invitations</h1>
   <p class="subtle">

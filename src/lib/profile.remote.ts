@@ -1,7 +1,6 @@
 import * as v from "valibot";
 import { error } from "@sveltejs/kit";
-import { query, command, form, getRequestEvent } from "$app/server";
-import type { DidString } from "@atproto/lex";
+import { query, command, form } from "$app/server";
 import { ResumeSchema } from "./jsonresume";
 import { getDB } from "./db";
 import {
@@ -23,6 +22,7 @@ import {
   updateProfileData,
 } from "./profile.server";
 import { resolveIdentifier } from "./atproto";
+import { getAccountData } from "./account.remote";
 
 const ContactOperationSchema = v.variant("op", [
   // value is new contact url
@@ -34,13 +34,11 @@ const ContactOperationSchema = v.variant("op", [
 export const getProfile = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const event = getRequestEvent();
     const resolved = await resolveIdentifier(handle);
     if (!resolved) {
       error(404, `Cannot resolve ${handle}`);
     }
-    const isOwnProfile = event.locals.did === resolved.did;
-    const profile = await loadProfile(resolved.did, isOwnProfile);
+    const profile = await loadProfile(resolved.did);
     return profile;
   },
 );
@@ -48,14 +46,35 @@ export const getProfile = query(
 export const getResumeBasics = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const event = getRequestEvent();
     const resolved = await resolveIdentifier(handle);
     if (!resolved) {
       error(404, `Cannot resolve ${handle}`);
     }
-    const isOwnProfile = event.locals.did === resolved.did;
-    const basics = await loadResumeBasicsData(resolved.did, isOwnProfile);
+    const basics = await loadResumeBasicsData(resolved.did);
     return basics;
+  },
+);
+
+export const getProfilePrivateData = query(
+  v.object({ handle: v.string() }),
+  async ({ handle }) => {
+    const account = await getAccountData();
+    const resolved = await resolveIdentifier(handle);
+    if (!resolved) {
+      error(404, `Cannot resolve ${handle}`);
+    }
+    const db = await getDB();
+    if (account?.did === resolved.did) {
+      const profilePrivate = await db
+        .selectFrom("profile_private")
+        .select(["email", "status"])
+        .where("did", "=", resolved.did)
+        .executeTakeFirst();
+      return {
+        email: profilePrivate?.email ?? undefined,
+        status: profilePrivate?.status ?? undefined,
+      };
+    }
   },
 );
 
@@ -114,16 +133,14 @@ export const updateProfile = form(
     status,
     contactOperations,
   }) => {
-    const event = getRequestEvent();
-    const did = event.locals.did as undefined | DidString;
-    const handle = event.locals.handle;
+    const account = await getAccountData();
 
-    if (!did || !handle) {
+    if (!account) {
       error(401, "Unauthorized");
     }
 
     // Update profile data in database and AT Protocol
-    await updateProfileData(did, {
+    await updateProfileData(account.did, {
       name,
       title,
       introduction,
@@ -133,17 +150,19 @@ export const updateProfile = form(
     });
 
     // Update contacts in SIFA external accounts using atomic operations
-    await updateProfileContacts(did, contactOperations ?? []);
+    await updateProfileContacts(account.did, contactOperations ?? []);
 
-    getProfile({ handle }).set({
+    getProfile({ handle: account.handle }).set({
       name,
       title,
       introduction,
       countryCode,
+    });
+    getProfilePrivateData({ handle: account.handle }).set({
       email,
       status,
     });
-    getProfileContacts({ handle }).refresh();
+    getProfileContacts({ handle: account.handle }).refresh();
   },
 );
 
@@ -174,14 +193,12 @@ export const updateResumeBasics = form(
     contactOperations,
     languageOperations,
   }) => {
-    const event = getRequestEvent();
-    const did = event.locals.did as DidString;
-    const handle = event.locals.handle;
-    if (!did || !handle) {
+    const account = await getAccountData();
+    if (!account) {
       error(401, "Unauthorized");
     }
 
-    await updateResumeBasicsData(did as DidString, {
+    await updateResumeBasicsData(account.did, {
       name,
       title,
       email,
@@ -189,12 +206,13 @@ export const updateResumeBasics = form(
       summary,
       preferredWorkplaces,
     });
-    await updateProfileContacts(did, contactOperations ?? []);
-    await updateResumeLanguagesData(did, languageOperations ?? []);
+    await updateProfileContacts(account.did, contactOperations ?? []);
+    await updateResumeLanguagesData(account.did, languageOperations ?? []);
 
     // cannot use set because languages should be refreshed
-    getResumeBasics({ handle }).refresh();
-    getProfileContacts({ handle }).refresh();
+    getResumeBasics({ handle: account.handle }).refresh();
+    getProfilePrivateData({ handle: account.handle }).refresh();
+    getProfileContacts({ handle: account.handle }).refresh();
   },
 );
 
@@ -205,16 +223,12 @@ const SkillsUpdateSchema = v.object({
 export const updateResumeSkills = form(
   SkillsUpdateSchema,
   async ({ skillOperations }) => {
-    const event = getRequestEvent();
-    const did = event.locals.did as DidString;
-    const handle = event.locals.handle;
-    if (!did || !handle) {
+    const account = await getAccountData();
+    if (!account) {
       error(401, "Unauthorized");
     }
-
-    await updateResumeSkillsData(did, skillOperations);
-
-    getResumeSkills({ handle }).refresh();
+    await updateResumeSkillsData(account.did, skillOperations);
+    getResumeSkills({ handle: account.handle }).refresh();
   },
 );
 
@@ -222,25 +236,23 @@ export const updateResumeSkills = form(
 export const getMemberProfile = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const { locals } = getRequestEvent();
     const resolved = await resolveIdentifier(handle);
     if (!resolved) {
       error(404, `Cannot resolve ${handle}`);
     }
+    const account = await getAccountData();
     // show local resume and fallback to sifa resume
-    const isOwnProfile = resolved.did === locals.did;
+    const isProfileOwner = account?.did === resolved.did;
     return (
       (await loadResume(resolved.did)) ??
-      (await loadSifaResume(resolved.did, isOwnProfile))
+      (await loadSifaResume(resolved.did, isProfileOwner))
     );
   },
 );
 
 export const updateMemberProfile = command(ResumeSchema, async (resume) => {
-  const { locals } = getRequestEvent();
-  const did = locals.did;
-  const handle = locals.handle;
-  if (!did || !handle) {
+  const account = await getAccountData();
+  if (!account) {
     error(401, "Unauthorized");
   }
 
@@ -249,16 +261,16 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
   const member = await db
     .selectFrom("members")
     .select("did")
-    .where("did", "=", did)
+    .where("did", "=", account.did)
     .executeTakeFirst();
 
   // update legacy members (only work, education, projects, skills, languages)
   if (member) {
-    await updateResume(did, resume);
+    await updateResume(account.did, resume);
   }
   // update atproto + private data (only work, education, projects, skills, languages)
-  await updateSifaResume(did, resume);
+  await updateSifaResume(account.did, resume);
 
   // Refresh the profile query to reflect changes
-  getMemberProfile({ handle }).refresh();
+  getMemberProfile({ handle: account.handle }).refresh();
 });

@@ -15,7 +15,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar />
 
   <div class="member-list">
     {#each data.members as member}

@@ -198,7 +198,7 @@ export async function seedDatabase(db: Kysely<DatabaseSchema>) {
   members.push(rootMember);
 
   // Create 49 fake members with organic branching
-  for (let i = 1; i <= 49; i++) {
+  for (let i = 1; i <= NAMES.length; i++) {
     const inviterIndex = Math.floor(Math.random() * members.length);
     const inviter = members[inviterIndex];
     const name = NAMES[i - 1];

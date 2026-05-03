@@ -1,19 +1,20 @@
 import { nanoid } from "nanoid";
 import * as v from "valibot";
 import { error, redirect } from "@sveltejs/kit";
-import { query, form, getRequestEvent } from "$app/server";
+import { query, form } from "$app/server";
 import { getDB } from "./db";
+import { getAccountData } from "./account.remote";
 
 export const getMyInvitations = query(async () => {
-  const event = getRequestEvent();
-  if (!event.locals.did) {
-    throw error(401);
+  const account = await getAccountData();
+  if (!account) {
+    error(401);
   }
   const db = await getDB();
   const invitations = await db
     .selectFrom("invitations")
     .selectAll()
-    .where("created_by", "=", event.locals.did)
+    .where("created_by", "=", account.did)
     .whereRef("invitations.used_count", "<", "invitations.max_uses")
     .orderBy("created_at", "desc")
     .execute();
@@ -29,9 +30,9 @@ export const createInvitation = form(
     ),
   }),
   async ({ name, recommendation_text }) => {
-    const event = getRequestEvent();
-    if (!event.locals.did || !event.locals.handle) {
-      throw error(401);
+    const account = await getAccountData();
+    if (!account) {
+      error(401);
     }
 
     const db = await getDB();
@@ -61,7 +62,7 @@ export const createInvitation = form(
       .values({
         code,
         name,
-        created_by: event.locals.did,
+        created_by: account.did,
         recommendation_text: recommendation_text,
       })
       .execute();
@@ -75,9 +76,9 @@ export const acceptInvitation = form(
     code: v.pipe(v.string(), v.nonEmpty()),
   }),
   async ({ code }) => {
-    const event = getRequestEvent();
-    if (!event.locals.did) {
-      throw error(401);
+    const account = await getAccountData();
+    if (!account) {
+      error(401);
     }
 
     const db = await getDB();
@@ -92,7 +93,7 @@ export const acceptInvitation = form(
       throw error(404, "Invitation not found");
     }
 
-    const currentUser = event.locals.did;
+    const currentUser = account.did;
 
     await db.transaction().execute(async (trx) => {
       await trx
@@ -114,6 +115,6 @@ export const acceptInvitation = form(
         .execute();
     });
 
-    redirect(302, `/profile/${event.locals.handle}`);
+    redirect(302, `/profile/${account.handle}`);
   },
 );

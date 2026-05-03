@@ -1,14 +1,11 @@
 import { redirect } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
+import { getAccountData } from "$lib/account.remote";
 
-export const load = async ({ locals, url }) => {
-  if (!locals.did) {
+export const load = async ({ url }) => {
+  const account = await getAccountData();
+  if (!account) {
     redirect(302, `/?redirect=${encodeURIComponent(url.pathname)}`);
-  }
-
-  // Only members can access this page
-  if (locals.role !== "member") {
-    redirect(302, "/unauthorized");
   }
 
   const db = await getDB();
@@ -30,8 +27,6 @@ export const load = async ({ locals, url }) => {
     .execute();
 
   return {
-    handle: locals.handle,
-    role: locals.role,
     members,
   };
 };

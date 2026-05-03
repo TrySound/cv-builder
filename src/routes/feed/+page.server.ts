@@ -31,14 +31,22 @@ export type FeedUser = {
 
 export type FeedItem = FeedRecommendation | FeedUser;
 
-export const load = async ({ locals }) => {
+export const load = async () => {
   const db = await getDB();
 
   // Load all recommendations from index with author and subject names
   const recommendations = await db
     .selectFrom("recommendation_index")
-    .leftJoin("profile_index as author", "author.did", "recommendation_index.author_did")
-    .leftJoin("profile_index as subject", "subject.did", "recommendation_index.subject_did")
+    .leftJoin(
+      "profile_index as author",
+      "author.did",
+      "recommendation_index.author_did",
+    )
+    .leftJoin(
+      "profile_index as subject",
+      "subject.did",
+      "recommendation_index.subject_did",
+    )
     .select([
       "recommendation_index.uri",
       "recommendation_index.author_did",
@@ -89,7 +97,9 @@ export const load = async ({ locals }) => {
           handle: handle,
           name: item.name,
           createdAt: item.created_at,
-          introduction: item.introduction ? truncate(item.introduction, 200) : null,
+          introduction: item.introduction
+            ? truncate(item.introduction, 200)
+            : null,
         };
       }),
     ),
@@ -97,12 +107,13 @@ export const load = async ({ locals }) => {
 
   // Combine and sort by created_at desc, limit to 50
   const feed: FeedItem[] = [...recommendationItems, ...userItems]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
     .slice(0, 50);
 
   return {
-    handle: locals.handle,
-    role: locals.role,
     feed,
   };
 };

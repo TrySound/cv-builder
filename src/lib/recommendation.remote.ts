@@ -2,16 +2,16 @@ import * as v from "valibot";
 import { error } from "@sveltejs/kit";
 import { Client, type DatetimeString, type DidString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
-import { query, form, getRequestEvent } from "$app/server";
+import { query, form } from "$app/server";
 import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
 import { getOAuthClient, resolveHandleFromDid } from "./auth";
 import { resolveIdentifier } from "./atproto";
+import { getAccountData } from "./account.remote";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const event = getRequestEvent();
     const db = await getDB();
 
     const resolved = await resolveIdentifier(handle);
@@ -54,9 +54,7 @@ export const getProfileRecommendations = query(
 
     return {
       recommendations: recommendationsWithHandles,
-      isRecommendedByMe: recommendations.some(
-        (rec) => rec.author_did === event.locals.did,
-      ),
+      // isRecommendedByMe: recommendations.some( (rec) => rec.author_did === event.locals.did,),
     };
   },
 );
@@ -70,8 +68,8 @@ export const createRecommendation = form(
     ),
   }),
   async ({ handle, reason }) => {
-    const event = getRequestEvent();
-    if (!event.locals.did) {
+    const account = await getAccountData()
+    if (!account) {
       error(401);
     }
 
@@ -80,7 +78,7 @@ export const createRecommendation = form(
       error(404, `Cannot resolve ${handle}`);
     }
 
-    if (event.locals.did === resolved.did) {
+    if (account.did === resolved.did) {
       error(400, "Cannot recommend yourself");
     }
 
@@ -88,7 +86,7 @@ export const createRecommendation = form(
     const existingRecommendation = await db
       .selectFrom("recommendation_index")
       .select("uri")
-      .where("author_did", "=", event.locals.did)
+      .where("author_did", "=", account.did)
       .where("subject_did", "=", resolved.did)
       .executeTakeFirst();
     if (existingRecommendation) {
@@ -98,7 +96,7 @@ export const createRecommendation = form(
     const createdAt = new Date().toISOString() as DatetimeString;
 
     const oauthClient = await getOAuthClient();
-    const session = await oauthClient.restore(event.locals.did);
+    const session = await oauthClient.restore(account.did);
     const client = new Client(new Agent(session));
     const createdRecommendation = await client.create(weareonhire.main, {
       subject: resolved.did,
@@ -109,7 +107,7 @@ export const createRecommendation = form(
       .insertInto("recommendation_index")
       .values({
         uri: createdRecommendation.uri,
-        author_did: event.locals.did,
+        author_did: account.did,
         subject_did: resolved.did,
         reason,
         created_at: createdAt,

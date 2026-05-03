@@ -6,6 +6,7 @@
   import {
     getProfile,
     getProfileContacts,
+    getProfilePrivateData,
     updateProfile,
   } from "$lib/profile.remote";
   import {
@@ -16,6 +17,7 @@
   import type { DatabaseSchema } from "$lib/db";
   import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import { getLinkDisplayName, getLinkIcon } from "$lib/link";
+  import { getAccountData } from "$lib/account.remote.js";
 
   let { data } = $props();
 
@@ -23,7 +25,7 @@
   const profile = $derived(await getProfile({ handle: data.profile.handle }));
 
   // SEO metadata
-  const profileName = $derived(profile.name ?? data.profile.handle);
+  const profileName = $derived(profile.name || data.profile.handle);
   const profileDescription = $derived(
     `View ${profileName}'s professional profile on weareonhire!`,
   );
@@ -51,8 +53,11 @@
     .map(([code, name]) => ({ code, name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const isOwnProfile = $derived(data.handle === data.profile.handle);
-  const isReadOnly = $derived(!isOwnProfile);
+  const account = getAccountData();
+  const isProfileOwner = $derived(
+    account.current?.handle === data.profile.handle,
+  );
+  const isReadOnly = $derived(!isProfileOwner);
 
   // reset the form instantly hidden after submission
   const createRecommendation = $derived(
@@ -61,7 +66,16 @@
 
   const recommendations = $derived(
     // await triggers reactivity loss warning but does not blink on the page
-    await getProfileRecommendations({ handle: data.profile.handle }),
+    getProfileRecommendations({ handle: data.profile.handle }),
+  );
+  const isProfileRecommendedByMe = $derived(
+    recommendations.current?.recommendations.some(
+      (item) => item.authorHandle === account.current?.handle,
+    ),
+  );
+
+  const profilePrivateData = $derived(
+    getProfilePrivateData({ handle: data.profile.handle }),
   );
 
   const contacts = $derived(
@@ -151,7 +165,7 @@
 </svelte:head>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar />
 
   <!-- editor -->
   <section
@@ -199,7 +213,7 @@
               class="form-input"
               {...updateProfile.fields.status.as(
                 "select",
-                profile.status ?? "hidden",
+                profilePrivateData.current?.status ?? "hidden",
               )}
             >
               <option class="menuitem" value="open_to_work">Open to Work</option
@@ -219,7 +233,10 @@
               id="profile-email"
               class="form-input"
               placeholder="your@email.com"
-              {...updateProfile.fields.email.as("email", profile.email ?? "")}
+              {...updateProfile.fields.email.as(
+                "email",
+                profilePrivateData.current?.email ?? "",
+              )}
             />
           </div>
 
@@ -308,7 +325,7 @@
       <div><!-- skip column --></div>
       <div class="margin-trim-block">
         <div class="space-between">
-          <h2 class="heading-1">{profile.name ?? data.profile.handle}</h2>
+          <h2 class="heading-1">{profile.name || data.profile.handle}</h2>
           {#if !isReadOnly}
             <button
               class="icon-button"
@@ -322,13 +339,7 @@
           {/if}
         </div>
         <p class="subtle">{profile.title}</p>
-        <p class="subtle">
-          {#if profile.status}
-            <span class="chip">
-              {getStatusLabel(profile.status)}
-              <svg width="14" height="14"><use href="#icon-check" /></svg>
-            </span>
-          {/if}
+        <p class="subtle chip-group">
           <span class="chip">
             {#if profile.countryCode}
               {countries.getName(profile.countryCode, "en", {
@@ -339,6 +350,12 @@
             {/if}
             <svg width="14" height="14"><use href="#icon-location" /></svg>
           </span>
+          {#if profilePrivateData.current?.status}
+            <span class="chip">
+              {getStatusLabel(profilePrivateData.current.status)}
+              <svg width="14" height="14"><use href="#icon-check" /></svg>
+            </span>
+          {/if}
         </p>
       </div>
     </div>
@@ -349,8 +366,11 @@
           View Resume
           <svg width="14" height="14"><use href="#icon-print" /></svg>
         </a>
-        {#if profile.email}
-          <a href="mailto:{profile.email}" class="link contact-item">
+        {#if profilePrivateData.current?.email}
+          <a
+            href="mailto:{profilePrivateData.current.email}"
+            class="link contact-item"
+          >
             Email
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
@@ -377,7 +397,7 @@
           class="white-space-preserve-line overflow-wrap-anywhere"
           class:subtle={!profile.introduction}
         >
-          {profile.introduction ??
+          {profile.introduction ||
             `${data.profile.handle} hasn't shared his story yet`}
         </p>
       </div>
@@ -385,87 +405,90 @@
   </section>
 
   <!-- Recommendations Section -->
-  <section
-    class="recommendations-section"
-    aria-label="Recommendations from other members"
-  >
-    <div class="row">
-      <div><!-- skip column --></div>
-      <h2 class="heading-2 subtle">Recommendations</h2>
-    </div>
-
-    <!-- Write Recommendation Form -->
-    {#if !isOwnProfile && !recommendations.isRecommendedByMe && data.handle}
+  {#if recommendations.ready && account.ready}
+    <section
+      class="recommendations-section"
+      aria-label="Recommendations from other members"
+    >
       <div class="row">
         <div><!-- skip column --></div>
-        <form {...createRecommendation} class="form-stack">
-          <input
-            {...createRecommendation.fields.handle.as(
-              "hidden",
-              data.profile.handle,
-            )}
-          />
-          <div class="form-group">
-            <label for="recommendation-input" class="form-label">
-              Write a recommendation
-              <span class="character-count">
-                {createRecommendation.fields.reason.value()?.length ?? 0} / 200 characters
-              </span>
-            </label>
-            <textarea
-              id="recommendation-input"
-              rows="6"
-              class="form-input"
-              placeholder="Write your recommendation here..."
-              minlength="200"
-              {...createRecommendation.fields.reason.as("text")}
-            ></textarea>
-          </div>
-          <div>
-            <button
-              class="button"
-              data-state={createRecommendation.pending ? "loading" : "idle"}
-            >
-              Post
-            </button>
-          </div>
-        </form>
+        <h2 class="heading-2 subtle">Recommendations</h2>
       </div>
-    {/if}
 
-    <div>
-      {#each recommendations.recommendations as item}
-        <article
-          id="recommendation-{item.id}"
-          class="row recommendation"
-          class:active={targetedId === `recommendation-${item.id}`}
-        >
-          <div>
-            <time class="subtle" datetime={item.createdAt}>
-              {formatDate(item.createdAt)}
-            </time>
-          </div>
-          <div class="margin-trim-block">
-            <p class="subtle">
-              <a href="/profile/{item.authorHandle}" class="link">
-                {item.authorName || item.authorHandle}
-              </a>
-            </p>
-            <p class="overflow-wrap-anywhere">
-              {item.reason}
-            </p>
-          </div>
-        </article>
-      {:else}
+      <!-- Write Recommendation Form -->
+      {#if account.current && !isProfileOwner && !isProfileRecommendedByMe}
         <div class="row">
           <div><!-- skip column --></div>
-          <div class="margin-trim-block">
-            <p class="subtle">The user has not been recommended yet</p>
-          </div>
+          <form {...createRecommendation} class="form-stack">
+            <input
+              {...createRecommendation.fields.handle.as(
+                "hidden",
+                data.profile.handle,
+              )}
+            />
+            <div class="form-group">
+              <label for="recommendation-input" class="form-label">
+                Write a recommendation
+                <span class="character-count">
+                  {createRecommendation.fields.reason.value()?.length ?? 0} / 200
+                  characters
+                </span>
+              </label>
+              <textarea
+                id="recommendation-input"
+                rows="6"
+                class="form-input"
+                placeholder="Write your recommendation here..."
+                minlength="200"
+                {...createRecommendation.fields.reason.as("text")}
+              ></textarea>
+            </div>
+            <div>
+              <button
+                class="button"
+                data-state={createRecommendation.pending ? "loading" : "idle"}
+              >
+                Post
+              </button>
+            </div>
+          </form>
         </div>
-      {/each}
-    </div>
-  </section>
+      {/if}
+
+      <div>
+        {#each recommendations.current?.recommendations as item}
+          <article
+            id="recommendation-{item.id}"
+            class="row recommendation"
+            class:active={targetedId === `recommendation-${item.id}`}
+          >
+            <div>
+              <time class="subtle" datetime={item.createdAt}>
+                {formatDate(item.createdAt)}
+              </time>
+            </div>
+            <div class="margin-trim-block">
+              <p class="subtle">
+                <a href="/profile/{item.authorHandle}" class="link">
+                  {item.authorName || item.authorHandle}
+                </a>
+              </p>
+              <p class="overflow-wrap-anywhere">
+                {item.reason}
+              </p>
+            </div>
+          </article>
+        {:else}
+          <div class="row">
+            <div><!-- skip column --></div>
+            <div class="margin-trim-block">
+              <p class="subtle">The user has not been recommended yet</p>
+            </div>
+          </div>
+        {/each}
+      </div>
+    </section>
+  {/if}
 </div>
 
 <style>

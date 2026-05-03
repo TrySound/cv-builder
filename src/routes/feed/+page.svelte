@@ -29,7 +29,7 @@
 </svelte:head>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar />
 
   <main class="feed-list">
     {#each data.feed as item}
