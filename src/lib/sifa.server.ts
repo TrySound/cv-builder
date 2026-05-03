@@ -63,7 +63,7 @@ function formatDate(dateString: string | undefined): string | undefined {
 
 export async function loadSifaResume(
   did: DidString,
-  isOwnProfile: boolean,
+  isProfileOwner: boolean,
 ): Promise<Resume | undefined> {
   const db = await getDB();
   const profileIndex = await db
@@ -72,7 +72,7 @@ export async function loadSifaResume(
     .where("did", "=", did)
     .executeTakeFirst();
   let profilePrivate;
-  if (isOwnProfile) {
+  if (isProfileOwner) {
     profilePrivate = await db
       .selectFrom("profile_private")
       .select(["email"])

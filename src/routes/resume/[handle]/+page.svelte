@@ -9,6 +9,7 @@
   import {
     getMemberProfile,
     getProfileContacts,
+    getProfilePrivateData,
     getResumeBasics,
     getResumeSkills,
     updateMemberProfile,
@@ -21,6 +22,7 @@
   import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
+  import { getAccountData } from "$lib/account.remote.js";
 
   countries.registerLocale(countriesEnLocale);
 
@@ -57,10 +59,17 @@
     sameAs: [`https://bsky.app/profile/${data.profile.handle}`],
   });
 
-  const isProfileOwner = $derived(data.handle === data.profile.handle);
+  const account = getAccountData();
+  const isProfileOwner = $derived(
+    account.current?.handle === data.profile.handle,
+  );
 
   // Load resume via remote query
   const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
+
+  const profilePrivateData = $derived(
+    getProfilePrivateData({ handle: data.profile.handle }),
+  );
 
   // Load contacts via remote query
   const contacts = $derived(
@@ -281,7 +290,7 @@
 </svelte:head>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar />
 
   <!-- Contacts and Summary Section -->
 
@@ -340,7 +349,7 @@
               class="form-input"
               {...updateResumeBasics.fields.email.as(
                 "email",
-                basicProfile.email ?? "",
+                profilePrivateData.current?.email ?? "",
               )}
             />
           </div>
@@ -541,8 +550,11 @@
     </div>
     <div class="row">
       <div class="subtle">
-        {#if basicProfile.email}
-          <a href="mailto:{basicProfile.email}" class="link contact-item">
+        {#if profilePrivateData.current?.email}
+          <a
+            href="mailto:{profilePrivateData.current.email}"
+            class="link contact-item"
+          >
             Email
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>

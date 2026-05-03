@@ -3,7 +3,7 @@ import type { DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
 import { resolveHandleFromDid } from "$lib/auth";
 
-export const load = async ({ locals }) => {
+export const load = async () => {
   const db = await getDB();
 
   // Count unique users who are either authors or subjects of recommendations
@@ -53,8 +53,6 @@ export const load = async ({ locals }) => {
   );
 
   return {
-    handle: locals.handle,
-    role: locals.role,
     populationCount,
     lastRecommendations: recommendationsWithHandles,
   };

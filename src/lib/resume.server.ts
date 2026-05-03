@@ -328,16 +328,12 @@ export async function updateResume(did: string, resume: Resume): Promise<void> {
 type ResumeBasicsData = {
   name?: string;
   title?: string;
-  email?: string;
   countryCode?: string;
   summary?: string;
   preferredWorkplaces?: WorkplaceType[];
 };
 
-export async function loadResumeBasicsData(
-  did: DidString,
-  isOwnProfile: boolean,
-): Promise<
+export async function loadResumeBasicsData(did: DidString): Promise<
   ResumeBasicsData & {
     languages: { name: string; rkey: string }[];
   }
@@ -377,21 +373,14 @@ export async function loadResumeBasicsData(
     // Profile doesn't exist yet
   }
 
-  if (isOwnProfile) {
-    const profilePrivate = await db
-      .selectFrom("profile_private")
-      .select(["email", "status"])
-      .where("did", "=", did)
-      .executeTakeFirst();
-    result.email = profilePrivate?.email ?? undefined;
-  }
-
   return result;
 }
 
 export async function updateResumeBasicsData(
   did: DidString,
-  data: ResumeBasicsData,
+  data: ResumeBasicsData & {
+    email?: string;
+  },
 ) {
   const db = await getDB();
 

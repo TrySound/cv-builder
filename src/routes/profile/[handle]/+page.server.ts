@@ -1,7 +1,7 @@
 import { error, redirect } from "@sveltejs/kit";
 import { resolveIdentifier } from "$lib/atproto";
 
-export const load = async ({ params, locals, url }) => {
+export const load = async ({ params, url }) => {
   if (url.searchParams.get("mode") === "cv") {
     redirect(302, `/resume/${params.handle}`);
   }
@@ -11,7 +11,6 @@ export const load = async ({ params, locals, url }) => {
   }
 
   return {
-    handle: locals.handle,
     profile: {
       handle: resolved.handle,
     },

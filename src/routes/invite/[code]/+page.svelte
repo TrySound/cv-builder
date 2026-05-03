@@ -1,9 +1,12 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { acceptInvitation } from "$lib/invitation.remote.js";
+  import { getAccountData } from "$lib/account.remote";
+  import { acceptInvitation } from "$lib/invitation.remote";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
+
+  const account = getAccountData();
 
   const inviterDisplayName = $derived(
     data.invitation.invitedBy.name || data.invitation.invitedBy.handle,
@@ -36,7 +39,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} inviteCode={data.inviteCode} />
+  <Topbar />
 
   <div class="recommendation-section">
     <h2 class="heading-2">Invitation for {data.invitation.name}</h2>
@@ -66,7 +69,7 @@
     </div>
   {/if}
 
-  {#if data.handle === data.invitation.invitedBy.handle}
+  {#if account.current?.handle === data.invitation.invitedBy.handle}
     <div>
       <p>
         This is your invitation link. Share it with someone you'd like to
@@ -76,7 +79,7 @@
         {`${page.url.origin}/invite/${data.invitation.code}`}
       </code>
     </div>
-  {:else if data.handle}
+  {:else if account.current?.handle}
     {#if data.hasAlreadyRecommended}
       <div class="alert alert-success">
         <p>You're already have recommendation from this user.</p>

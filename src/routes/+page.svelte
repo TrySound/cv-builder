@@ -1,9 +1,12 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { searchProfiles } from "$lib/search.remote.js";
+  import { getAccountData } from "$lib/account.remote";
+  import { searchProfiles } from "$lib/search.remote";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
+
+  const account = getAccountData();
 
   const title = "weareonhire!";
   const description =
@@ -54,16 +57,16 @@
 </svelte:head>
 
 <div class="container">
-  <Topbar handle={data.handle} hideLogo />
+  <Topbar hideLogo />
 
   <section class="hero">
     <h1 class="hero-title">weareonhire!</h1>
     <p class="hero-tagline">Your professional story, backed by your peers</p>
     <div class="hero-actions">
-      {#if data.handle}
+      {#if account.current?.handle}
         <a
           class="button button-primary button-lg"
-          href="/profile/{data.handle}"
+          href="/profile/{account.current.handle}"
         >
           My Profile
         </a>

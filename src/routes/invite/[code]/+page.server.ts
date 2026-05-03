@@ -1,8 +1,11 @@
 import { error } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
+import { getAccountData } from "$lib/account.remote";
 
-export const load = async ({ params, locals, url }) => {
+export const load = async ({ params, url }) => {
   const { code } = params;
+
+  const account = await getAccountData();
 
   // Get error from query params if present
   const errorType = url.searchParams.get("error");
@@ -31,19 +34,17 @@ export const load = async ({ params, locals, url }) => {
   }
 
   let hasAlreadyRecommended = false;
-  if (locals.did) {
+  if (account?.did) {
     const existingRecommendation = await db
       .selectFrom("recommendations")
       .select("id")
       .where("author_did", "=", invitation.inviter_did)
-      .where("subject_did", "=", locals.did)
+      .where("subject_did", "=", account.did)
       .executeTakeFirst();
     hasAlreadyRecommended = existingRecommendation !== undefined;
   }
 
   return {
-    handle: locals.handle,
-    role: locals.role,
     inviteCode: code,
     errorType,
     invitation: {

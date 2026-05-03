@@ -2,19 +2,18 @@
   import { isAtIdentifierString } from "@atproto/lex";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { getTheme, toggleTheme, type Theme } from "$lib/theme";
-  import { searchProfiles } from "$lib/search.remote.js";
-  import Combobox from "$lib/combobox.svelte";
+  import { getTheme, toggleTheme, type Theme } from "./theme";
+  import { searchProfiles } from "./search.remote.js";
+  import Combobox from "./combobox.svelte";
+  import { getAccountData } from "./account.remote";
 
   let {
-    handle,
-    inviteCode,
     hideLogo = false,
   }: {
-    handle: undefined | string;
-    inviteCode?: string;
     hideLogo?: boolean;
   } = $props();
+
+  const account = getAccountData();
 
   const redirectUrl = $derived(page.url.pathname);
 
@@ -131,7 +130,11 @@
   <nav class="nav">
     <div class="nav-links">
       <a href="/feed" class="link">Feed</a>
-      {#if handle}
+      <!-- avoid jumping for logged in users -->
+      {#if account.loading}
+        <button class="link" aria-disabled="true">Account</button>
+      {/if}
+      {#if account.current?.handle}
         <button
           class="link"
           commandfor="desktop-auth-menu"
@@ -143,14 +146,18 @@
           <div class="menu" role="menu">
             <!-- svelte-ignore a11y_autofocus -->
             <a
-              href="/profile/{handle}"
+              href="/profile/{account.current.handle}"
               role="menuitem"
               class="menuitem"
               autofocus
             >
-              @{handle}
+              @{account.current.handle}
             </a>
-            <a href="/resume/{handle}" role="menuitem" class="menuitem">
+            <a
+              href="/resume/{account.current.handle}"
+              role="menuitem"
+              class="menuitem"
+            >
               Resume
             </a>
             <form method="POST" action="/auth/logout">
@@ -159,7 +166,7 @@
             </form>
           </div>
         </div>
-      {:else}
+      {:else if account.ready}
         <button
           class="link"
           commandfor="topbar-login-dialog"
@@ -206,9 +213,17 @@
   <div class="menu" role="menu">
     <!-- svelte-ignore a11y_autofocus -->
     <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
-    {#if handle}
-      <a href="/profile/{handle}" role="menuitem" class="menuitem">@{handle}</a>
-      <a href="/resume/{handle}" role="menuitem" class="menuitem">Resume</a>
+    {#if account.current?.handle}
+      <a
+        href="/profile/{account.current.handle}"
+        role="menuitem"
+        class="menuitem">@{account.current.handle}</a
+      >
+      <a
+        href="/resume/{account.current.handle}"
+        role="menuitem"
+        class="menuitem">Resume</a
+      >
       <form method="POST" action="/auth/logout">
         <input type="hidden" name="redirect" value={redirectUrl} />
         <button role="menuitem" class="menuitem">Disconnect</button>
@@ -274,7 +289,6 @@
       action="/auth/login"
       onsubmit={handleConnectSubmit}
     >
-      <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="login" />
       <input type="hidden" name="redirect" value={redirectUrl} />
       <div class="form-group">
@@ -299,7 +313,6 @@
     <hr class="separator" />
 
     <form method="get" action="/auth/login">
-      <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="create" />
       <input type="hidden" name="redirect" value={redirectUrl} />
       <button class="button">Create a new account</button>

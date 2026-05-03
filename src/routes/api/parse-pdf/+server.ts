@@ -1,15 +1,17 @@
 import { env } from "$env/dynamic/private";
 import { error, json } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
+import { getAccountData } from "$lib/account.remote";
 
 const MAX_FILE_SIZE = 500 * 1024; // 500kB
 
-export const POST = async ({ request, url, locals }) => {
-  if (!locals.did) {
+export const POST = async ({ request, url }) => {
+  const account = await getAccountData()
+  if (!account) {
     error(403);
   }
 
-  console.info(`Parse PDF for ${locals.handle}`);
+  console.info(`Parse PDF for ${account.handle}`);
   const db = await getDB();
 
   try {

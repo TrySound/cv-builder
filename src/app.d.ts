@@ -6,15 +6,10 @@ import type { Agent } from "@atproto/api";
 declare global {
   namespace App {
     // interface Error {}
-    interface Locals {
-      did?: string;
-      handle?: string;
-      role?: "member" | "visitor";
-      session?: OAuthSession;
-    }
+    // interface Locals { }
     // interface PageData {}
     // interface Platform {}
   }
 }
 
-export {};
+export { };

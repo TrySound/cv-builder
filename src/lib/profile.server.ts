@@ -13,14 +13,9 @@ export interface ProfileData {
   title: string | undefined;
   introduction: string | undefined;
   countryCode: string | undefined;
-  email?: string | undefined;
-  status?: "open_to_work" | "open_to_connect" | "hidden" | undefined;
 }
 
-export async function loadProfile(
-  did: DidString,
-  isOwnProfile: boolean,
-): Promise<ProfileData> {
+export async function loadProfile(did: DidString): Promise<ProfileData> {
   const db = await getDB();
 
   // Load public profile data from profile_index
@@ -36,16 +31,6 @@ export async function loadProfile(
     introduction: profileIndex?.introduction ?? undefined,
     countryCode: profileIndex?.country_code ?? undefined,
   };
-
-  if (isOwnProfile) {
-    const profilePrivate = await db
-      .selectFrom("profile_private")
-      .select(["email", "status"])
-      .where("did", "=", did)
-      .executeTakeFirst();
-    result.email = profilePrivate?.email ?? undefined;
-    result.status = profilePrivate?.status ?? undefined;
-  }
 
   return result;
 }

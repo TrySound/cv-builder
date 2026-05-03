@@ -1,10 +1,11 @@
 import { error } from "@sveltejs/kit";
-import { getRequestEvent, query } from "$app/server";
+import { query } from "$app/server";
 import { getDB } from "$lib/db";
+import { getAccountData } from "$lib/account.remote";
 
 export const getChecks = query(async () => {
-  const { locals } = getRequestEvent();
-  if (!locals.did || !locals.handle) {
+  const account = await getAccountData();
+  if (!account) {
     error(401);
   }
   const db = await getDB();
@@ -13,7 +14,7 @@ export const getChecks = query(async () => {
   const member = await db
     .selectFrom("members")
     .select(["did", "invited_by"])
-    .where("did", "=", locals.did)
+    .where("did", "=", account.did)
     .executeTakeFirst();
   if (!member) {
     error(401);
@@ -23,7 +24,7 @@ export const getChecks = query(async () => {
   const positionsCount = await db
     .selectFrom("member_positions")
     .select((eb) => eb.fn.count("id").as("count"))
-    .where("did", "=", locals.did)
+    .where("did", "=", account.did)
     .executeTakeFirst()
     .then((result) => Number.parseInt(result?.count?.toString() ?? "0", 10));
   const hasResume = positionsCount > 0;
@@ -34,7 +35,7 @@ export const getChecks = query(async () => {
     const recommendation = await db
       .selectFrom("recommendations")
       .select("id")
-      .where("author_did", "=", locals.did)
+      .where("author_did", "=", account.did)
       .where("subject_did", "=", member.invited_by)
       .executeTakeFirst();
     hasRecommendedBack = recommendation !== undefined;
@@ -44,7 +45,7 @@ export const getChecks = query(async () => {
   const invitesCount = await db
     .selectFrom("invitations")
     .select((eb) => eb.fn.count("id").as("count"))
-    .where("created_by", "=", locals.did)
+    .where("created_by", "=", account.did)
     .executeTakeFirst()
     .then((result) => parseInt(result?.count?.toString() ?? "0", 10));
   const hasInvited = invitesCount > 0;
