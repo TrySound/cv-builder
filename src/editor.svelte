@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Resume } from "$lib/jsonresume";
-  import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import DatePicker from "$lib/date-picker.svelte";
 
   let {
@@ -42,35 +41,6 @@
   // Track which section/card is being edited
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
   let editingId = $state<string | null>(null);
-
-  // Define options for comboboxes (as {value, label} objects)
-  const workplaceOptions = [
-    { value: "onsite", label: "onsite" },
-    { value: "remote", label: "remote" },
-    { value: "hybrid", label: "hybrid" },
-  ];
-  const languageOptions = [
-    { value: "English", label: "English" },
-    { value: "Spanish", label: "Spanish" },
-    { value: "French", label: "French" },
-    { value: "German", label: "German" },
-    { value: "Italian", label: "Italian" },
-    { value: "Portuguese", label: "Portuguese" },
-    { value: "Russian", label: "Russian" },
-    { value: "Chinese", label: "Chinese" },
-    { value: "Japanese", label: "Japanese" },
-    { value: "Korean", label: "Korean" },
-    { value: "Arabic", label: "Arabic" },
-    { value: "Hindi", label: "Hindi" },
-    { value: "Dutch", label: "Dutch" },
-    { value: "Swedish", label: "Swedish" },
-    { value: "Polish", label: "Polish" },
-    { value: "Turkish", label: "Turkish" },
-    { value: "Vietnamese", label: "Vietnamese" },
-    { value: "Thai", label: "Thai" },
-    { value: "Indonesian", label: "Indonesian" },
-    { value: "Hebrew", label: "Hebrew" },
-  ];
 
   function isEditing(section: string, index?: number): boolean {
     const targetId = index !== undefined ? `${section}-${index}` : section;
@@ -746,156 +716,7 @@
   {/each}
 </section>
 
-<!-- Workplace Preferences -->
-<section class="cv-section">
-  <div class="row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Workplace Preferences</h2>
-      {#if !readonly}
-        {#if isEditing("workplace")}
-          <button
-            class="icon-button"
-            aria-label="Save workplace preferences"
-            onclick={() => stopEditing()}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        {:else}
-          <button
-            class="icon-button"
-            aria-label="Edit workplace preferences"
-            onclick={() => startEditing("workplace")}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-pencil" />
-            </svg>
-          </button>
-        {/if}
-      {/if}
-    </header>
-  </div>
 
-  {#if isEditing("workplace") && editingResume}
-    <div class="row">
-      <div><!-- skip column --></div>
-      <div class="cv-row-main">
-        <MultiSelectCombobox
-          id="workplace-combobox"
-          options={workplaceOptions}
-          placeholder="Select workplace preferences"
-          bind:selected={
-            () =>
-              (editingResume?.extension?.preferredWorkplaces ?? []).map((w) => ({
-                value: w,
-                label: w,
-              })),
-            (newWorkplaces) => {
-              if (editingResume) {
-                editingResume.extension.preferredWorkplaces = newWorkplaces.map(
-                  (w) => w.label,
-                );
-              }
-            }
-          }
-        />
-      </div>
-    </div>
-  {:else if (displayResume.extension?.preferredWorkplaces?.length ?? 0) > 0}
-    <div class="row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        {displayResume.extension?.preferredWorkplaces?.join(", ")}
-      </span>
-    </div>
-  {:else}
-    <div class="row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        <p class="subtle">No workplace preferences set. Click Edit to add.</p>
-      </span>
-    </div>
-  {/if}
-</section>
-
-<!-- Languages -->
-<section class="cv-section">
-  <div class="row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Languages</h2>
-      {#if !readonly}
-        {#if isEditing("languages")}
-          <button
-            class="icon-button"
-            aria-label="Save languages"
-            onclick={() => stopEditing()}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        {:else}
-          <button
-            class="icon-button"
-            aria-label="Edit languages"
-            onclick={() => startEditing("languages")}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-pencil" />
-            </svg>
-          </button>
-        {/if}
-      {/if}
-    </header>
-  </div>
-
-  {#if isEditing("languages") && editingResume}
-    <div class="row">
-      <div><!-- skip column --></div>
-      <div class="cv-row-main">
-        <MultiSelectCombobox
-          id="languages-combobox"
-          options={languageOptions}
-          placeholder="Select or add languages"
-          bind:selected={
-            () =>
-              (editingResume?.languages ?? []).map((item) => ({
-                value: item.language ?? "",
-                label: item.language ?? "",
-              })),
-            (newLanguages) => {
-              if (editingResume) {
-                editingResume.languages = newLanguages.map((item) => ({
-                  language: item.label,
-                }));
-              }
-            }
-          }
-        />
-      </div>
-    </div>
-  {:else if (displayResume.languages?.length ?? 0) > 0}
-    <div class="row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        {displayResume.languages
-          ?.map((l) => l.language)
-          .filter(Boolean)
-          .join(", ")}
-      </span>
-    </div>
-  {:else}
-    <div class="row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        <p class="subtle">No languages added yet. Click Edit to add.</p>
-      </span>
-    </div>
-  {/if}
-</section>
 
 <style>
   .heading-2 {

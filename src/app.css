@@ -292,6 +292,12 @@ body {
   display: none;
 }
 
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -451,6 +457,7 @@ body {
 .form-group {
   display: grid;
   gap: var(--space-2);
+  grid-template-rows: max-content;
 }
 
 .form-stack {
