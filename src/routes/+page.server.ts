@@ -1,7 +1,6 @@
 import { sql } from "kysely";
 import type { DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
-import { resolveHandleFromDid } from "$lib/auth";
 
 export const load = async ({ locals }) => {
   const db = await getDB();
@@ -19,7 +18,7 @@ export const load = async ({ locals }) => {
 
   const populationCount = Number(result.rows[0]?.count || 0);
 
-  // Get last 4 recommendations with author and subject names
+  // Get last 4 recommendations with author names and handles
   const lastRecommendations = await db
     .selectFrom("recommendation_index")
     .leftJoin(
@@ -33,24 +32,20 @@ export const load = async ({ locals }) => {
       "recommendation_index.reason",
       "recommendation_index.created_at",
       "author.name as author_name",
+      "author.handle as author_handle",
     ])
     .orderBy("recommendation_index.created_at", "desc")
     .limit(4)
     .execute();
 
-  // Resolve handles for authors and subjects
-  const recommendationsWithHandles = await Promise.all(
-    lastRecommendations.map(async (item) => {
-      const authorHandle = await resolveHandleFromDid(
-        item.author_did as DidString,
-      );
-      return {
-        reason: item.reason,
-        authorHandle,
-        authorName: item.author_name,
-      };
-    }),
-  );
+  // Use handle from DB or fallback to DID
+  const recommendationsWithHandles = lastRecommendations.map((item) => {
+    return {
+      reason: item.reason,
+      authorHandle: item.author_handle ?? item.author_did,
+      authorName: item.author_name,
+    };
+  });
 
   return {
     handle: locals.handle,

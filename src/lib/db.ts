@@ -120,6 +120,7 @@ export interface DatabaseSchema {
   };
   profile_index: {
     did: string;
+    handle: string | null;
     name: string | null;
     title: string | null;
     country_code: string | null;

@@ -1,11 +1,11 @@
 import * as v from "valibot";
 import { error } from "@sveltejs/kit";
-import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import { Client, type DatetimeString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import { query, form, getRequestEvent } from "$app/server";
 import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
-import { getOAuthClient, resolveHandleFromDid } from "./auth";
+import { getOAuthClient } from "./auth";
 import { resolveIdentifier } from "./atproto";
 
 export const getProfileRecommendations = query(
@@ -34,23 +34,17 @@ export const getProfileRecommendations = query(
         "recommendation_index.reason",
         "recommendation_index.created_at",
         "author.name as author_name",
+        "author.handle as author_handle",
       ])
       .execute();
 
-    const recommendationsWithHandles = await Promise.all(
-      recommendations.map(async (item) => {
-        const authorHandle = await resolveHandleFromDid(
-          item.author_did as DidString,
-        );
-        return {
-          id: item.uri,
-          reason: item.reason,
-          authorHandle: authorHandle,
-          authorName: item.author_name,
-          createdAt: item.created_at,
-        };
-      }),
-    );
+    const recommendationsWithHandles = recommendations.map((item) => ({
+      id: item.uri,
+      reason: item.reason,
+      authorHandle: item.author_handle ?? item.author_did,
+      authorName: item.author_name,
+      createdAt: item.created_at,
+    }));
 
     return {
       recommendations: recommendationsWithHandles,

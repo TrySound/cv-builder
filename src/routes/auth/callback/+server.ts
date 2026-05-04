@@ -16,6 +16,7 @@ async function ensureProfile(
   db: Awaited<ReturnType<typeof getDB>>,
   client: Client,
   did: DidString,
+  handle: string,
   bskyDisplayName: string | undefined,
   bskyDescription: string | undefined,
 ) {
@@ -61,13 +62,18 @@ async function ensureProfile(
     .insertInto("profile_index")
     .values({
       did,
+      handle,
       name: name,
       title: title,
       country_code: countryCode,
       introduction: introduction,
       created_at: now,
     })
-    .onConflict((oc) => oc.column("did").doNothing())
+    .onConflict((oc) =>
+      oc.column("did").doUpdateSet({
+        handle,
+      }),
+    )
     .execute();
   await db
     .insertInto("profile_private")
@@ -105,6 +111,7 @@ export const GET = async ({ url, cookies }) => {
     db,
     client,
     session.did,
+    handle,
     profile.data.displayName,
     profile.data.description,
   );
