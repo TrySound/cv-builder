@@ -376,7 +376,7 @@
             </div>
           </div>
           {#if job.summary}
-            <p>{job.summary}</p>
+            <p class="white-space-preserve-line">{job.summary}</p>
           {/if}
         </div>
       </div>

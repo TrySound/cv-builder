@@ -126,6 +126,11 @@ export interface DatabaseSchema {
     introduction: string | null;
     created_at: string;
   };
+  handle_index: {
+    did: string;
+    handle: string;
+    created_at: string;
+  };
   profile_private: {
     did: string;
     email: string | null;
