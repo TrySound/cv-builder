@@ -1,11 +1,21 @@
 import { error, redirect } from "@sveltejs/kit";
 import { resolveIdentifier } from "$lib/atproto";
+import { getCurrentRequestId, timeAsync } from "$lib/profiling";
 
 export const load = async ({ params, locals, url }) => {
+  const requestId = getCurrentRequestId(locals);
+
   if (url.searchParams.get("mode") === "cv") {
     redirect(302, `/resume/${params.handle}`);
   }
-  const resolved = await resolveIdentifier(params.handle);
+
+  const resolved = await timeAsync(
+    requestId,
+    "profile.resolveIdentifier",
+    () => resolveIdentifier(params.handle),
+    { handle: params.handle },
+  );
+
   if (!resolved) {
     error(404, `Cannot resolve profile for ${params.handle}`);
   }
