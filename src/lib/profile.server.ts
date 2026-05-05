@@ -7,6 +7,8 @@ import { getOAuthClient } from "./auth";
 import { getDB } from "./db";
 import { normalizeUrl } from "./link";
 import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
+import { timeAsync } from "./profiling";
+import { getRequestEvent } from "$app/server";
 
 export interface ProfileData {
   name: string | undefined;
@@ -21,14 +23,28 @@ export async function loadProfile(
   did: DidString,
   isOwnProfile: boolean,
 ): Promise<ProfileData> {
-  const db = await getDB();
+  let requestId: string | undefined;
+  try {
+    const event = getRequestEvent();
+    requestId = event.locals.requestId as string | undefined;
+  } catch {
+    // Not in request context
+  }
+
+  const db = await timeAsync(requestId, "loadProfile.getDB", () => getDB());
 
   // Load public profile data from profile_index
-  const profileIndex = await db
-    .selectFrom("profile_index")
-    .select(["name", "title", "introduction", "country_code"])
-    .where("did", "=", did)
-    .executeTakeFirst();
+  const profileIndex = await timeAsync(
+    requestId,
+    "loadProfile.query.profile_index",
+    () =>
+      db
+        .selectFrom("profile_index")
+        .select(["name", "title", "introduction", "country_code"])
+        .where("did", "=", did)
+        .executeTakeFirst(),
+    { did },
+  );
 
   const result: ProfileData = {
     name: profileIndex?.name ?? undefined,
@@ -38,11 +54,17 @@ export async function loadProfile(
   };
 
   if (isOwnProfile) {
-    const profilePrivate = await db
-      .selectFrom("profile_private")
-      .select(["email", "status"])
-      .where("did", "=", did)
-      .executeTakeFirst();
+    const profilePrivate = await timeAsync(
+      requestId,
+      "loadProfile.query.profile_private",
+      () =>
+        db
+          .selectFrom("profile_private")
+          .select(["email", "status"])
+          .where("did", "=", did)
+          .executeTakeFirst(),
+      { did },
+    );
     result.email = profilePrivate?.email ?? undefined;
     result.status = profilePrivate?.status ?? undefined;
   }
@@ -152,15 +174,36 @@ export type ContactOperation = v.InferOutput<typeof ContactOperationSchema>;
 
 // Load profile contacts from SIFA external accounts
 export async function loadProfileContacts(did: DidString) {
-  const client = await getPdsClient(did);
-  const externalAccountsResponse = await client
-    .list(sifa.profile.externalAccount, {
-      repo: did,
-      limit: 100,
-    })
-    .catch((error) => {
-      console.error("Error loading external accounts:", error);
-    });
+  let requestId: string | undefined;
+  try {
+    const event = getRequestEvent();
+    requestId = event.locals.requestId as string | undefined;
+  } catch {
+    // Not in request context
+  }
+
+  const client = await timeAsync(
+    requestId,
+    "loadProfileContacts.getPdsClient",
+    () => getPdsClient(did, requestId),
+    { did },
+  );
+
+  const externalAccountsResponse = await timeAsync(
+    requestId,
+    "loadProfileContacts.listExternalAccounts",
+    () =>
+      client
+        .list(sifa.profile.externalAccount, {
+          repo: did,
+          limit: 100,
+        })
+        .catch((error) => {
+          console.error("Error loading external accounts:", error);
+        }),
+    { did },
+  );
+
   const contacts = externalAccountsResponse?.records?.map((record) => {
     const value = sifa.profile.externalAccount.main.$cast(record.value);
     return {
