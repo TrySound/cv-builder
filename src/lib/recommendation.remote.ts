@@ -1,12 +1,12 @@
 import * as v from "valibot";
 import { error } from "@sveltejs/kit";
-import { Client, type DatetimeString } from "@atproto/lex";
+import { Client } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import { query, form, getRequestEvent } from "$app/server";
 import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
 import { getOAuthClient } from "./auth";
-import { resolveIdentifier } from "./atproto";
+import { getNow, resolveIdentifier } from "./atproto";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
@@ -27,6 +27,11 @@ export const getProfileRecommendations = query(
         "author.did",
         "recommendation_index.author_did",
       )
+      .leftJoin(
+        "handle_index as author_handle",
+        "author_handle.did",
+        "recommendation_index.author_did",
+      )
       .orderBy("recommendation_index.created_at", "desc")
       .select([
         "recommendation_index.uri",
@@ -34,7 +39,7 @@ export const getProfileRecommendations = query(
         "recommendation_index.reason",
         "recommendation_index.created_at",
         "author.name as author_name",
-        "author.handle as author_handle",
+        "author_handle.handle as author_handle",
       ])
       .execute();
 
@@ -89,7 +94,20 @@ export const createRecommendation = form(
       error(400, "Already recommended this person");
     }
 
-    const createdAt = new Date().toISOString() as DatetimeString;
+    const createdAt = getNow();
+
+    // cache subject's handle
+    await db
+      .insertInto("handle_index")
+      .values({
+        did: resolved.did,
+        handle: resolved.handle,
+        created_at: createdAt,
+      })
+      .onConflict((oc) =>
+        oc.column("did").doUpdateSet({ handle: resolved.handle }),
+      )
+      .execute();
 
     const oauthClient = await getOAuthClient();
     const session = await oauthClient.restore(event.locals.did);

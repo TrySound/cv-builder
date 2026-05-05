@@ -1,5 +1,4 @@
 import { sql } from "kysely";
-import type { DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
 
 export const load = async ({ locals }) => {
@@ -26,13 +25,18 @@ export const load = async ({ locals }) => {
       "author.did",
       "recommendation_index.author_did",
     )
+    .leftJoin(
+      "handle_index as author_handle",
+      "author_handle.did",
+      "recommendation_index.author_did",
+    )
     .select([
       "recommendation_index.uri",
       "recommendation_index.author_did",
       "recommendation_index.reason",
       "recommendation_index.created_at",
       "author.name as author_name",
-      "author.handle as author_handle",
+      "author_handle.handle as author_handle",
     ])
     .orderBy("recommendation_index.created_at", "desc")
     .limit(4)

@@ -120,11 +120,15 @@ export interface DatabaseSchema {
   };
   profile_index: {
     did: string;
-    handle: string | null;
     name: string | null;
     title: string | null;
     country_code: string | null;
     introduction: string | null;
+    created_at: string;
+  };
+  handle_index: {
+    did: string;
+    handle: string;
     created_at: string;
   };
   profile_private: {

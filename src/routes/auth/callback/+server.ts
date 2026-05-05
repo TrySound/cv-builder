@@ -7,6 +7,7 @@ import { getOAuthClient } from "$lib/auth";
 import { getDB } from "$lib/db";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
+import { getNow } from "$lib/atproto";
 
 /**
  * Ensure weareonhire profile exists for the user.
@@ -16,7 +17,6 @@ async function ensureProfile(
   db: Awaited<ReturnType<typeof getDB>>,
   client: Client,
   did: DidString,
-  handle: string,
   bskyDisplayName: string | undefined,
   bskyDescription: string | undefined,
 ) {
@@ -49,7 +49,7 @@ async function ensureProfile(
   const countryCode = sifaProfile?.location?.countryCode ?? null;
 
   // Create the profile record
-  const now = new Date().toISOString() as DatetimeString;
+  const now = getNow();
   await client.put(weareonhire.profile.main, {
     name: name ?? undefined,
     title: title ?? undefined,
@@ -62,18 +62,13 @@ async function ensureProfile(
     .insertInto("profile_index")
     .values({
       did,
-      handle,
       name: name,
       title: title,
       country_code: countryCode,
       introduction: introduction,
       created_at: now,
     })
-    .onConflict((oc) =>
-      oc.column("did").doUpdateSet({
-        handle,
-      }),
-    )
+    .onConflict((oc) => oc.column("did").doNothing())
     .execute();
   await db
     .insertInto("profile_private")
@@ -111,10 +106,21 @@ export const GET = async ({ url, cookies }) => {
     db,
     client,
     session.did,
-    handle,
     profile.data.displayName,
     profile.data.description,
   );
+
+  // cache user handle
+  const now = new Date().toISOString() as DatetimeString;
+  await db
+    .insertInto("handle_index")
+    .values({
+      did: session.did,
+      handle,
+      created_at: now,
+    })
+    .onConflict((oc) => oc.column("did").doUpdateSet({ handle }))
+    .execute();
 
   // Store session cookie
   const sessionData = JSON.stringify({ did: session.did, handle });
