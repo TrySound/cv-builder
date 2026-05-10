@@ -8,11 +8,9 @@
 
   let {
     handle,
-    inviteCode,
     hideLogo = false,
   }: {
     handle: undefined | string;
-    inviteCode?: string;
     hideLogo?: boolean;
   } = $props();
 
@@ -274,7 +272,6 @@
       action="/auth/login"
       onsubmit={handleConnectSubmit}
     >
-      <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="login" />
       <input type="hidden" name="redirect" value={redirectUrl} />
       <div class="form-group">
@@ -299,7 +296,6 @@
     <hr class="separator" />
 
     <form method="get" action="/auth/login">
-      <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="create" />
       <input type="hidden" name="redirect" value={redirectUrl} />
       <button class="button">Create a new account</button>
