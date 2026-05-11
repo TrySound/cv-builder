@@ -2,7 +2,8 @@ import { dirname, join } from "node:path";
 import { readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { Kysely, Migrator, FileMigrationProvider } from "kysely";
+import { Kysely, PGliteDialect } from "kysely";
+import { Migrator, FileMigrationProvider } from "kysely/migration";
 import { seedDatabase } from "./seed.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -42,10 +43,9 @@ if (mode === "prod") {
   });
 } else {
   const { PGlite } = await import("@electric-sql/pglite");
-  const { PGliteDialect } = await import("kysely-pglite-dialect");
   const pglite = new PGlite("./.pgdata");
   db = new Kysely({
-    dialect: new PGliteDialect(pglite),
+    dialect: new PGliteDialect({ pglite }),
   });
 }
 
