@@ -1,4 +1,5 @@
 import { getDB } from "$lib/db";
+import { timeAsync, getCurrentRequestId } from "$lib/profiling";
 
 const truncate = (text: string, limit: number) => {
   if (text.length <= limit) {
@@ -30,60 +31,71 @@ export type FeedUser = {
 export type FeedItem = FeedRecommendation | FeedUser;
 
 export const load = async ({ locals }) => {
-  const db = await getDB();
+  const requestId = getCurrentRequestId(locals);
+  const db = await timeAsync(requestId, "feed.getDB", () => getDB());
 
   // Load all recommendations from index with author and subject names and handles
-  const recommendations = await db
-    .selectFrom("recommendation_index")
-    .leftJoin(
-      "profile_index as author",
-      "author.did",
-      "recommendation_index.author_did",
-    )
-    .leftJoin(
-      "profile_index as subject",
-      "subject.did",
-      "recommendation_index.subject_did",
-    )
-    .leftJoin(
-      "handle_index as author_handle",
-      "author_handle.did",
-      "recommendation_index.author_did",
-    )
-    .leftJoin(
-      "handle_index as subject_handle",
-      "subject_handle.did",
-      "recommendation_index.subject_did",
-    )
-    .select([
-      "recommendation_index.uri",
-      "recommendation_index.author_did",
-      "recommendation_index.subject_did",
-      "recommendation_index.reason",
-      "recommendation_index.created_at",
-      "author.name as author_name",
-      "author_handle.handle as author_handle",
-      "subject.name as subject_name",
-      "subject_handle.handle as subject_handle",
-    ])
-    .orderBy("recommendation_index.created_at", "desc")
-    .limit(50)
-    .execute();
+  const recommendations = await timeAsync(
+    requestId,
+    "feed.query.recommendations",
+    () =>
+      db
+        .selectFrom("recommendation_index")
+        .leftJoin(
+          "profile_index as author",
+          "author.did",
+          "recommendation_index.author_did",
+        )
+        .leftJoin(
+          "profile_index as subject",
+          "subject.did",
+          "recommendation_index.subject_did",
+        )
+        .leftJoin(
+          "handle_index as author_handle",
+          "author_handle.did",
+          "recommendation_index.author_did",
+        )
+        .leftJoin(
+          "handle_index as subject_handle",
+          "subject_handle.did",
+          "recommendation_index.subject_did",
+        )
+        .select([
+          "recommendation_index.uri",
+          "recommendation_index.author_did",
+          "recommendation_index.subject_did",
+          "recommendation_index.reason",
+          "recommendation_index.created_at",
+          "author.name as author_name",
+          "author_handle.handle as author_handle",
+          "subject.name as subject_name",
+          "subject_handle.handle as subject_handle",
+        ])
+        .orderBy("recommendation_index.created_at", "desc")
+        .limit(50)
+        .execute(),
+  );
 
   // Load newly joined users from profile_index with handles
-  const newUsers = await db
-    .selectFrom("profile_index")
-    .leftJoin("handle_index", "handle_index.did", "profile_index.did")
-    .select([
-      "profile_index.did",
-      "profile_index.name",
-      "profile_index.introduction",
-      "profile_index.created_at",
-      "handle_index.handle",
-    ])
-    .orderBy("profile_index.created_at", "desc")
-    .limit(50)
-    .execute();
+  const newUsers = await timeAsync(
+    requestId,
+    "feed.query.newUsers",
+    () =>
+      db
+        .selectFrom("profile_index")
+        .leftJoin("handle_index", "handle_index.did", "profile_index.did")
+        .select([
+          "profile_index.did",
+          "profile_index.name",
+          "profile_index.introduction",
+          "profile_index.created_at",
+          "handle_index.handle",
+        ])
+        .orderBy("profile_index.created_at", "desc")
+        .limit(50)
+        .execute(),
+  );
 
   // Use handle from DB or fallback to DID
   const recommendationItems: FeedRecommendation[] = recommendations.map(

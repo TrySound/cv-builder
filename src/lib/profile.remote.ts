@@ -23,6 +23,7 @@ import {
   updateProfileData,
 } from "./profile.server";
 import { resolveIdentifier } from "./atproto";
+import { timeAsync, getCurrentRequestId } from "./profiling";
 
 const ContactOperationSchema = v.variant("op", [
   // value is new contact url
@@ -35,12 +36,27 @@ export const getProfile = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
     const event = getRequestEvent();
-    const resolved = await resolveIdentifier(handle);
+    const requestId = getCurrentRequestId(event.locals);
+
+    const resolved = await timeAsync(
+      requestId,
+      "remote.getProfile.resolveIdentifier",
+      () => resolveIdentifier(handle),
+      { handle },
+    );
+
     if (!resolved) {
       error(404, `Cannot resolve ${handle}`);
     }
+
     const isOwnProfile = event.locals.did === resolved.did;
-    const profile = await loadProfile(resolved.did, isOwnProfile);
+    const profile = await timeAsync(
+      requestId,
+      "remote.getProfile.loadProfile",
+      () => loadProfile(resolved.did, isOwnProfile),
+      { did: resolved.did, isOwnProfile },
+    );
+
     return profile;
   },
 );
@@ -62,11 +78,27 @@ export const getResumeBasics = query(
 export const getProfileContacts = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
-    const resolved = await resolveIdentifier(handle);
+    const event = getRequestEvent();
+    const requestId = getCurrentRequestId(event.locals);
+
+    const resolved = await timeAsync(
+      requestId,
+      "remote.getProfileContacts.resolveIdentifier",
+      () => resolveIdentifier(handle),
+      { handle },
+    );
+
     if (!resolved) {
       error(404, `Cannot resolve ${handle}`);
     }
-    const contacts = await loadProfileContacts(resolved.did);
+
+    const contacts = await timeAsync(
+      requestId,
+      "remote.getProfileContacts.loadProfileContacts",
+      () => loadProfileContacts(resolved.did),
+      { did: resolved.did },
+    );
+
     return {
       contacts,
     };

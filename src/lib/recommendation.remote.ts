@@ -7,41 +7,55 @@ import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
 import { getOAuthClient } from "./auth";
 import { getNow, resolveIdentifier } from "./atproto";
+import { timeAsync, getCurrentRequestId } from "./profiling";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
     const event = getRequestEvent();
-    const db = await getDB();
+    const requestId = getCurrentRequestId(event.locals);
+    const db = await timeAsync(requestId, "remote.getProfileRecommendations.getDB", () => getDB());
 
-    const resolved = await resolveIdentifier(handle);
+    const resolved = await timeAsync(
+      requestId,
+      "remote.getProfileRecommendations.resolveIdentifier",
+      () => resolveIdentifier(handle),
+      { handle },
+    );
+
     if (!resolved) {
       error(404, `Cannot resolve ${handle}`);
     }
 
-    const recommendations = await db
-      .selectFrom("recommendation_index")
-      .where("recommendation_index.subject_did", "=", resolved.did)
-      .leftJoin(
-        "profile_index as author",
-        "author.did",
-        "recommendation_index.author_did",
-      )
-      .leftJoin(
-        "handle_index as author_handle",
-        "author_handle.did",
-        "recommendation_index.author_did",
-      )
-      .orderBy("recommendation_index.created_at", "desc")
-      .select([
-        "recommendation_index.uri",
-        "recommendation_index.author_did",
-        "recommendation_index.reason",
-        "recommendation_index.created_at",
-        "author.name as author_name",
-        "author_handle.handle as author_handle",
-      ])
-      .execute();
+    const recommendations = await timeAsync(
+      requestId,
+      "remote.getProfileRecommendations.query",
+      () =>
+        db
+          .selectFrom("recommendation_index")
+          .where("recommendation_index.subject_did", "=", resolved.did)
+          .leftJoin(
+            "profile_index as author",
+            "author.did",
+            "recommendation_index.author_did",
+          )
+          .leftJoin(
+            "handle_index as author_handle",
+            "author_handle.did",
+            "recommendation_index.author_did",
+          )
+          .orderBy("recommendation_index.created_at", "desc")
+          .select([
+            "recommendation_index.uri",
+            "recommendation_index.author_did",
+            "recommendation_index.reason",
+            "recommendation_index.created_at",
+            "author.name as author_name",
+            "author_handle.handle as author_handle",
+          ])
+          .execute(),
+      { did: resolved.did },
+    );
 
     const recommendationsWithHandles = recommendations.map((item) => ({
       id: item.uri,

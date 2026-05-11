@@ -15,10 +15,17 @@ import type {
 } from "@atproto/lex";
 import { extractPdsUrl } from "@atproto/oauth-client-node";
 import { didResolver, handleResolver, resolveHandleFromDid } from "./auth";
+import { timeAsync, getCurrentRequestId } from "./profiling";
+import { getRequestEvent } from "$app/server";
 
-export const getPdsClient = async (did: DidString) => {
+export const getPdsClient = async (did: DidString, requestId?: string) => {
   // Create type-safe client pointing to the user's PDS
-  const didDoc = await didResolver.resolve(did);
+  const didDoc = await timeAsync(
+    requestId,
+    "getPdsClient.resolveDid",
+    () => didResolver.resolve(did),
+    { did },
+  );
   const pdsEndpoint = extractPdsUrl(didDoc);
   return new Client(pdsEndpoint);
 };
@@ -36,11 +43,29 @@ export const getNow = () => new Date().toISOString() as DatetimeString;
 export const resolveIdentifier = async (
   identifier: string,
 ): Promise<undefined | { did: DidString; handle: string }> => {
+  let requestId: string | undefined;
+  try {
+    const event = getRequestEvent();
+    requestId = getCurrentRequestId(event.locals);
+  } catch {
+    // Not in request context
+  }
+
   if (isDidIdentifier(identifier as AtIdentifierString)) {
-    const handle = await resolveHandleFromDid(identifier);
+    const handle = await timeAsync(
+      requestId,
+      "resolveHandleFromDid",
+      () => resolveHandleFromDid(identifier),
+      { did: identifier },
+    );
     return { did: identifier as DidString, handle };
   } else {
-    const did = await handleResolver.resolve(identifier);
+    const did = await timeAsync(
+      requestId,
+      "handleResolver.resolve",
+      () => handleResolver.resolve(identifier),
+      { handle: identifier },
+    );
     if (!did) {
       return;
     }

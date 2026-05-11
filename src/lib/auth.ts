@@ -13,15 +13,24 @@ import {
 } from "@atproto/oauth-client-node";
 import { Client, type DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
+import { timeAsync } from "$lib/profiling";
 
 export const handleResolver = createHandleResolver({
   handleResolver: "https://npmx.social",
 });
 export const didResolver = createDidResolver({});
 
-export const resolveHandleFromDid = async (did: string) => {
+export const resolveHandleFromDid = async (
+  did: string,
+  requestId?: string,
+): Promise<string> => {
   try {
-    const doc = await didResolver.resolve(did as DidString);
+    const doc = await timeAsync(
+      requestId,
+      "didResolver.resolve",
+      () => didResolver.resolve(did as DidString),
+      { did },
+    );
     return doc.alsoKnownAs?.at(0)?.slice("at://".length) ?? did;
   } catch {
     // Fallback to DID if resolution fails (e.g., for seeded/test data)
@@ -81,56 +90,94 @@ const requestLock: RuntimeLock = (key, fn) => {
   return next;
 };
 
-const createKyselyStateStore = async (): Promise<NodeSavedStateStore> => {
+const createKyselyStateStore = async (
+  requestId?: string,
+): Promise<NodeSavedStateStore> => {
   const db = await getDB();
   return {
     async get(key) {
-      const result = await db
-        .selectFrom("states")
-        .select("data")
-        .where("key", "=", key)
-        .executeTakeFirst();
+      const result = await timeAsync(
+        requestId,
+        "db.states.get",
+        () =>
+          db
+            .selectFrom("states")
+            .select("data")
+            .where("key", "=", key)
+            .executeTakeFirst(),
+        { key },
+      );
       if (result) {
         return JSON.parse(result.data);
       }
     },
     async set(key, value) {
       const data = JSON.stringify(value);
-      await db
-        .insertInto("states")
-        .values({ key, data })
-        .onConflict((oc) => oc.column("key").doUpdateSet({ data }))
-        .execute();
+      await timeAsync(
+        requestId,
+        "db.states.set",
+        () =>
+          db
+            .insertInto("states")
+            .values({ key, data })
+            .onConflict((oc) => oc.column("key").doUpdateSet({ data }))
+            .execute(),
+        { key },
+      );
     },
     async del(key) {
-      await db.deleteFrom("states").where("key", "=", key).execute();
+      await timeAsync(
+        requestId,
+        "db.states.del",
+        () => db.deleteFrom("states").where("key", "=", key).execute(),
+        { key },
+      );
     },
   };
 };
 
-const createKyselySessionStore = async (): Promise<NodeSavedSessionStore> => {
+const createKyselySessionStore = async (
+  requestId?: string,
+): Promise<NodeSavedSessionStore> => {
   const db = await getDB();
   return {
     async get(key) {
-      const result = await db
-        .selectFrom("sessions")
-        .select("data")
-        .where("key", "=", key)
-        .executeTakeFirst();
+      const result = await timeAsync(
+        requestId,
+        "db.sessions.get",
+        () =>
+          db
+            .selectFrom("sessions")
+            .select("data")
+            .where("key", "=", key)
+            .executeTakeFirst(),
+        { key },
+      );
       if (result) {
         return JSON.parse(result.data);
       }
     },
     async set(key, value) {
       const data = JSON.stringify(value);
-      await db
-        .insertInto("sessions")
-        .values({ key, data })
-        .onConflict((oc) => oc.column("key").doUpdateSet({ data }))
-        .execute();
+      await timeAsync(
+        requestId,
+        "db.sessions.set",
+        () =>
+          db
+            .insertInto("sessions")
+            .values({ key, data })
+            .onConflict((oc) => oc.column("key").doUpdateSet({ data }))
+            .execute(),
+        { key },
+      );
     },
     async del(key) {
-      await db.deleteFrom("sessions").where("key", "=", key).execute();
+      await timeAsync(
+        requestId,
+        "db.sessions.del",
+        () => db.deleteFrom("sessions").where("key", "=", key).execute(),
+        { key },
+      );
     },
   };
 };
