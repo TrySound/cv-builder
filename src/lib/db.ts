@@ -1,5 +1,5 @@
 import { env } from "$env/dynamic/private";
-import { Kysely } from "kysely";
+import { Kysely, PGliteDialect } from "kysely";
 
 export interface DatabaseSchema {
   states: {
@@ -145,10 +145,9 @@ let db: Kysely<DatabaseSchema> | null = null;
 async function createDB(): Promise<Kysely<DatabaseSchema>> {
   if (env.DEV) {
     const { PGlite } = await import("@electric-sql/pglite");
-    const { PGliteDialect } = await import("kysely-pglite-dialect");
     const pglite = new PGlite("./.pgdata");
     return new Kysely<DatabaseSchema>({
-      dialect: new PGliteDialect(pglite),
+      dialect: new PGliteDialect({ pglite }),
     });
   } else {
     const connectionString = env.CONNECTION_STRING;
