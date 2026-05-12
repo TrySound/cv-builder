@@ -1,5 +1,5 @@
 import { json } from "@sveltejs/kit";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 import type { Resume } from "$lib/jsonresume";
 
 export const GET = async ({ url }) => {

@@ -4,7 +4,7 @@ import { Agent } from "@atproto/api";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
-import { getDB } from "./db";
+import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
 import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
 

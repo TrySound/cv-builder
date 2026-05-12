@@ -5,7 +5,7 @@ import { Client, type DidString } from "@atproto/lex";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
-import { getDB } from "./db";
+import { getDB } from "./dbkit";
 import type {
   Resume,
   Work,

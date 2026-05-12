@@ -4,7 +4,7 @@ import { Agent } from "@atproto/api";
 import { Client, type DatetimeString, type DidString } from "@atproto/lex";
 import { env } from "$env/dynamic/private";
 import { getOAuthClient } from "$lib/auth";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getNow } from "$lib/atproto";

@@ -1,5 +1,5 @@
 import { sql } from "kysely";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 
 export const load = async ({ locals }) => {
   const db = await getDB();

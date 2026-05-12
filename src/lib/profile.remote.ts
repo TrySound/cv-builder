@@ -3,7 +3,7 @@ import { error } from "@sveltejs/kit";
 import { query, command, form, getRequestEvent } from "$app/server";
 import type { DidString } from "@atproto/lex";
 import { ResumeSchema } from "./jsonresume";
-import { getDB } from "./db";
+import { getDB } from "./dbkit";
 import {
   loadResume,
   loadResumeBasicsData,

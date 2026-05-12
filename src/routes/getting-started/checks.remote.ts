@@ -1,6 +1,6 @@
 import { error } from "@sveltejs/kit";
 import { getRequestEvent, query } from "$app/server";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 
 export const getChecks = query(async () => {
   const { locals } = getRequestEvent();

@@ -1,5 +1,5 @@
 import { redirect } from "@sveltejs/kit";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 
 export const load = async ({ locals, url }) => {
   if (!locals.did || !locals.handle) {
