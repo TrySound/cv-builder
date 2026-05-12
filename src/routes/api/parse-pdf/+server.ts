@@ -1,6 +1,6 @@
 import { env } from "$env/dynamic/private";
 import { error, json } from "@sveltejs/kit";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 
 const MAX_FILE_SIZE = 500 * 1024; // 500kB
 

@@ -9,7 +9,7 @@ import type {
   WorkplaceType,
   EmploymentType,
 } from "./jsonresume";
-import { getDB } from "./db";
+import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
 import { getPdsClient, getRkey } from "./atproto";
 

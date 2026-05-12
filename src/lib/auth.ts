@@ -12,7 +12,7 @@ import {
   type NodeSavedSessionStore,
 } from "@atproto/oauth-client-node";
 import { Client, type DidString } from "@atproto/lex";
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 
 export const handleResolver = createHandleResolver({
   handleResolver: "https://npmx.social",

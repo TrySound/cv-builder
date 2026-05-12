@@ -1,4 +1,4 @@
-import { getDB } from "$lib/db";
+import { getDB } from "$lib/dbkit";
 
 const truncate = (text: string, limit: number) => {
   if (text.length <= limit) {

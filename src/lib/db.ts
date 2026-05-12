@@ -1,5 +1,5 @@
-import { env } from "$env/dynamic/private";
-import { Kysely, PGliteDialect } from "kysely";
+import type { PGlite } from "@electric-sql/pglite";
+import type { Pool } from "pg";
 
 export interface DatabaseSchema {
   states: {
@@ -140,39 +140,28 @@ export interface DatabaseSchema {
   };
 }
 
-let db: Kysely<DatabaseSchema> | null = null;
-
-async function createDB(): Promise<Kysely<DatabaseSchema>> {
-  if (env.DEV) {
+let pglite: undefined | PGlite;
+export const getPgliteDb = async () => {
+  if (!pglite) {
     const { PGlite } = await import("@electric-sql/pglite");
-    const pglite = new PGlite("./.pgdata");
-    return new Kysely<DatabaseSchema>({
-      dialect: new PGliteDialect({ pglite }),
-    });
-  } else {
+    pglite = await PGlite.create("./.pgdata");
+  }
+  return pglite;
+};
+
+let pgpool: undefined | Pool;
+export const getPgpoolDb = async (env: Record<string, undefined | string>) => {
+  if (!pgpool) {
     const connectionString = env.CONNECTION_STRING;
     if (!connectionString) {
       throw new Error(
         "CONNECTION_STRING environment variable is required in production",
       );
     }
-
-    const { PostgresDialect } = await import("kysely");
     const { Pool } = await import("pg");
-
-    return new Kysely<DatabaseSchema>({
-      dialect: new PostgresDialect({
-        pool: new Pool({
-          connectionString,
-        }),
-      }),
+    pgpool = new Pool({
+      connectionString,
     });
   }
-}
-
-export async function getDB(): Promise<Kysely<DatabaseSchema>> {
-  if (!db) {
-    db = await createDB();
-  }
-  return db;
-}
+  return pgpool;
+};

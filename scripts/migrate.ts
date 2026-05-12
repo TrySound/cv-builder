@@ -2,9 +2,10 @@ import { dirname, join } from "node:path";
 import { readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { Kysely, PGliteDialect } from "kysely";
+import { Kysely, PostgresDialect, PGliteDialect } from "kysely";
 import { Migrator, FileMigrationProvider } from "kysely/migration";
 import { seedDatabase } from "./seed.ts";
+import { getPgliteDb, getPgpoolDb } from "../src/lib/db.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,27 +24,12 @@ const mode = values.mode;
 let db: Kysely<any>;
 
 if (mode === "prod") {
-  const connectionString = process.env.CONNECTION_STRING;
-  if (!connectionString) {
-    console.error(
-      "Error: CONNECTION_STRING environment variable is required for prod mode",
-    );
-    process.exit(1);
-  }
-
-  const { PostgresDialect } = await import("kysely");
-  const { Pool } = await import("pg");
-
+  const pool = await getPgpoolDb(process.env);
   db = new Kysely({
-    dialect: new PostgresDialect({
-      pool: new Pool({
-        connectionString,
-      }),
-    }),
+    dialect: new PostgresDialect({ pool }),
   });
 } else {
-  const { PGlite } = await import("@electric-sql/pglite");
-  const pglite = new PGlite("./.pgdata");
+  const pglite = await getPgliteDb();
   db = new Kysely({
     dialect: new PGliteDialect({ pglite }),
   });

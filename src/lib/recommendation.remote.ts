@@ -4,7 +4,7 @@ import { Client } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import { query, form, getRequestEvent } from "$app/server";
 import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
-import { getDB } from "./db";
+import { getDB } from "./dbkit";
 import { getOAuthClient } from "./auth";
 import { getNow, resolveIdentifier } from "./atproto";
 

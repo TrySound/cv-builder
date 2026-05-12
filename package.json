@@ -18,6 +18,8 @@
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
     "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod",
     "seed": "node ./scripts/seed.ts --mode=dev",
+    "backfill:dev": "node ./scripts/contrail-backfill.ts",
+    "backfill:prod": "node --env-file=.env ./scripts/contrail-backfill.ts",
     "lexicons:build": "lex build --out src/lib/lexicons --clear",
     "pglite:server": "pglite-server --db=./.pgdata --port=5432 --max-connections=10 --debug=1"
   },
@@ -31,7 +33,7 @@
   },
   "dependencies": {
     "@atcute/jetstream": "^2.0.0",
-    "@atcute/lexicons": "^2.0.0",
+    "@atmo-dev/contrail": "^0.6.0",
     "@atproto/api": "^0.19.16",
     "@atproto/lex": "^0.0.25",
     "@atproto/oauth-client-node": "^0.3.17",
