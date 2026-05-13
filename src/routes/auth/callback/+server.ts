@@ -8,6 +8,7 @@ import { getDB } from "$lib/dbkit";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getNow } from "$lib/atproto";
+import { getContrail } from "$lib/contrail.js";
 
 /**
  * Ensure weareonhire profile exists for the user.
@@ -50,13 +51,15 @@ async function ensureProfile(
 
   // Create the profile record
   const now = getNow();
-  await client.put(weareonhire.profile.main, {
+  const updatedProfile = await client.put(weareonhire.profile, {
     name: name ?? undefined,
     title: title ?? undefined,
     countryCode: countryCode ?? undefined,
     introduction: introduction ?? undefined,
     createdAt: now,
   });
+  const contrail = await getContrail();
+  contrail.notify(updatedProfile.uri);
 
   await db
     .insertInto("profile_index")

@@ -11,7 +11,8 @@ import type {
 } from "./jsonresume";
 import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
-import { getPdsClient, getRkey } from "./atproto";
+import { applyWrites, getPdsClient, getRkey } from "./atproto";
+import { getContrail } from "./contrail";
 
 // Map sifa employment type to jsonresume employment type
 function getEmploymentType(
@@ -36,8 +37,8 @@ export function getWorkplaceType(
   type:
     | sifa.profile.position.Main["workplaceType"]
     | (sifa.profile.self.Main["preferredWorkplace"] extends (infer U)[]
-      ? U
-      : never),
+        ? U
+        : never),
 ): WorkplaceType | undefined {
   switch (type) {
     case "id.sifa.defs#onSite":
@@ -311,8 +312,8 @@ export function getSifaWorkplaceType(
 ):
   | sifa.profile.position.Main["workplaceType"]
   | (sifa.profile.self.Main["preferredWorkplace"] extends (infer U)[]
-    ? U
-    : never)
+      ? U
+      : never)
   | undefined {
   switch (type) {
     case "onsite":
@@ -342,86 +343,106 @@ function parseLocation(
   }
 }
 
-const updateWork = async (client: Client, resume: Resume) => {
+const updateWork = async (agent: Agent, resume: Resume) => {
   const now = new Date().toISOString() as DatetimeString;
-  const existingPositions = await client.list(sifa.profile.position.main);
-  for (const record of existingPositions.records) {
-    await client.delete(sifa.profile.position, {
-      rkey: getRkey(record.uri),
-    });
-  }
-  for (const work of resume.work ?? []) {
-    await client.create(sifa.profile.position.main, {
-      createdAt: now,
-      company: work.name ?? "",
-      title: work.position ?? "",
-      startedAt: work.startDate ?? now,
-      endedAt: work.endDate,
-      description: work.summary,
-      location: work.location ? parseLocation(work.location) : undefined,
-      employmentType: getSifaEmploymentType(work.extension?.employmentType),
-      workplaceType: getSifaWorkplaceType(work.extension?.workplaceType),
-    });
-  }
+  const client = new Client(agent);
+  const existingPositions = await client.list(sifa.profile.position);
+  const response = await applyWrites(agent, (client) => {
+    for (const record of existingPositions.records) {
+      client.delete(sifa.profile.position, {
+        rkey: getRkey(record.uri),
+      });
+    }
+    for (const work of resume.work ?? []) {
+      client.create(sifa.profile.position, {
+        createdAt: now,
+        company: work.name ?? "",
+        title: work.position ?? "",
+        startedAt: work.startDate ?? now,
+        endedAt: work.endDate,
+        description: work.summary,
+        location: work.location ? parseLocation(work.location) : undefined,
+        employmentType: getSifaEmploymentType(work.extension?.employmentType),
+        workplaceType: getSifaWorkplaceType(work.extension?.workplaceType),
+      });
+    }
+  });
+  const contrail = await getContrail();
+  await contrail.notify(response.data.affectedUris);
 };
 
-const updateEducation = async (client: Client, resume: Resume) => {
+const updateEducation = async (agent: Agent, resume: Resume) => {
+  const client = new Client(agent);
   const now = new Date().toISOString() as DatetimeString;
-  const existingEducation = await client.list(sifa.profile.education.main);
-  for (const record of existingEducation.records) {
-    await client.delete(sifa.profile.education, {
-      rkey: getRkey(record.uri),
-    });
-  }
-  for (const edu of resume.education ?? []) {
-    await client.create(sifa.profile.education.main, {
-      createdAt: now,
-      institution: edu.institution ?? "",
-      degree: edu.studyType ?? "",
-      fieldOfStudy: edu.area,
-      startedAt: edu.startDate ?? now,
-      endedAt: edu.endDate,
-      description: edu.extension?.description,
-    });
-  }
+  const existingEducation = await client.list(sifa.profile.education);
+  const response = await applyWrites(agent, (client) => {
+    for (const record of existingEducation.records) {
+      client.delete(sifa.profile.education, {
+        rkey: getRkey(record.uri),
+      });
+    }
+    for (const edu of resume.education ?? []) {
+      client.create(sifa.profile.education, {
+        createdAt: now,
+        institution: edu.institution ?? "",
+        degree: edu.studyType ?? "",
+        fieldOfStudy: edu.area,
+        startedAt: edu.startDate ?? now,
+        endedAt: edu.endDate,
+        description: edu.extension?.description,
+      });
+    }
+  });
+  const contrail = await getContrail();
+  await contrail.notify(response.data.affectedUris);
 };
 
-const updateProjects = async (client: Client, resume: Resume) => {
+const updateProjects = async (agent: Agent, resume: Resume) => {
+  const client = new Client(agent);
   const now = new Date().toISOString() as DatetimeString;
-  const existingProjects = await client.list(sifa.profile.project.main);
-  for (const record of existingProjects.records) {
-    await client.delete(sifa.profile.project, {
-      rkey: getRkey(record.uri),
-    });
-  }
-  for (const project of resume.projects ?? []) {
-    await client.create(sifa.profile.project.main, {
-      createdAt: now,
-      name: project.name ?? "",
-      description: project.description,
-      url: project.url
-        ? (normalizeUrl(project.url) as `${string}:${string}`)
-        : undefined,
-      startedAt: project.startDate ?? now,
-      endedAt: project.endDate,
-    });
-  }
+  const existingProjects = await client.list(sifa.profile.project);
+  const response = await applyWrites(agent, (client) => {
+    for (const record of existingProjects.records) {
+      client.delete(sifa.profile.project, {
+        rkey: getRkey(record.uri),
+      });
+    }
+    for (const project of resume.projects ?? []) {
+      client.create(sifa.profile.project, {
+        createdAt: now,
+        name: project.name ?? "",
+        description: project.description,
+        url: project.url
+          ? (normalizeUrl(project.url) as `${string}:${string}`)
+          : undefined,
+        startedAt: project.startDate ?? now,
+        endedAt: project.endDate,
+      });
+    }
+  });
+  const contrail = await getContrail();
+  await contrail.notify(response.data.affectedUris);
 };
 
-const updateLanguages = async (client: Client, resume: Resume) => {
+const updateLanguages = async (agent: Agent, resume: Resume) => {
+  const client = new Client(agent);
   const now = new Date().toISOString() as DatetimeString;
-  const existingLanguages = await client.list(sifa.profile.language.main);
-  for (const record of existingLanguages.records) {
-    await client.delete(sifa.profile.language, {
-      rkey: getRkey(record.uri),
-    });
-  }
-  for (const language of resume.languages ?? []) {
-    await client.create(sifa.profile.language.main, {
-      createdAt: now,
-      name: language.language ?? "",
-    });
-  }
+  const existingLanguages = await client.list(sifa.profile.language);
+  const response = await applyWrites(agent, (client) => {
+    for (const record of existingLanguages.records) {
+      client.delete(sifa.profile.language, {
+        rkey: getRkey(record.uri),
+      });
+    }
+    for (const language of resume.languages ?? []) {
+      client.create(sifa.profile.language, {
+        createdAt: now,
+        name: language.language ?? "",
+      });
+    }
+  });
+  const contrail = await getContrail();
+  await contrail.notify(response.data.affectedUris);
 };
 
 export async function updateSifaResume(
@@ -431,14 +452,14 @@ export async function updateSifaResume(
   // Create typed client with authenticated session
   const oauthClient = await getOAuthClient();
   const session = await oauthClient.restore(did);
-  const client = new Client(new Agent(session));
+  const agent = new Agent(session);
 
   // update records concurrently to speed up update
   // Note: basics (name, email, summary, profiles) are handled by updateResumeBasics
   await Promise.all([
-    updateWork(client, resume),
-    updateEducation(client, resume),
-    updateProjects(client, resume),
-    updateLanguages(client, resume),
+    updateWork(agent, resume),
+    updateEducation(agent, resume),
+    updateProjects(agent, resume),
+    updateLanguages(agent, resume),
   ]);
 }

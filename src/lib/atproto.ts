@@ -1,4 +1,4 @@
-import { Agent, type ComAtprotoRepoApplyWrites } from "@atproto/api";
+import { Agent, AtUri, type ComAtprotoRepoApplyWrites } from "@atproto/api";
 import { Client, getMain, isDidIdentifier } from "@atproto/lex";
 import type {
   $Typed,
@@ -99,6 +99,8 @@ export async function applyWrites(
     | $Typed<ComAtprotoRepoApplyWrites.Delete>
   )[] = [];
 
+  // collect uris to use in contrail notification
+  const affectedUris: string[] = [];
   const operations: ApplyWritesOperations = {
     create: (ns, value, options) => {
       const schema = getMain(ns);
@@ -114,6 +116,9 @@ export async function applyWrites(
     put: (ns, value, options) => {
       const schema = getMain(ns);
       const rkey = options?.rkey ?? getLiteralRecordKey(schema);
+      affectedUris.push(
+        AtUri.make(agent.assertDid, schema.$type, rkey).toString(),
+      );
       writes.push({
         $type: "com.atproto.repo.applyWrites#update",
         collection: schema.$type,
@@ -125,6 +130,9 @@ export async function applyWrites(
     delete: (ns, options) => {
       const schema = getMain(ns);
       const rkey = options?.rkey ?? getLiteralRecordKey(schema);
+      affectedUris.push(
+        AtUri.make(agent.assertDid, schema.$type, rkey).toString(),
+      );
       writes.push({
         $type: "com.atproto.repo.applyWrites#delete",
         collection: schema.$type,
@@ -135,8 +143,23 @@ export async function applyWrites(
 
   apply(operations);
 
-  return agent.com.atproto.repo.applyWrites({
+  const response = await agent.com.atproto.repo.applyWrites({
     repo: agent.assertDid,
     writes,
   });
+
+  // find newly created uris
+  for (const result of response.data.results ?? []) {
+    if (result.$type === "com.atproto.repo.applyWrites#createResult") {
+      affectedUris.push(result.uri);
+    }
+  }
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      affectedUris,
+    },
+  };
 }

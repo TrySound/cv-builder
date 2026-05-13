@@ -7,6 +7,7 @@ import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./dbkit";
 import { getOAuthClient } from "./auth";
 import { getNow, resolveIdentifier } from "./atproto";
+import { getContrail } from "./contrail";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
@@ -112,11 +113,14 @@ export const createRecommendation = form(
     const oauthClient = await getOAuthClient();
     const session = await oauthClient.restore(event.locals.did);
     const client = new Client(new Agent(session));
-    const createdRecommendation = await client.create(weareonhire.main, {
+    const createdRecommendation = await client.create(weareonhire, {
       subject: resolved.did,
       reason,
       createdAt,
     });
+    const contrail = await getContrail();
+    contrail.notify(createdRecommendation.uri);
+
     await db
       .insertInto("recommendation_index")
       .values({
