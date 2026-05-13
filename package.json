@@ -34,8 +34,8 @@
   "dependencies": {
     "@atcute/jetstream": "^2.0.0",
     "@atmo-dev/contrail": "^0.6.0",
-    "@atproto/api": "^0.19.16",
-    "@atproto/lex": "^0.0.25",
+    "@atproto/api": "^0.19.18",
+    "@atproto/lex": "^0.0.26",
     "@atproto/oauth-client-node": "^0.3.17",
     "@electric-sql/pglite": "^0.4.5",
     "@google/genai": "^2.0.1",

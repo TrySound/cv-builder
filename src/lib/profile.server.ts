@@ -7,6 +7,7 @@ import { getOAuthClient } from "./auth";
 import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
 import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
+import { getContrail } from "./contrail";
 
 export interface ProfileData {
   name: string | undefined;
@@ -108,7 +109,8 @@ export async function updateProfileData(
   // Create typed client with authenticated session
   const oauthClient = await getOAuthClient();
   const session = await oauthClient.restore(did);
-  const client = new Client(new Agent(session));
+  const agent = new Agent(session);
+  const client = new Client(agent);
 
   // Get current sifa profile to preserve summary
   let currentSummary: string | undefined;
@@ -124,19 +126,25 @@ export async function updateProfileData(
 
   // Update com.weareonhire.profile record
   const now = getNow();
-  await client.put(weareonhire.profile.main, {
-    createdAt: now,
-    name: data.name,
-    title: data.title,
-    introduction: data.introduction,
-    countryCode: data.countryCode,
+  const response = await applyWrites(agent, (client) => {
+    client.put(weareonhire.profile, {
+      createdAt: now,
+      name: data.name,
+      title: data.title,
+      introduction: data.introduction,
+      countryCode: data.countryCode,
+    });
+    client.put(sifa.profile.self, {
+      createdAt: now,
+      headline: data.title,
+      about: currentSummary,
+      location: data.countryCode
+        ? { countryCode: data.countryCode }
+        : undefined,
+    });
   });
-  await client.put(sifa.profile.self.main, {
-    createdAt: now,
-    headline: data.title,
-    about: currentSummary,
-    location: data.countryCode ? { countryCode: data.countryCode } : undefined,
-  });
+  const contrail = await getContrail();
+  await contrail.notify(response.data.affectedUris);
 }
 
 /* CONTACTS */
@@ -181,7 +189,7 @@ export async function updateProfileContacts(
   const agent = new Agent(session);
   const now = getNow();
   if (operations.length > 0) {
-    await applyWrites(agent, (client) => {
+    const response = await applyWrites(agent, (client) => {
       for (const operation of operations) {
         if (operation.op === "add") {
           client.create(sifa.profile.externalAccount, {
@@ -197,5 +205,7 @@ export async function updateProfileContacts(
         }
       }
     });
+    const contrail = await getContrail();
+    await contrail.notify(response.data.affectedUris);
   }
 }

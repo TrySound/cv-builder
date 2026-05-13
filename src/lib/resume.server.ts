@@ -16,6 +16,7 @@ import type {
 import type { DatabaseSchema } from "./db";
 import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
 import { getSifaWorkplaceType, getWorkplaceType } from "./sifa.server";
+import { getContrail } from "./contrail";
 
 export async function loadResume(did: DidString): Promise<Resume | undefined> {
   const db = await getDB();
@@ -169,12 +170,12 @@ export async function loadResume(did: DidString): Promise<Resume | undefined> {
     projects:
       projects.length > 0
         ? projects.map((p) => ({
-          name: p.name,
-          description: p.description ?? undefined,
-          url: p.url ?? undefined,
-          startDate: p.started_at ?? undefined,
-          endDate: p.ended_at ?? undefined,
-        }))
+            name: p.name,
+            description: p.description ?? undefined,
+            url: p.url ?? undefined,
+            startDate: p.started_at ?? undefined,
+            endDate: p.ended_at ?? undefined,
+          }))
         : undefined,
     skills:
       skills.length > 0 ? skills.map((s) => ({ name: s.skill })) : undefined,
@@ -478,7 +479,7 @@ export async function updateResumeBasicsData(
   // Update com.weareonhire.profile record (preserves introduction)
   const now = getNow();
 
-  await applyWrites(agent, (client) => {
+  const response = await applyWrites(agent, (client) => {
     client.put(weareonhire.profile, {
       createdAt: now,
       name: data.name,
@@ -499,6 +500,8 @@ export async function updateResumeBasicsData(
         .filter((item) => item !== undefined),
     });
   });
+  const contrail = await getContrail();
+  await contrail.notify(response.data.affectedUris);
 }
 
 /* LANGUAGES */
@@ -541,7 +544,7 @@ export async function updateResumeLanguagesData(
   const agent = new Agent(session);
   const now = getNow();
   if (operations.length > 0) {
-    await applyWrites(agent, (client) => {
+    const response = await applyWrites(agent, (client) => {
       for (const operation of operations) {
         if (operation.op === "add") {
           client.create(sifa.profile.language, {
@@ -556,6 +559,8 @@ export async function updateResumeLanguagesData(
         }
       }
     });
+    const contrail = await getContrail();
+    await contrail.notify(response.data.affectedUris);
   }
 }
 
@@ -599,7 +604,7 @@ export async function updateResumeSkillsData(
   const agent = new Agent(session);
   const now = getNow();
   if (operations.length > 0) {
-    await applyWrites(agent, (client) => {
+    const response = await applyWrites(agent, (client) => {
       for (const operation of operations) {
         if (operation.op === "add") {
           client.create(sifa.profile.skill, {
@@ -614,5 +619,7 @@ export async function updateResumeSkillsData(
         }
       }
     });
+    const contrail = await getContrail();
+    await contrail.notify(response.data.affectedUris);
   }
 }
