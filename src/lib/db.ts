@@ -1,5 +1,18 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Pool } from "pg";
+import type { weareonhire } from "./lexicons/com";
+import type { sifa } from "./lexicons/id";
+
+// Base record table structure from contrail
+interface RecordRow<Record> {
+  uri: string;
+  did: string;
+  rkey: string;
+  cid: string | null;
+  record: Record;
+  time_us: number;
+  indexed_at: number;
+}
 
 export interface DatabaseSchema {
   states: {
@@ -138,6 +151,23 @@ export interface DatabaseSchema {
     created_at?: string;
     updated_at?: string;
   };
+
+  // contrail tables
+  identities: {
+    did: string;
+    handle: string | null;
+    pds: string | null;
+    resolved_at: number;
+  };
+  records_profile: RecordRow<weareonhire.profile.Main>;
+  records_recommendation: RecordRow<weareonhire.recommendation.Main>;
+  records_basics: RecordRow<sifa.profile.self.Main>;
+  records_position: RecordRow<sifa.profile.position.Main>;
+  records_education: RecordRow<sifa.profile.education.Main>;
+  records_skill: RecordRow<sifa.profile.skill.Main>;
+  records_project: RecordRow<sifa.profile.project.Main>;
+  records_language: RecordRow<sifa.profile.language.Main>;
+  records_account: RecordRow<sifa.profile.externalAccount.Main>;
 }
 
 let pglite: undefined | PGlite;

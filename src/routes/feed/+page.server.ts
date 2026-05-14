@@ -32,42 +32,38 @@ export type FeedItem = FeedRecommendation | FeedUser;
 export const load = async ({ locals }) => {
   const db = await getDB();
 
-  // Load all recommendations from index with author and subject names and handles
+  // Load all recommendations from records with author and subject names and handles
   const recommendations = await db
-    .selectFrom("recommendation_index")
-    .leftJoin(
-      "profile_index as author",
-      "author.did",
-      "recommendation_index.author_did",
+    .selectFrom("records_recommendation as rec")
+    // join author
+    .leftJoin("identities as author_id", "author_id.did", "rec.did")
+    .leftJoin("records_profile as author", "author.did", "rec.did")
+    // join subject
+    .leftJoin("identities as subject_id", (join) =>
+      join.onRef("subject_id.did", "=", (query) =>
+        query.ref("rec.record", "->>").key("subject"),
+      ),
     )
-    .leftJoin(
-      "profile_index as subject",
-      "subject.did",
-      "recommendation_index.subject_did",
+    .leftJoin("records_profile as subject", (join) =>
+      join.onRef("subject.did", "=", (query) =>
+        query.ref("rec.record", "->>").key("subject"),
+      ),
     )
-    .leftJoin(
-      "handle_index as author_handle",
-      "author_handle.did",
-      "recommendation_index.author_did",
-    )
-    .leftJoin(
-      "handle_index as subject_handle",
-      "subject_handle.did",
-      "recommendation_index.subject_did",
-    )
-    .select([
-      "recommendation_index.uri",
-      "recommendation_index.author_did",
-      "recommendation_index.subject_did",
-      "recommendation_index.reason",
-      "recommendation_index.created_at",
-      "author.name as author_name",
-      "author_handle.handle as author_handle",
-      "subject.name as subject_name",
-      "subject_handle.handle as subject_handle",
+    .orderBy((query) => query.ref("rec.record", "->>").key("createdAt"), "desc")
+    .limit(10)
+    .select((query) => [
+      "rec.uri",
+      // author
+      "rec.did as author_did",
+      "author_id.handle as author_handle",
+      query.ref("author.record", "->>").key("name").as("author_name"),
+      // subject
+      query.ref("rec.record", "->>").key("subject").as("subject_did"),
+      "subject_id.handle as subject_handle",
+      query.ref("subject.record", "->>").key("name").as("subject_name"),
+      query.ref("rec.record", "->>").key("reason").as("reason"),
+      query.ref("rec.record", "->>").key("createdAt").as("created_at"),
     ])
-    .orderBy("recommendation_index.created_at", "desc")
-    .limit(50)
     .execute();
 
   // Load newly joined users from profile_index with handles

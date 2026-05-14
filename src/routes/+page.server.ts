@@ -1,44 +1,22 @@
-import { sql } from "kysely";
 import { getDB } from "$lib/dbkit";
 
 export const load = async ({ locals }) => {
   const db = await getDB();
 
-  // Count unique users who are either authors or subjects of recommendations
-  const result = await sql<{ count: string }>`
-    SELECT COUNT(DISTINCT did) AS count FROM (
-      SELECT author_did AS did FROM recommendation_index
-      UNION
-      SELECT subject_did AS did FROM recommendation_index
-      UNION
-      SELECT did FROM profile_index
-    )
-  `.execute(db);
-
-  const populationCount = Number(result.rows[0]?.count || 0);
-
   // Get last 4 recommendations with author names and handles
   const lastRecommendations = await db
-    .selectFrom("recommendation_index")
-    .leftJoin(
-      "profile_index as author",
-      "author.did",
-      "recommendation_index.author_did",
-    )
-    .leftJoin(
-      "handle_index as author_handle",
-      "author_handle.did",
-      "recommendation_index.author_did",
-    )
-    .select([
-      "recommendation_index.uri",
-      "recommendation_index.author_did",
-      "recommendation_index.reason",
-      "recommendation_index.created_at",
-      "author.name as author_name",
-      "author_handle.handle as author_handle",
+    .selectFrom("records_recommendation as rec")
+    .leftJoin("records_profile as author", "author.did", "rec.did")
+    .leftJoin("identities as author_id", "author_id.did", "rec.did")
+    .orderBy((query) => query.ref("rec.record", "->>").key("createdAt"), "desc")
+    .select((query) => [
+      "rec.uri",
+      "rec.did as author_did",
+      "author_id.handle as author_handle",
+      query.ref("author.record", "->>").key("name").as("author_name"),
+      query.ref("rec.record", "->>").key("reason").as("reason"),
+      query.ref("rec.record", "->>").key("createdAt").as("created_at"),
     ])
-    .orderBy("recommendation_index.created_at", "desc")
     .limit(4)
     .execute();
 
@@ -54,7 +32,6 @@ export const load = async ({ locals }) => {
   return {
     handle: locals.handle,
     role: locals.role,
-    populationCount,
     lastRecommendations: recommendationsWithHandles,
   };
 };

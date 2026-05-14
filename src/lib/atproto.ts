@@ -15,6 +15,7 @@ import type {
 } from "@atproto/lex";
 import { extractPdsUrl } from "@atproto/oauth-client-node";
 import { didResolver, handleResolver, resolveHandleFromDid } from "./auth";
+import { getDB } from "./dbkit";
 
 export const getPdsClient = async (did: DidString) => {
   // Create type-safe client pointing to the user's PDS
@@ -36,6 +37,21 @@ export const getNow = () => new Date().toISOString() as DatetimeString;
 export const resolveIdentifier = async (
   identifier: string,
 ): Promise<undefined | { did: DidString; handle: string }> => {
+  // optimize using cached handles
+  const db = await getDB();
+  const identity = await db
+    .selectFrom("identities")
+    .select(["did", "handle"])
+    .where((query) =>
+      query.or([
+        query("did", "=", identifier),
+        query("handle", "=", identifier),
+      ]),
+    )
+    .executeTakeFirst();
+  if (identity?.handle) {
+    return { did: identity.did as DidString, handle: identity.handle };
+  }
   if (isDidIdentifier(identifier as AtIdentifierString)) {
     const handle = await resolveHandleFromDid(identifier);
     return { did: identifier as DidString, handle };
