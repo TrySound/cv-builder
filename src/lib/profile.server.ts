@@ -6,7 +6,7 @@ import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
 import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
-import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
+import { applyWrites, getNow } from "./atproto";
 import { getContrail } from "./contrail";
 
 export interface ProfileData {
@@ -24,18 +24,23 @@ export async function loadProfile(
 ): Promise<ProfileData> {
   const db = await getDB();
 
-  // Load public profile data from profile_index
-  const profileIndex = await db
-    .selectFrom("profile_index")
-    .select(["name", "title", "introduction", "country_code"])
+  // Load public profile data from weareonhire profile
+  const profile = await db
+    .selectFrom("records_profile")
+    .select((query) => [
+      query.ref("record", "->>").key("name").as("name"),
+      query.ref("record", "->>").key("title").as("title"),
+      query.ref("record", "->>").key("introduction").as("introduction"),
+      query.ref("record", "->>").key("countryCode").as("country_code"),
+    ])
     .where("did", "=", did)
     .executeTakeFirst();
 
   const result: ProfileData = {
-    name: profileIndex?.name ?? undefined,
-    title: profileIndex?.title ?? undefined,
-    introduction: profileIndex?.introduction ?? undefined,
-    countryCode: profileIndex?.country_code ?? undefined,
+    name: profile?.name,
+    title: profile?.title,
+    introduction: profile?.introduction,
+    countryCode: profile?.country_code,
   };
 
   if (isOwnProfile) {
@@ -160,23 +165,16 @@ export type ContactOperation = v.InferOutput<typeof ContactOperationSchema>;
 
 // Load profile contacts from SIFA external accounts
 export async function loadProfileContacts(did: DidString) {
-  const client = await getPdsClient(did);
-  const externalAccountsResponse = await client
-    .list(sifa.profile.externalAccount, {
-      repo: did,
-      limit: 100,
-    })
-    .catch((error) => {
-      console.error("Error loading external accounts:", error);
-    });
-  const contacts = externalAccountsResponse?.records?.map((record) => {
-    const value = sifa.profile.externalAccount.main.$cast(record.value);
-    return {
-      url: value.url as string,
-      rkey: getRkey(record.uri),
-    };
-  });
-  return contacts ?? [];
+  const db = await getDB();
+  const contacts = await db
+    .selectFrom("records_account")
+    .select((query) => [
+      "rkey",
+      query.ref("record", "->>").key("url").as("url"),
+    ])
+    .where("did", "=", did)
+    .execute();
+  return contacts;
 }
 
 export async function updateProfileContacts(
