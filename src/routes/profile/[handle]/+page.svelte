@@ -65,7 +65,7 @@
   );
 
   const contacts = $derived(
-    getProfileContacts({ handle: data.profile.handle }),
+    await getProfileContacts({ handle: data.profile.handle }),
   );
 
   // Track which recommendation is currently targeted via URL hash
@@ -78,7 +78,7 @@
 
   const startEditing = () => {
     isEditing = true;
-    editingContacts = (contacts.current?.contacts ?? []).map((item) => ({
+    editingContacts = contacts.contacts.map((item) => ({
       value: item.rkey,
       label: item.url,
     }));
@@ -91,7 +91,7 @@
   // Generate contact operations from diff between original and edited contacts
   // editingContacts uses { value: rkey | new-id, label: url }
   const contactOperations = $derived.by(() => {
-    const originalContacts = contacts.current?.contacts ?? [];
+    const originalContacts = contacts.contacts ?? [];
     const originalRkeys = new Set(originalContacts.map((item) => item.rkey));
     const editingRkeys = new Set(editingContacts.map((c) => c.value));
     const operations: ContactOperation[] = [];
@@ -363,7 +363,7 @@
           Bluesky
           <svg width="14" height="14"><use href="#icon-bluesky" /></svg>
         </a>
-        {#each contacts.current?.contacts as contact}
+        {#each contacts.contacts as contact}
           <a href={contact.url} target="_blank" class="link contact-item">
             {getLinkDisplayName(contact.url)}
             <svg width="14" height="14">
