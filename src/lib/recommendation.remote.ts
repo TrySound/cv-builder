@@ -21,26 +21,25 @@ export const getProfileRecommendations = query(
     }
 
     const recommendations = await db
-      .selectFrom("recommendation_index")
-      .where("recommendation_index.subject_did", "=", resolved.did)
-      .leftJoin(
-        "profile_index as author",
-        "author.did",
-        "recommendation_index.author_did",
+      .selectFrom("records_recommendation as rec")
+      .where(
+        (query) => query.ref("rec.record", "->>").key("subject"),
+        "=",
+        resolved.did,
       )
-      .leftJoin(
-        "handle_index as author_handle",
-        "author_handle.did",
-        "recommendation_index.author_did",
+      .leftJoin("records_profile as author", "author.did", "rec.did")
+      .leftJoin("identities as author_id", "author_id.did", "rec.did")
+      .orderBy(
+        (query) => query.ref("rec.record", "->>").key("createdAt"),
+        "desc",
       )
-      .orderBy("recommendation_index.created_at", "desc")
-      .select([
-        "recommendation_index.uri",
-        "recommendation_index.author_did",
-        "recommendation_index.reason",
-        "recommendation_index.created_at",
-        "author.name as author_name",
-        "author_handle.handle as author_handle",
+      .select((query) => [
+        "rec.uri",
+        "rec.did as author_did",
+        "author_id.handle as author_handle",
+        query.ref("author.record", "->>").key("name").as("author_name"),
+        query.ref("rec.record", "->>").key("reason").as("reason"),
+        query.ref("rec.record", "->>").key("createdAt").as("created_at"),
       ])
       .execute();
 
@@ -86,10 +85,14 @@ export const createRecommendation = form(
 
     const db = await getDB();
     const existingRecommendation = await db
-      .selectFrom("recommendation_index")
+      .selectFrom("records_recommendation")
       .select("uri")
-      .where("author_did", "=", event.locals.did)
-      .where("subject_did", "=", resolved.did)
+      .where("did", "=", event.locals.did)
+      .where(
+        (query) => query.ref("record", "->>").key("subject"),
+        "=",
+        resolved.did,
+      )
       .executeTakeFirst();
     if (existingRecommendation) {
       error(400, "Already recommended this person");
@@ -120,17 +123,6 @@ export const createRecommendation = form(
     });
     const contrail = await getContrail();
     contrail.notify(createdRecommendation.uri);
-
-    await db
-      .insertInto("recommendation_index")
-      .values({
-        uri: createdRecommendation.uri,
-        author_did: event.locals.did,
-        subject_did: resolved.did,
-        reason,
-        created_at: createdAt,
-      })
-      .execute();
 
     getProfileRecommendations({ handle }).refresh();
   },
