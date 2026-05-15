@@ -17,7 +17,6 @@
     "generate-jwk": "node ./scripts/generate-jwk.ts",
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
     "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod",
-    "seed": "node ./scripts/seed.ts --mode=dev",
     "backfill:dev": "node ./scripts/contrail-backfill.ts",
     "backfill:prod": "node --env-file=.env ./scripts/contrail-backfill.ts",
     "lexicons:build": "lex build --out src/lib/lexicons --clear",

@@ -1,4 +1,4 @@
-import { getClientMetadata } from "$lib/auth.js";
+import { getClientMetadata } from "$lib/auth";
 
 export const GET = () => {
   return Response.json(getClientMetadata());

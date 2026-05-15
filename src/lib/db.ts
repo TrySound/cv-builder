@@ -102,14 +102,6 @@ export interface DatabaseSchema {
     used_count?: number;
     created_at?: string;
   };
-  recommendations: {
-    id?: string;
-    author_did: string;
-    subject_did: string;
-    text: string;
-    invitation_id?: string | null;
-    created_at?: string;
-  };
   pdf_jobs: {
     id?: string;
     status: "pending" | "completed" | "failed";
@@ -118,31 +110,6 @@ export interface DatabaseSchema {
     retry_count: number;
     created_at?: string;
     updated_at?: string;
-  };
-  recommendation_index: {
-    uri: string;
-    author_did: string;
-    subject_did: string;
-    reason: string;
-    created_at: string;
-  };
-  jetstream_cursor: {
-    id: string;
-    time_us: number;
-    updated_at: string;
-  };
-  profile_index: {
-    did: string;
-    name: string | null;
-    title: string | null;
-    country_code: string | null;
-    introduction: string | null;
-    created_at: string;
-  };
-  handle_index: {
-    did: string;
-    handle: string;
-    created_at: string;
   };
   profile_private: {
     did: string;
