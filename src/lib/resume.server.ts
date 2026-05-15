@@ -14,7 +14,7 @@ import type {
   EmploymentType,
 } from "./jsonresume";
 import type { DatabaseSchema } from "./db";
-import { applyWrites, getNow, getPdsClient, getRkey } from "./atproto";
+import { applyWrites, getNow } from "./atproto";
 import { getSifaWorkplaceType, getWorkplaceType } from "./sifa.server";
 import { getContrail } from "./contrail";
 
@@ -170,12 +170,12 @@ export async function loadResume(did: DidString): Promise<Resume | undefined> {
     projects:
       projects.length > 0
         ? projects.map((p) => ({
-            name: p.name,
-            description: p.description ?? undefined,
-            url: p.url ?? undefined,
-            startDate: p.started_at ?? undefined,
-            endDate: p.ended_at ?? undefined,
-          }))
+          name: p.name,
+          description: p.description ?? undefined,
+          url: p.url ?? undefined,
+          startDate: p.started_at ?? undefined,
+          endDate: p.ended_at ?? undefined,
+        }))
         : undefined,
     skills:
       skills.length > 0 ? skills.map((s) => ({ name: s.skill })) : undefined,
@@ -345,38 +345,46 @@ export async function loadResumeBasicsData(
 > {
   const db = await getDB();
 
-  // Load public profile data from profile_index
-  const profileIndex = await db
-    .selectFrom("profile_index")
-    .select(["name", "title", "introduction", "country_code"])
-    .where("did", "=", did)
-    .executeTakeFirst();
+  // Load public profile data from records_profile (contrail)
+  const [profile, basics] = await Promise.all([
+    db
+      .selectFrom("records_profile")
+      .select((q) => [
+        q.ref("record", "->>").key("name").as("name"),
+        q.ref("record", "->>").key("title").as("title"),
+        q.ref("record", "->>").key("countryCode").as("countryCode"),
+      ])
+      .where("did", "=", did)
+      .executeTakeFirst(),
+    db
+      .selectFrom("records_basics")
+      .select((q) => [
+        q.ref("record", "->>").key("about").as("about"),
+        q
+          .ref("record", "->>")
+          .key("preferredWorkplace")
+          .as("preferredWorkplace"),
+      ])
+      .where("did", "=", did)
+      .where("rkey", "=", "self")
+      .executeTakeFirst(),
+  ]);
 
-  // Load languages from SIFA
+  // Load languages from contrail
   const languages = await loadResumeLanguagesData(did);
 
   const result: ResumeBasicsData & {
     languages: { name: string; rkey: string }[];
   } = {
-    name: profileIndex?.name ?? undefined,
-    title: profileIndex?.title ?? undefined,
-    countryCode: profileIndex?.country_code ?? undefined,
+    name: profile?.name ?? undefined,
+    title: profile?.title ?? undefined,
+    countryCode: profile?.countryCode ?? undefined,
+    summary: basics?.about ?? undefined,
+    preferredWorkplaces: basics?.preferredWorkplace
+      ?.map((wp) => getWorkplaceType(wp))
+      .filter((item) => item !== undefined),
     languages,
   };
-
-  try {
-    const client = await getPdsClient(did);
-    const existingProfile = await client.get(sifa.profile.self, {
-      rkey: "self",
-      repo: did,
-    });
-    result.summary = existingProfile.value.about;
-    result.preferredWorkplaces = existingProfile.value.preferredWorkplace
-      ?.map(getWorkplaceType)
-      .filter((item) => item !== undefined);
-  } catch {
-    // Profile doesn't exist yet
-  }
 
   if (isOwnProfile) {
     const profilePrivate = await db
@@ -515,23 +523,15 @@ export const LanguageOperationSchema = v.variant("op", [
 
 export type LanguageOperation = v.InferOutput<typeof LanguageOperationSchema>;
 
-// Load resume languages from SIFA
+// Load resume languages from contrail
 export async function loadResumeLanguagesData(did: DidString) {
-  const client = await getPdsClient(did);
-  const languagesResponse = await client
-    .list(sifa.profile.language, {
-      repo: did,
-      limit: 100,
-    })
-    .catch((error) => console.error("Error loading languages:", error));
-  const languages = [];
-  for (const record of languagesResponse?.records ?? []) {
-    languages.push({
-      name: record.value.name,
-      rkey: getRkey(record.uri),
-    });
-  }
-  return languages ?? [];
+  const db = await getDB();
+  const languages = await db
+    .selectFrom("records_language")
+    .select((q) => ["rkey", q.ref("record", "->>").key("name").as("name")])
+    .where("did", "=", did)
+    .execute();
+  return languages;
 }
 
 export async function updateResumeLanguagesData(
@@ -575,23 +575,15 @@ export const SkillOperationSchema = v.variant("op", [
 
 export type SkillOperation = v.InferOutput<typeof SkillOperationSchema>;
 
-// Load resume skills from SIFA
+// Load resume skills from contrail
 export async function loadResumeSkillsData(did: DidString) {
-  const client = await getPdsClient(did);
-  const skillsResponse = await client
-    .list(sifa.profile.skill, {
-      repo: did,
-      limit: 100, // max limit already
-    })
-    .catch((error) => console.error("Error loading skills:", error));
-  const skills = [];
-  for (const record of skillsResponse?.records ?? []) {
-    skills.push({
-      name: record.value.name,
-      rkey: getRkey(record.uri),
-    });
-  }
-  return skills ?? [];
+  const db = await getDB();
+  const skills = await db
+    .selectFrom("records_skill")
+    .select((q) => ["rkey", q.ref("record", "->>").key("name").as("name")])
+    .where("did", "=", did)
+    .execute();
+  return skills;
 }
 
 export async function updateResumeSkillsData(

@@ -2,6 +2,7 @@
   import countries from "i18n-iso-countries";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import type { Resume } from "$lib/jsonresume";
+  import { formatDateShort } from "$lib/date";
 
   let { resume }: { resume: Resume } = $props();
 
@@ -98,9 +99,13 @@
           <div class="stack-item">
             <div class="space-between">
               <h4 class="title">{job.position}</h4>
-              <span class="caption">
-                {job.startDate || ""} - {job.endDate || "Present"}
-              </span>
+              {#if job.startDate || job.endDate}
+                {@const startDate = formatDateShort(job.startDate)}
+                {@const endDate = formatDateShort(job.endDate)}
+                <span class="caption">
+                  {startDate} — {endDate || "Present"}
+                </span>
+              {/if}
             </div>
             <div class="space-between">
               <span class="caption">{job.name}</span>
@@ -125,9 +130,13 @@
           <div class="stack-item">
             <div class="space-between">
               <h4 class="title">{edu.institution}</h4>
-              <span class="caption">
-                {edu.startDate || ""} - {edu.endDate || "Present"}
-              </span>
+              {#if edu.startDate || edu.endDate}
+                {@const startDate = formatDateShort(edu.startDate)}
+                {@const endDate = formatDateShort(edu.endDate)}
+                <span class="caption">
+                  {startDate} — {endDate || "Present"}
+                </span>
+              {/if}
             </div>
             <div class="space-between">
               {#if edu.studyType}

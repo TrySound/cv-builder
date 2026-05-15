@@ -1,4 +1,4 @@
-import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
@@ -11,7 +11,7 @@ import type {
 } from "./jsonresume";
 import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
-import { applyWrites, getPdsClient, getRkey } from "./atproto";
+import { applyWrites, getNow, getRkey } from "./atproto";
 import { getContrail } from "./contrail";
 
 // Map sifa employment type to jsonresume employment type
@@ -34,11 +34,7 @@ function getEmploymentType(
 
 // Map sifa workplace type to jsonresume workplace type
 export function getWorkplaceType(
-  type:
-    | sifa.profile.position.Main["workplaceType"]
-    | (sifa.profile.self.Main["preferredWorkplace"] extends (infer U)[]
-        ? U
-        : never),
+  type: sifa.profile.position.Main["workplaceType"] | undefined,
 ): WorkplaceType | undefined {
   switch (type) {
     case "id.sifa.defs#onSite":
@@ -64,108 +60,122 @@ function formatDate(dateString: string | undefined): string | undefined {
 
 export async function loadSifaResume(
   did: DidString,
-  isOwnProfile: boolean,
+  isProfileOwner: boolean,
 ): Promise<Resume | undefined> {
   const db = await getDB();
-  const profileIndex = await db
-    .selectFrom("profile_index")
-    .select(["name", "title", "country_code"])
-    .where("did", "=", did)
-    .executeTakeFirst();
-  let profilePrivate;
-  if (isOwnProfile) {
-    profilePrivate = await db
-      .selectFrom("profile_private")
-      .select(["email"])
-      .where("did", "=", did)
-      .executeTakeFirst();
-  }
 
-  // Create type-safe client pointing to the user's PDS
-  const client = await getPdsClient(did);
-
-  // catch validation errors in records
-  const getRecords = <T>(response: { records: T; invalid: unknown }) => {
-    if (response.records) {
-      return response.records;
-    }
-    if (response.invalid) {
-      console.error(response);
-    }
-  };
-
-  // Fetch all sifa records using typed lexicon schemas
+  // Query all contrail tables in parallel
   const [
-    profileResponse,
-    positionsRecords,
-    educationRecords,
-    skillsRecords,
-    projectsRecords,
-    languagesRecords,
-    externalAccountsRecords,
+    profile,
+    basics,
+    positions,
+    education,
+    skills,
+    projects,
+    languages,
+    accounts,
+    profilePrivate,
   ] = await Promise.all([
-    // Profile is a singleton record at rkey "self"
-    client
-      .get(sifa.profile.self.main, {
-        rkey: "self",
-        repo: did,
-      })
-      .catch(() => undefined),
-    // Other records are listed
-    client
-      .list(sifa.profile.position.main, {
-        repo: did,
-        limit: 100,
-      })
-      .then(getRecords)
-      .catch((error) => console.error(error)),
-    client
-      .list(sifa.profile.education.main, {
-        repo: did,
-        limit: 100,
-      })
-      .then(getRecords)
-      .catch((error) => console.error(error)),
-    client
-      .list(sifa.profile.skill.main, {
-        repo: did,
-        limit: 100,
-      })
-      .then(getRecords)
-      .catch((error) => console.error(error)),
-    client
-      .list(sifa.profile.project.main, {
-        repo: did,
-        limit: 100,
-      })
-      .then(getRecords)
-      .catch((error) => console.error(error)),
-    client
-      .list(sifa.profile.language.main, {
-        repo: did,
-        limit: 100,
-      })
-      .then(getRecords)
-      .catch((error) => console.error(error)),
-    client
-      .list(sifa.profile.externalAccount.main, {
-        repo: did,
-        limit: 100,
-      })
-      .then(getRecords)
-      .catch((error) => console.error(error)),
+    db
+      .selectFrom("records_profile")
+      .select((q) => [
+        q.ref("record", "->>").key("name").as("name"),
+        q.ref("record", "->>").key("title").as("title"),
+        q.ref("record", "->>").key("countryCode").as("countryCode"),
+      ])
+      .where("did", "=", did)
+      .executeTakeFirst(),
+
+    db
+      .selectFrom("records_basics")
+      .select((q) => [
+        q.ref("record", "->>").key("about").as("about"),
+        q.ref("record", "->>").key("industry").as("industry"),
+        q
+          .ref("record", "->>")
+          .key("preferredWorkplace")
+          .as("preferredWorkplace"),
+        q.ref("record", "->>").key("location").as("location"),
+      ])
+      .where("did", "=", did)
+      .executeTakeFirst(),
+
+    db
+      .selectFrom("records_position")
+      .select((q) => [
+        q.ref("record", "->>").key("company").as("company"),
+        q.ref("record", "->>").key("title").as("title"),
+        q.ref("record", "->>").key("description").as("description"),
+        q.ref("record", "->>").key("startedAt").as("startedAt"),
+        q.ref("record", "->>").key("endedAt").as("endedAt"),
+        q.ref("record", "->>").key("employmentType").as("employmentType"),
+        q.ref("record", "->>").key("workplaceType").as("workplaceType"),
+        q.ref("record", "->>").key("location").as("location"),
+      ])
+      .where("did", "=", did)
+      .orderBy((q) => q.ref("record", "->>").key("startedAt"), "desc")
+      .execute(),
+
+    db
+      .selectFrom("records_education")
+      .select((q) => [
+        q.ref("record", "->>").key("institution").as("institution"),
+        q.ref("record", "->>").key("degree").as("degree"),
+        q.ref("record", "->>").key("fieldOfStudy").as("fieldOfStudy"),
+        q.ref("record", "->>").key("startedAt").as("startedAt"),
+        q.ref("record", "->>").key("endedAt").as("endedAt"),
+        q.ref("record", "->>").key("description").as("description"),
+      ])
+      .where("did", "=", did)
+      .orderBy((q) => q.ref("record", "->>").key("startedAt"), "desc")
+      .execute(),
+
+    db
+      .selectFrom("records_skill")
+      .select((q) => [q.ref("record", "->>").key("name").as("name")])
+      .where("did", "=", did)
+      .execute(),
+
+    db
+      .selectFrom("records_project")
+      .select((q) => [
+        q.ref("record", "->>").key("name").as("name"),
+        q.ref("record", "->>").key("description").as("description"),
+        q.ref("record", "->>").key("url").as("url"),
+        q.ref("record", "->>").key("startedAt").as("startedAt"),
+        q.ref("record", "->>").key("endedAt").as("endedAt"),
+      ])
+      .where("did", "=", did)
+      .orderBy((q) => q.ref("record", "->>").key("startedAt"), "desc")
+      .execute(),
+
+    db
+      .selectFrom("records_language")
+      .select((q) => [q.ref("record", "->>").key("name").as("name")])
+      .where("did", "=", did)
+      .execute(),
+
+    db
+      .selectFrom("records_account")
+      .select((q) => [
+        q.ref("record", "->>").key("url").as("url"),
+        q.ref("record", "->>").key("isPrimary").as("isPrimary"),
+      ])
+      .where("did", "=", did)
+      .execute(),
+
+    isProfileOwner
+      ? db
+        .selectFrom("profile_private")
+        .select(["email"])
+        .where("did", "=", did)
+        .executeTakeFirst()
+      : Promise.resolve(undefined),
   ]);
 
-  // Extract data with full type safety from generated lexicons
-  const profile = profileResponse?.value;
-
   // Build profiles array from external accounts
-  const externalAccounts =
-    externalAccountsRecords?.map((r) =>
-      sifa.profile.externalAccount.main.$cast(r.value),
-    ) ?? [];
   // Sort: isPrimary first, then others
-  const sortedAccounts = externalAccounts.sort((a, b) => {
+  const sortedAccounts = accounts.sort((a, b) => {
     if (a.isPrimary && !b.isPrimary) {
       return -1;
     }
@@ -180,20 +190,23 @@ export async function loadSifaResume(
     };
   });
 
-  const work = (positionsRecords ?? []).map((record) => {
-    const item = sifa.profile.position.main.$cast(record.value);
+  const work: Work[] = positions.map((item) => {
     const workEntry: Work = {
-      name: item.company,
-      position: item.title,
+      name: item.company ?? "",
+      position: item.title ?? "",
       startDate: formatDate(item.startedAt),
       endDate: formatDate(item.endedAt),
       summary: item.description,
     };
     if (item.location) {
-      const { city, region, countryCode } = item.location;
-      workEntry.location = [city, region, countryCode]
-        .filter(Boolean)
-        .join(", ");
+      try {
+        const { city, region, countryCode } = item.location;
+        workEntry.location = [city, region, countryCode]
+          .filter(Boolean)
+          .join(", ");
+      } catch {
+        // Invalid location JSON, skip
+      }
     }
     const employmentType = getEmploymentType(item.employmentType);
     const workplaceType = getWorkplaceType(item.workplaceType);
@@ -206,10 +219,9 @@ export async function loadSifaResume(
     return workEntry;
   });
 
-  const education: Education[] = (educationRecords ?? []).map((record) => {
-    const item = sifa.profile.education.main.$cast(record.value);
+  const educationList: Education[] = education.map((item) => {
     const eduEntry: Education = {
-      institution: item.institution,
+      institution: item.institution ?? "",
       area: item.fieldOfStudy,
       studyType: item.degree,
       startDate: formatDate(item.startedAt),
@@ -221,43 +233,38 @@ export async function loadSifaResume(
     return eduEntry;
   });
 
-  const projects = (projectsRecords ?? []).map((record) => {
-    const item = sifa.profile.project.main.$cast(record.value);
-    return {
-      name: item.name || "",
-      description: item.description,
-      url: item.url,
-      startDate: formatDate(item.startedAt),
-      endDate: formatDate(item.endedAt),
-    };
-  });
+  const projectsList = projects.map((item) => ({
+    name: item.name ?? "",
+    description: item.description,
+    url: item.url,
+    startDate: formatDate(item.startedAt),
+    endDate: formatDate(item.endedAt),
+  }));
 
-  const skills = (skillsRecords ?? []).map((record) => {
-    const item = sifa.profile.skill.main.$cast(record.value);
-    return { name: item.name };
-  });
+  const skillsList = skills.map((item) => ({ name: item.name }));
 
-  const languages = (languagesRecords ?? []).map((record) => {
-    const item = sifa.profile.language.main.$cast(record.value);
-    return {
-      language: item.name,
-    };
-  });
+  const languagesList = languages.map((item) => ({
+    language: item.name,
+  }));
 
   let location: undefined | { address: string };
-  if (profile?.location) {
-    const { city, region, countryCode } = profile.location;
-    location = {
-      address: [city, region, countryCode].filter(Boolean).join(", "),
-    };
+  if (basics?.location) {
+    try {
+      const { city, region, countryCode } = basics.location;
+      location = {
+        address: [city, region, countryCode].filter(Boolean).join(", "),
+      };
+    } catch {
+      // Invalid location JSON, skip
+    }
   }
 
   const extension: Resume["extension"] = {};
-  if (profile?.industry) {
-    extension.industry = profile.industry;
+  if (basics?.industry) {
+    extension.industry = basics.industry;
   }
 
-  const preferredWorkplaces = profile?.preferredWorkplace
+  const preferredWorkplaces = basics?.preferredWorkplace
     ?.map(getWorkplaceType)
     .filter((w) => w !== undefined);
   if (preferredWorkplaces && preferredWorkplaces.length > 0) {
@@ -268,20 +275,20 @@ export async function loadSifaResume(
     $schema:
       "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
     basics: {
-      name: profileIndex?.name ?? undefined,
-      label: profileIndex?.title ?? undefined,
-      location: profileIndex?.country_code
-        ? { countryCode: profileIndex.country_code }
-        : undefined,
+      name: profile?.name ?? undefined,
+      label: profile?.title ?? undefined,
+      location: profile?.countryCode
+        ? { countryCode: profile.countryCode }
+        : location,
       email: profilePrivate?.email ?? undefined,
-      summary: profile?.about,
+      summary: basics?.about,
       profiles: resumeProfiles.length > 0 ? resumeProfiles : undefined,
     },
     work: work.length > 0 ? work : undefined,
-    education: education.length > 0 ? education : undefined,
-    projects: projects.length > 0 ? projects : undefined,
-    skills: skills.length > 0 ? skills : undefined,
-    languages: languages.length > 0 ? languages : undefined,
+    education: educationList.length > 0 ? educationList : undefined,
+    projects: projectsList.length > 0 ? projectsList : undefined,
+    skills: skillsList.length > 0 ? skillsList : undefined,
+    languages: languagesList.length > 0 ? languagesList : undefined,
     extension: Object.keys(extension).length > 0 ? extension : undefined,
   };
 
@@ -309,12 +316,7 @@ function getSifaEmploymentType(
 // Reverse mapping: jsonresume workplace type to sifa workplace type
 export function getSifaWorkplaceType(
   type: WorkplaceType | undefined,
-):
-  | sifa.profile.position.Main["workplaceType"]
-  | (sifa.profile.self.Main["preferredWorkplace"] extends (infer U)[]
-      ? U
-      : never)
-  | undefined {
+): sifa.profile.position.Main["workplaceType"] | undefined {
   switch (type) {
     case "onsite":
       return "id.sifa.defs#onSite";
@@ -344,7 +346,7 @@ function parseLocation(
 }
 
 const updateWork = async (agent: Agent, resume: Resume) => {
-  const now = new Date().toISOString() as DatetimeString;
+  const now = getNow();
   const client = new Client(agent);
   const existingPositions = await client.list(sifa.profile.position);
   const response = await applyWrites(agent, (client) => {
@@ -373,7 +375,7 @@ const updateWork = async (agent: Agent, resume: Resume) => {
 
 const updateEducation = async (agent: Agent, resume: Resume) => {
   const client = new Client(agent);
-  const now = new Date().toISOString() as DatetimeString;
+  const now = getNow();
   const existingEducation = await client.list(sifa.profile.education);
   const response = await applyWrites(agent, (client) => {
     for (const record of existingEducation.records) {
@@ -399,7 +401,7 @@ const updateEducation = async (agent: Agent, resume: Resume) => {
 
 const updateProjects = async (agent: Agent, resume: Resume) => {
   const client = new Client(agent);
-  const now = new Date().toISOString() as DatetimeString;
+  const now = getNow();
   const existingProjects = await client.list(sifa.profile.project);
   const response = await applyWrites(agent, (client) => {
     for (const record of existingProjects.records) {
@@ -426,7 +428,7 @@ const updateProjects = async (agent: Agent, resume: Resume) => {
 
 const updateLanguages = async (agent: Agent, resume: Resume) => {
   const client = new Client(agent);
-  const now = new Date().toISOString() as DatetimeString;
+  const now = getNow();
   const existingLanguages = await client.list(sifa.profile.language);
   const response = await applyWrites(agent, (client) => {
     for (const record of existingLanguages.records) {

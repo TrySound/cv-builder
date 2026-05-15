@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Resume } from "$lib/jsonresume";
   import DatePicker from "$lib/date-picker.svelte";
+  import { formatDateShort } from "$lib/date";
 
   let {
     resume,
@@ -145,21 +146,6 @@
     editingResume ??= getEditableResume($state.snapshot(resume));
     editingResume.projects.splice(index, 1);
     stopEditing();
-  }
-
-  function formatDateShort(dateString: string | undefined): string {
-    if (!dateString) {
-      return "";
-    }
-    // render year as is
-    if (dateString.length === 4) {
-      return dateString;
-    }
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      year: "numeric",
-    });
   }
 </script>
 
@@ -715,8 +701,6 @@
     {/if}
   {/each}
 </section>
-
-
 
 <style>
   .heading-2 {
