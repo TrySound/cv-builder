@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import type { Kysely } from "kysely";
 import { Agent } from "@atproto/api";
-import { Client, type DidString } from "@atproto/lex";
+import type { DidString } from "@atproto/lex";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
@@ -366,7 +366,6 @@ export async function loadResumeBasicsData(
           .as("preferredWorkplace"),
       ])
       .where("did", "=", did)
-      .where("rkey", "=", "self")
       .executeTakeFirst(),
   ]);
 
@@ -470,34 +469,37 @@ export async function updateResumeBasicsData(
   const oauthClient = await getOAuthClient();
   const session = await oauthClient.restore(did);
   const agent = new Agent(session);
-  const client = new Client(agent);
 
-  // Get current weareonhire profile to preserve introduction
-  let currentIntroduction: string | undefined;
-  try {
-    const existingProfile = await client.get(weareonhire.profile, {
-      rkey: "self",
-      repo: did,
-    });
-    currentIntroduction = existingProfile.value.introduction;
-  } catch {
-    // Profile doesn't exist yet
-  }
+  // Preserve introduction and creation date
+  const [profile, basics] = await Promise.all([
+    db
+      .selectFrom("records_profile")
+      .select((q) => [
+        q.ref("record", "->>").key("introduction").as("introduction"),
+        q.ref("record", "->>").key("createdAt").as("createdAt"),
+      ])
+      .where("did", "=", did)
+      .executeTakeFirst(),
+    db
+      .selectFrom("records_basics")
+      .select((q) => q.ref("record", "->>").key("createdAt").as("createdAt"))
+      .where("did", "=", did)
+      .executeTakeFirst(),
+  ]);
 
   // Update com.weareonhire.profile record (preserves introduction)
   const now = getNow();
 
   const response = await applyWrites(agent, (client) => {
     client.put(weareonhire.profile, {
-      createdAt: now,
       name: data.name,
       title: data.title,
-      introduction: currentIntroduction,
+      introduction: profile?.introduction,
       countryCode: data.countryCode,
+      createdAt: profile?.createdAt ?? now,
     });
 
     client.put(sifa.profile.self, {
-      createdAt: now,
       headline: data.title,
       about: data.summary,
       location: data.countryCode
@@ -506,6 +508,7 @@ export async function updateResumeBasicsData(
       preferredWorkplace: data.preferredWorkplaces
         ?.map(getSifaWorkplaceType)
         .filter((item) => item !== undefined),
+      createdAt: basics?.createdAt ?? now,
     });
   });
   const contrail = await getContrail();
