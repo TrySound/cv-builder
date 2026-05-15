@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { Client, type DidString } from "@atproto/lex";
+import type { DidString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
@@ -115,37 +115,41 @@ export async function updateProfileData(
   const oauthClient = await getOAuthClient();
   const session = await oauthClient.restore(did);
   const agent = new Agent(session);
-  const client = new Client(agent);
 
-  // Get current sifa profile to preserve summary
-  let currentSummary: string | undefined;
-  try {
-    const existingProfile = await client.get(sifa.profile.self.main, {
-      rkey: "self",
-      repo: did,
-    });
-    currentSummary = existingProfile.value.about;
-  } catch {
-    // Profile doesn't exist yet
-  }
+  // Preserve summary and creation date
+  const [profile, basics] = await Promise.all([
+    db
+      .selectFrom("records_profile")
+      .select((q) => q.ref("record", "->>").key("createdAt").as("createdAt"))
+      .where("did", "=", did)
+      .executeTakeFirst(),
+    db
+      .selectFrom("records_basics")
+      .select((q) => [
+        q.ref("record", "->>").key("about").as("about"),
+        q.ref("record", "->>").key("createdAt").as("createdAt"),
+      ])
+      .where("did", "=", did)
+      .executeTakeFirst(),
+  ]);
 
   // Update com.weareonhire.profile record
   const now = getNow();
   const response = await applyWrites(agent, (client) => {
     client.put(weareonhire.profile, {
-      createdAt: now,
       name: data.name,
       title: data.title,
       introduction: data.introduction,
       countryCode: data.countryCode,
+      createdAt: profile?.createdAt ?? now,
     });
     client.put(sifa.profile.self, {
-      createdAt: now,
       headline: data.title,
-      about: currentSummary,
+      about: basics?.about,
       location: data.countryCode
         ? { countryCode: data.countryCode }
         : undefined,
+      createdAt: basics?.createdAt ?? now,
     });
   });
   const contrail = await getContrail();
