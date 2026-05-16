@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { formatDate } from "$lib/date";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
@@ -36,7 +35,7 @@
       <article class="row link-area">
         <div>
           <time class="subtle" datetime={item.createdAt}>
-            {formatDate(item.createdAt)}
+            {item.createdAtFormatted}
           </time>
         </div>
         <div class="margin-trim-block">

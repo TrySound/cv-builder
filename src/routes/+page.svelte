@@ -70,7 +70,7 @@
       {:else}
         <button
           class="button button-primary button-lg"
-          commandfor="topbar-login-dialog"
+          commandfor="login-dialog"
           command="show-modal"
         >
           Get Started

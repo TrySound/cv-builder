@@ -12,7 +12,6 @@
     getProfileRecommendations,
     createRecommendation as createRecommendationRaw,
   } from "$lib/recommendation.remote";
-  import { formatDate } from "$lib/date";
   import type { DatabaseSchema } from "$lib/db";
   import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import { getLinkDisplayName, getLinkIcon } from "$lib/link";
@@ -442,7 +441,7 @@
         >
           <div>
             <time class="subtle" datetime={item.createdAt}>
-              {formatDate(item.createdAt)}
+              {item.createdAtFormatted}
             </time>
           </div>
           <div class="margin-trim-block">

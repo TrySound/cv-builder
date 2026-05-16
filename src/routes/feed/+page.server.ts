@@ -1,3 +1,4 @@
+import { formatDate } from "$lib/date";
 import { getDB } from "$lib/dbkit";
 
 const truncate = (text: string, limit: number) => {
@@ -15,6 +16,7 @@ export type FeedRecommendation = {
   subjectHandle: string;
   subjectName: string | undefined;
   createdAt: string;
+  createdAtFormatted: string;
   reason: string;
 };
 
@@ -24,6 +26,7 @@ export type FeedUser = {
   handle: string;
   name: string | undefined;
   createdAt: string;
+  createdAtFormatted: string;
   introduction: string | null;
 };
 
@@ -94,6 +97,7 @@ export const load = async ({ locals }) => {
       subjectHandle: item.subject_handle ?? item.subject_did,
       subjectName: item.subject_name ?? undefined,
       createdAt: item.created_at,
+      createdAtFormatted: formatDate(item.created_at),
       reason: truncate(item.reason, 200),
     }),
   );
@@ -104,6 +108,7 @@ export const load = async ({ locals }) => {
     handle: item.handle ?? item.did,
     name: item.name,
     createdAt: item.created_at,
+    createdAtFormatted: formatDate(item.created_at),
     introduction: item.introduction ? truncate(item.introduction, 200) : null,
   }));
 
