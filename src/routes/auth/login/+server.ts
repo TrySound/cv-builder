@@ -1,9 +1,17 @@
 import { redirect } from "@sveltejs/kit";
 import { getOAuthClient, SCOPE } from "$lib/auth";
+import { env } from "$env/dynamic/private";
 
 export const GET = async ({ url, cookies }) => {
-  const prompt =
-    url.searchParams.get("prompt") === "login" ? "login" : "create";
+  const promptParam = url.searchParams.get("prompt");
+  let prompt: "create" | "login" | "none" = "create";
+  if (promptParam === "create") {
+    prompt = "create";
+  }
+  if (promptParam === "login") {
+    prompt = env.DEV ? "login" : "none";
+  }
+
   const handle = url.searchParams.get("handle");
   // redirect to provided url
   let redirectUrl = url.searchParams.get("redirect");

@@ -38,6 +38,7 @@ export const POST = async ({ request, url, locals }) => {
     const insertResult = await db
       .insertInto("pdf_jobs")
       .values({
+        did: locals.did,
         status: "pending",
         result: null,
         error: null,

@@ -104,6 +104,7 @@ export interface DatabaseSchema {
   };
   pdf_jobs: {
     id?: string;
+    did: string | null;
     status: "pending" | "completed" | "failed";
     result: any | null;
     error: string | null;
