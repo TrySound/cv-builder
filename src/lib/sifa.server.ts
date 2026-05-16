@@ -13,6 +13,10 @@ import { getDB } from "./dbkit";
 import { normalizeUrl } from "./link";
 import { applyWrites, getNow, getRkey } from "./atproto";
 import { getContrail } from "./contrail";
+import {
+  getSifaEmploymentType,
+  getSifaWorkplaceType,
+} from "./jsonresume.server";
 
 // Map sifa employment type to jsonresume employment type
 function getEmploymentType(
@@ -293,38 +297,6 @@ export async function loadSifaResume(
   };
 
   return resume;
-}
-
-// Reverse mapping: jsonresume employment type to sifa employment type
-function getSifaEmploymentType(
-  type: EmploymentType | undefined,
-): sifa.profile.position.Main["employmentType"] | undefined {
-  switch (type) {
-    case "fulltime":
-      return "id.sifa.defs#fullTime";
-    case "parttime":
-      return "id.sifa.defs#partTime";
-    case "contract":
-      return "id.sifa.defs#contract";
-    case "freelance":
-      return "id.sifa.defs#freelance";
-    case "internship":
-      return "id.sifa.defs#internship";
-  }
-}
-
-// Reverse mapping: jsonresume workplace type to sifa workplace type
-export function getSifaWorkplaceType(
-  type: WorkplaceType | undefined,
-): sifa.profile.position.Main["workplaceType"] | undefined {
-  switch (type) {
-    case "onsite":
-      return "id.sifa.defs#onSite";
-    case "remote":
-      return "id.sifa.defs#remote";
-    case "hybrid":
-      return "id.sifa.defs#hybrid";
-  }
 }
 
 // Parse location string into sifa location format

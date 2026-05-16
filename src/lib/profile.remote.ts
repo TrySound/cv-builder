@@ -3,14 +3,11 @@ import { error } from "@sveltejs/kit";
 import { query, command, form, getRequestEvent } from "$app/server";
 import type { DidString } from "@atproto/lex";
 import { ResumeSchema } from "./jsonresume";
-import { getDB } from "./dbkit";
 import {
-  loadResume,
   loadResumeBasicsData,
   loadResumeSkillsData,
   LanguageOperationSchema,
   SkillOperationSchema,
-  updateResume,
   updateResumeBasicsData,
   updateResumeLanguagesData,
   updateResumeSkillsData,
@@ -23,6 +20,7 @@ import {
   updateProfileData,
 } from "./profile.server";
 import { resolveIdentifier } from "./atproto";
+import { loadLegacyResume } from "./legacy-resume.server";
 
 const ContactOperationSchema = v.variant("op", [
   // value is new contact url
@@ -230,7 +228,7 @@ export const getMemberProfile = query(
     // show local resume and fallback to sifa resume
     const isOwnProfile = resolved.did === locals.did;
     return (
-      (await loadResume(resolved.did)) ??
+      (await loadLegacyResume(resolved.did)) ??
       (await loadSifaResume(resolved.did, isOwnProfile))
     );
   },
@@ -244,18 +242,6 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
     error(401, "Unauthorized");
   }
 
-  // Check if user is a member (exists in local database)
-  const db = await getDB();
-  const member = await db
-    .selectFrom("members")
-    .select("did")
-    .where("did", "=", did)
-    .executeTakeFirst();
-
-  // update legacy members (only work, education, projects, skills, languages)
-  if (member) {
-    await updateResume(did, resume);
-  }
   // update atproto + private data (only work, education, projects, skills, languages)
   await updateSifaResume(did, resume);
 

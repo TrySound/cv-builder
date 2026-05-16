@@ -2,8 +2,9 @@ import * as v from "valibot";
 import { GoogleGenAI } from "@google/genai";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import { type Resume, ResumeSchema } from "../../src/lib/jsonresume";
 import type { DatabaseSchema } from "../../src/lib/db";
+import { type Resume, ResumeSchema } from "../../src/lib/jsonresume";
+import { updateResumeData } from "../../src/lib/jsonresume.server";
 
 let ai: undefined | GoogleGenAI;
 
@@ -297,10 +298,10 @@ export const parsePdf = async ({
       );
     }
 
-    // Check retry count
+    // Get job details including DID
     const job = await db
       .selectFrom("pdf_jobs")
-      .select(["retry_count"])
+      .select(["retry_count", "did"])
       .where("id", "=", jobId)
       .executeTakeFirst();
 
@@ -343,6 +344,43 @@ export const parsePdf = async ({
     const result = await parseResumeFromPDF(pdfBuffer, GEMINI_API_KEY);
 
     if (result.success) {
+      // Save parsed resume to AT Protocol if we have a DID
+      if (job.did) {
+        try {
+          await updateResumeData(job.did, result.data);
+          console.info(`Resume data saved to AT Protocol for job ${jobId}`);
+        } catch (saveError) {
+          console.error(
+            `Failed to save resume data to AT Protocol for job ${jobId}:`,
+            saveError,
+          );
+          // Store error but don't fail - the parsed data is still available
+          await db
+            .updateTable("pdf_jobs")
+            .set({
+              status: "completed",
+              result: JSON.stringify(result.data),
+              error:
+                saveError instanceof Error
+                  ? `Save failed: ${saveError.message}`
+                  : "Save failed",
+              updated_at: new Date().toISOString(),
+            })
+            .where("id", "=", jobId)
+            .execute();
+          return new Response(
+            JSON.stringify({
+              success: true,
+              warning: "Data saved to job but not to profile",
+            }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+      }
+
       // Store successful result
       await db
         .updateTable("pdf_jobs")

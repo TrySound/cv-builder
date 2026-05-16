@@ -8,10 +8,12 @@ import { getDB } from "$lib/dbkit";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import { getNow } from "$lib/atproto";
 import { getContrail } from "$lib/contrail";
+import { migrateLegacyResume } from "$lib/legacy-resume.server";
 
 /**
  * Ensure weareonhire profile exists for the user.
  * Creates profile from sifa/bsky data if it doesn't exist.
+ * Also migrates legacy member_* data if present.
  */
 async function ensureProfile(
   db: Awaited<ReturnType<typeof getDB>>,
@@ -20,6 +22,8 @@ async function ensureProfile(
   bskyDisplayName: string | undefined,
   bskyDescription: string | undefined,
 ) {
+  await migrateLegacyResume(db, did);
+
   const [existingProfile, basics] = await Promise.all([
     await db
       .selectFrom("records_profile")
@@ -85,6 +89,7 @@ export const GET = async ({ url, cookies }) => {
   const db = await getDB();
 
   // Ensure user has weareonhire profile and private record
+  // Also migrate legacy member_* data if present
   await ensureProfile(
     db,
     client,
