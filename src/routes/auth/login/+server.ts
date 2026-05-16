@@ -1,15 +1,14 @@
 import { redirect } from "@sveltejs/kit";
 import { getOAuthClient, SCOPE } from "$lib/auth";
-import { env } from "$env/dynamic/private";
 
 export const GET = async ({ url, cookies }) => {
   const promptParam = url.searchParams.get("prompt");
-  let prompt: "create" | "login" | "none" = "create";
+  let prompt: "create" | "login" = "create";
   if (promptParam === "create") {
     prompt = "create";
   }
   if (promptParam === "login") {
-    prompt = env.DEV ? "login" : "none";
+    prompt = "login";
   }
 
   const handle = url.searchParams.get("handle");
