@@ -14,7 +14,6 @@ html[data-theme="dark"] {
   /* Typography */
   --font-family: ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
-  --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 0.95rem;
   --font-size-lg: 1.1rem;
@@ -123,6 +122,7 @@ body {
   background: transparent;
   border: 0;
   padding: 0;
+  font: inherit;
   &:hover {
     color: var(--color-text);
     text-decoration-color: var(--color-accent);
