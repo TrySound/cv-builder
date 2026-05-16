@@ -1,14 +1,13 @@
 import { redirect } from "@sveltejs/kit";
 import { sign } from "cookie-signature";
 import { Agent } from "@atproto/api";
-import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import { env } from "$env/dynamic/private";
 import { getOAuthClient } from "$lib/auth";
 import { getDB } from "$lib/dbkit";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
-import * as sifa from "$lib/lexicons/id/sifa";
 import { getNow } from "$lib/atproto";
-import { getContrail } from "$lib/contrail.js";
+import { getContrail } from "$lib/contrail";
 
 /**
  * Ensure weareonhire profile exists for the user.
@@ -21,58 +20,39 @@ async function ensureProfile(
   bskyDisplayName: string | undefined,
   bskyDescription: string | undefined,
 ) {
-  // Check if profile already exists in atproto
-  const existingProfile = await client
-    .get(weareonhire.profile.main, {
-      rkey: "self",
-      repo: did,
-    })
-    .catch(() => undefined);
+  const [existingProfile, basics] = await Promise.all([
+    await db
+      .selectFrom("records_profile")
+      .where("did", "=", did)
+      .select("did")
+      .executeTakeFirst(),
+    db
+      .selectFrom("records_basics")
+      .where("did", "=", did)
+      .select((q) => [
+        q.ref("record", "->>").key("headline").as("headline"),
+        q.ref("record", "->>").key("about").as("about"),
+        q.ref("record", "->>").key("location").as("location"),
+      ])
+      .executeTakeFirst(),
+  ]);
+  // skip populating initial data if profile already exists
   if (existingProfile) {
-    // Profile already exists, don't override
     return;
   }
-
-  // Fetch sifa profile data
-  const sifaResponse = await client
-    .get(sifa.profile.self.main, {
-      rkey: "self",
-      repo: did,
-    })
-    .catch(() => undefined);
-
-  const sifaProfile = sifaResponse?.value;
-
-  // Build profile data from sifa/bsky
-  const name = bskyDisplayName ?? null;
-  const title = sifaProfile?.headline ?? null;
-  const introduction = sifaProfile?.about ?? bskyDescription ?? null;
-  const countryCode = sifaProfile?.location?.countryCode ?? null;
 
   // Create the profile record
   const now = getNow();
   const updatedProfile = await client.put(weareonhire.profile, {
-    name: name ?? undefined,
-    title: title ?? undefined,
-    countryCode: countryCode ?? undefined,
-    introduction: introduction ?? undefined,
+    name: bskyDisplayName,
+    title: basics?.headline,
+    countryCode: basics?.location?.countryCode,
+    introduction: basics?.about ?? bskyDescription,
     createdAt: now,
   });
   const contrail = await getContrail();
   contrail.notify(updatedProfile.uri);
 
-  await db
-    .insertInto("profile_index")
-    .values({
-      did,
-      name: name,
-      title: title,
-      country_code: countryCode,
-      introduction: introduction,
-      created_at: now,
-    })
-    .onConflict((oc) => oc.column("did").doNothing())
-    .execute();
   await db
     .insertInto("profile_private")
     .values({
@@ -112,18 +92,6 @@ export const GET = async ({ url, cookies }) => {
     profile.data.displayName,
     profile.data.description,
   );
-
-  // cache user handle
-  const now = new Date().toISOString() as DatetimeString;
-  await db
-    .insertInto("handle_index")
-    .values({
-      did: session.did,
-      handle,
-      created_at: now,
-    })
-    .onConflict((oc) => oc.column("did").doUpdateSet({ handle }))
-    .execute();
 
   // Store session cookie
   const sessionData = JSON.stringify({ did: session.did, handle });

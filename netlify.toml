@@ -5,8 +5,5 @@
 [build.environment]
   NODE_VERSION = "24"
 
-[functions.sync]
-  schedule = "*/15 * * * *"
-
 [functions.contrail-sync]
   schedule = "*/15 * * * *"

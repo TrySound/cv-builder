@@ -404,26 +404,6 @@ export async function updateResumeBasicsData(
   const db = await getDB();
 
   await db.transaction().execute(async (trx) => {
-    // Update profile_index table (preserves introduction)
-    await trx
-      .insertInto("profile_index")
-      .values({
-        did,
-        name: data.name ?? null,
-        title: data.title ?? null,
-        introduction: null,
-        country_code: data.countryCode ?? null,
-        created_at: new Date().toISOString(),
-      })
-      .onConflict((oc) =>
-        oc.column("did").doUpdateSet({
-          name: data.name ?? null,
-          title: data.title ?? null,
-          country_code: data.countryCode ?? null,
-        }),
-      )
-      .execute();
-
     // Update profile_private table
     await trx
       .insertInto("profile_private")

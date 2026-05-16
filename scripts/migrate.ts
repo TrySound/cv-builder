@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { Kysely, PostgresDialect, PGliteDialect } from "kysely";
 import { Migrator, FileMigrationProvider } from "kysely/migration";
-import { seedDatabase } from "./seed.ts";
 import { getPgliteDb, getPgpoolDb } from "../src/lib/db.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -70,11 +69,6 @@ if (result.results && result.results.length > 0) {
   });
 } else {
   console.log("No migrations to run");
-}
-
-// Seed database in dev mode if fresh
-if (mode === "dev") {
-  await seedDatabase(db);
 }
 
 await db.destroy();

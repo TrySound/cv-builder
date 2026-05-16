@@ -32,10 +32,15 @@ export const getChecks = query(async () => {
   let hasRecommendedBack = true;
   if (member.invited_by) {
     const recommendation = await db
-      .selectFrom("recommendations")
-      .select("id")
-      .where("author_did", "=", locals.did)
-      .where("subject_did", "=", member.invited_by)
+      .selectFrom("records_recommendation")
+      .select("uri")
+      .where("did", "=", locals.did)
+      .where(
+        (query) => query.ref("record", "->>")
+          .key("subject"),
+        "=",
+        member.invited_by,
+      )
       .executeTakeFirst();
     hasRecommendedBack = recommendation !== undefined;
   }

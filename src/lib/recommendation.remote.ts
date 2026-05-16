@@ -100,19 +100,6 @@ export const createRecommendation = form(
 
     const createdAt = getNow();
 
-    // cache subject's handle
-    await db
-      .insertInto("handle_index")
-      .values({
-        did: resolved.did,
-        handle: resolved.handle,
-        created_at: createdAt,
-      })
-      .onConflict((oc) =>
-        oc.column("did").doUpdateSet({ handle: resolved.handle }),
-      )
-      .execute();
-
     const oauthClient = await getOAuthClient();
     const session = await oauthClient.restore(event.locals.did);
     const client = new Client(new Agent(session));

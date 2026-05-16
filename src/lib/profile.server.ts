@@ -69,47 +69,24 @@ export async function updateProfileData(
 ): Promise<void> {
   const db = await getDB();
 
-  await db.transaction().execute(async (trx) => {
-    // Update profile_index table
-    await trx
-      .insertInto("profile_index")
-      .values({
-        did,
-        name: data.name ?? null,
-        title: data.title ?? null,
-        introduction: data.introduction ?? null,
-        country_code: data.countryCode ?? null,
-        created_at: getNow(),
-      })
-      .onConflict((oc) =>
-        oc.column("did").doUpdateSet({
-          name: data.name ?? null,
-          title: data.title ?? null,
-          introduction: data.introduction ?? null,
-          country_code: data.countryCode ?? null,
-        }),
-      )
-      .execute();
-
-    // Update profile_private table
-    await trx
-      .insertInto("profile_private")
-      .values({
-        did,
+  // Update profile_private table
+  await db
+    .insertInto("profile_private")
+    .values({
+      did,
+      email: data.email ?? null,
+      status: data.status ?? "hidden",
+      created_at: getNow(),
+      updated_at: getNow(),
+    })
+    .onConflict((oc) =>
+      oc.column("did").doUpdateSet({
         email: data.email ?? null,
         status: data.status ?? "hidden",
-        created_at: getNow(),
         updated_at: getNow(),
-      })
-      .onConflict((oc) =>
-        oc.column("did").doUpdateSet({
-          email: data.email ?? null,
-          status: data.status ?? "hidden",
-          updated_at: getNow(),
-        }),
-      )
-      .execute();
-  });
+      }),
+    )
+    .execute();
 
   // Create typed client with authenticated session
   const oauthClient = await getOAuthClient();

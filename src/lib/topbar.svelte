@@ -3,7 +3,7 @@
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { getTheme, toggleTheme, type Theme } from "$lib/theme";
-  import { searchProfiles } from "$lib/search.remote.js";
+  import { searchProfiles } from "$lib/search.remote";
   import Combobox from "$lib/combobox.svelte";
 
   let {

@@ -51,7 +51,6 @@ PGSSLMODE=disable psql -h localhost -p 5432 -d postgres
 | `pnpm test`           | Run unit tests                             |
 | `pnpm migrate:dev`    | Run database migrations (development)      |
 | `pnpm migrate:prod`   | Run database migrations (production)       |
-| `pnpm seed`           | Seed database with sample data             |
 | `pnpm generate-jwk`   | Generate OAuth private key for AT Protocol |
 | `pnpm lexicons:build` | Build AT Protocol lexicon types            |
 | `pnpm pglite:server`  | Start PGlite socket server for debugging   |

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { searchProfiles } from "$lib/search.remote.js";
+  import { searchProfiles } from "$lib/search.remote";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
