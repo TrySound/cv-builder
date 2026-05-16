@@ -46,11 +46,12 @@ export const SCOPE = [
 ];
 
 export const getClientMetadata = (): OAuthClientMetadataInput => {
+  const BASE_URL = 'https://deploy-preview-37--cv-builder-d32bd5.netlify.app'
   return {
-    client_id: `${env.BASE_URL}/client-metadata.json`,
+    client_id: `${BASE_URL}/client-metadata.json`,
     client_name: "weareonhire",
-    client_uri: env.BASE_URL,
-    redirect_uris: [`${env.BASE_URL}/auth/callback`],
+    client_uri: BASE_URL,
+    redirect_uris: [`${BASE_URL}/auth/callback`],
     scope: SCOPE.join(" "),
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
@@ -58,7 +59,7 @@ export const getClientMetadata = (): OAuthClientMetadataInput => {
     token_endpoint_auth_signing_alg: "ES256",
     application_type: "web",
     dpop_bound_access_tokens: true,
-    jwks_uri: `${env.BASE_URL}/jwks.json`,
+    jwks_uri: `${BASE_URL}/jwks.json`,
   };
 };
 
