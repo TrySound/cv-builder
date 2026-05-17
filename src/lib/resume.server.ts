@@ -35,18 +35,18 @@ export async function loadResumeBasicsData(
     db
       .selectFrom("records_profile")
       .select((q) => [
-        q.ref("record", "->>").key("name").as("name"),
-        q.ref("record", "->>").key("title").as("title"),
-        q.ref("record", "->>").key("countryCode").as("countryCode"),
+        q.ref("record", "->").key("name").as("name"),
+        q.ref("record", "->").key("title").as("title"),
+        q.ref("record", "->").key("countryCode").as("countryCode"),
       ])
       .where("did", "=", did)
       .executeTakeFirst(),
     db
       .selectFrom("records_basics")
       .select((q) => [
-        q.ref("record", "->>").key("about").as("about"),
+        q.ref("record", "->").key("about").as("about"),
         q
-          .ref("record", "->>")
+          .ref("record", "->")
           .key("preferredWorkplace")
           .as("preferredWorkplace"),
       ])
@@ -116,14 +116,14 @@ export async function updateResumeBasicsData(
     db
       .selectFrom("records_profile")
       .select((q) => [
-        q.ref("record", "->>").key("introduction").as("introduction"),
-        q.ref("record", "->>").key("createdAt").as("createdAt"),
+        q.ref("record", "->").key("introduction").as("introduction"),
+        q.ref("record", "->").key("createdAt").as("createdAt"),
       ])
       .where("did", "=", did)
       .executeTakeFirst(),
     db
       .selectFrom("records_basics")
-      .select((q) => q.ref("record", "->>").key("createdAt").as("createdAt"))
+      .select((q) => q.ref("record", "->").key("createdAt").as("createdAt"))
       .where("did", "=", did)
       .executeTakeFirst(),
   ]);
@@ -172,7 +172,7 @@ export async function loadResumeLanguagesData(did: DidString) {
   const db = await getDB();
   const languages = await db
     .selectFrom("records_language")
-    .select((q) => ["rkey", q.ref("record", "->>").key("name").as("name")])
+    .select((q) => ["rkey", q.ref("record", "->").key("name").as("name")])
     .where("did", "=", did)
     .execute();
   return languages;
@@ -224,7 +224,7 @@ export async function loadResumeSkillsData(did: DidString) {
   const db = await getDB();
   const skills = await db
     .selectFrom("records_skill")
-    .select((q) => ["rkey", q.ref("record", "->>").key("name").as("name")])
+    .select((q) => ["rkey", q.ref("record", "->").key("name").as("name")])
     .where("did", "=", did)
     .execute();
   return skills;

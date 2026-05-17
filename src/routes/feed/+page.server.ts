@@ -56,13 +56,13 @@ export const load = async ({ locals }) => {
       // author
       "rec.did as author_did",
       "author_id.handle as author_handle",
-      q.ref("author.record", "->>").key("name").as("author_name"),
+      q.ref("author.record", "->").key("name").as("author_name"),
       // subject
-      q.ref("rec.record", "->>").key("subject").as("subject_did"),
+      q.ref("rec.record", "->").key("subject").as("subject_did"),
       "subject_id.handle as subject_handle",
-      q.ref("subject.record", "->>").key("name").as("subject_name"),
-      q.ref("rec.record", "->>").key("reason").as("reason"),
-      q.ref("rec.record", "->>").key("createdAt").as("created_at"),
+      q.ref("subject.record", "->").key("name").as("subject_name"),
+      q.ref("rec.record", "->").key("reason").as("reason"),
+      q.ref("rec.record", "->").key("createdAt").as("created_at"),
     ])
     .execute();
 
@@ -73,9 +73,9 @@ export const load = async ({ locals }) => {
     .select((q) => [
       "records_profile.did",
       "identities.handle",
-      q.ref("record", "->>").key("name").as("name"),
-      q.ref("record", "->>").key("introduction").as("introduction"),
-      q.ref("record", "->>").key("createdAt").as("created_at"),
+      q.ref("record", "->").key("name").as("name"),
+      q.ref("record", "->").key("introduction").as("introduction"),
+      q.ref("record", "->").key("createdAt").as("created_at"),
     ])
     .orderBy(
       (q) => q.ref("records_profile.record", "->>").key("createdAt"),
