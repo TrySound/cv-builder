@@ -34,9 +34,9 @@ async function ensureProfile(
       .selectFrom("records_basics")
       .where("did", "=", did)
       .select((q) => [
-        q.ref("record", "->>").key("headline").as("headline"),
-        q.ref("record", "->>").key("about").as("about"),
-        q.ref("record", "->>").key("location").as("location"),
+        q.ref("record", "->").key("headline").as("headline"),
+        q.ref("record", "->").key("about").as("about"),
+        q.ref("record", "->").key("location").as("location"),
       ])
       .executeTakeFirst(),
   ]);

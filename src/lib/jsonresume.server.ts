@@ -103,7 +103,7 @@ export async function updateResumeData(
   ] = await Promise.all([
     db
       .selectFrom("records_basics")
-      .select((q) => q.ref("record", "->>").key("createdAt").as("createdAt"))
+      .select((q) => q.ref("record", "->").key("createdAt").as("createdAt"))
       .where("did", "=", did)
       .executeTakeFirst(),
     db

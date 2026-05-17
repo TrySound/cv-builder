@@ -28,10 +28,10 @@ export async function loadProfile(
   const profile = await db
     .selectFrom("records_profile")
     .select((query) => [
-      query.ref("record", "->>").key("name").as("name"),
-      query.ref("record", "->>").key("title").as("title"),
-      query.ref("record", "->>").key("introduction").as("introduction"),
-      query.ref("record", "->>").key("countryCode").as("country_code"),
+      query.ref("record", "->").key("name").as("name"),
+      query.ref("record", "->").key("title").as("title"),
+      query.ref("record", "->").key("introduction").as("introduction"),
+      query.ref("record", "->").key("countryCode").as("country_code"),
     ])
     .where("did", "=", did)
     .executeTakeFirst();
@@ -97,14 +97,14 @@ export async function updateProfileData(
   const [profile, basics] = await Promise.all([
     db
       .selectFrom("records_profile")
-      .select((q) => q.ref("record", "->>").key("createdAt").as("createdAt"))
+      .select((q) => q.ref("record", "->").key("createdAt").as("createdAt"))
       .where("did", "=", did)
       .executeTakeFirst(),
     db
       .selectFrom("records_basics")
       .select((q) => [
-        q.ref("record", "->>").key("about").as("about"),
-        q.ref("record", "->>").key("createdAt").as("createdAt"),
+        q.ref("record", "->").key("about").as("about"),
+        q.ref("record", "->").key("createdAt").as("createdAt"),
       ])
       .where("did", "=", did)
       .executeTakeFirst(),
@@ -151,7 +151,7 @@ export async function loadProfileContacts(did: DidString) {
     .selectFrom("records_account")
     .select((query) => [
       "rkey",
-      query.ref("record", "->>").key("url").as("url"),
+      query.ref("record", "->").key("url").as("url"),
     ])
     .where("did", "=", did)
     .execute();

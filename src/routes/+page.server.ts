@@ -13,9 +13,9 @@ export const load = async ({ locals }) => {
       "rec.uri",
       "rec.did as author_did",
       "author_id.handle as author_handle",
-      query.ref("author.record", "->>").key("name").as("author_name"),
-      query.ref("rec.record", "->>").key("reason").as("reason"),
-      query.ref("rec.record", "->>").key("createdAt").as("created_at"),
+      query.ref("author.record", "->").key("name").as("author_name"),
+      query.ref("rec.record", "->").key("reason").as("reason"),
+      query.ref("rec.record", "->").key("createdAt").as("created_at"),
     ])
     .limit(4)
     .execute();

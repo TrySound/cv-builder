@@ -83,9 +83,9 @@ export async function loadSifaResume(
     db
       .selectFrom("records_profile")
       .select((q) => [
-        q.ref("record", "->>").key("name").as("name"),
-        q.ref("record", "->>").key("title").as("title"),
-        q.ref("record", "->>").key("countryCode").as("countryCode"),
+        q.ref("record", "->").key("name").as("name"),
+        q.ref("record", "->").key("title").as("title"),
+        q.ref("record", "->").key("countryCode").as("countryCode"),
       ])
       .where("did", "=", did)
       .executeTakeFirst(),
@@ -93,13 +93,13 @@ export async function loadSifaResume(
     db
       .selectFrom("records_basics")
       .select((q) => [
-        q.ref("record", "->>").key("about").as("about"),
-        q.ref("record", "->>").key("industry").as("industry"),
+        q.ref("record", "->").key("about").as("about"),
+        q.ref("record", "->").key("industry").as("industry"),
         q
-          .ref("record", "->>")
+          .ref("record", "->")
           .key("preferredWorkplace")
           .as("preferredWorkplace"),
-        q.ref("record", "->>").key("location").as("location"),
+        q.ref("record", "->").key("location").as("location"),
       ])
       .where("did", "=", did)
       .executeTakeFirst(),
@@ -107,14 +107,14 @@ export async function loadSifaResume(
     db
       .selectFrom("records_position")
       .select((q) => [
-        q.ref("record", "->>").key("company").as("company"),
-        q.ref("record", "->>").key("title").as("title"),
-        q.ref("record", "->>").key("description").as("description"),
-        q.ref("record", "->>").key("startedAt").as("startedAt"),
-        q.ref("record", "->>").key("endedAt").as("endedAt"),
-        q.ref("record", "->>").key("employmentType").as("employmentType"),
-        q.ref("record", "->>").key("workplaceType").as("workplaceType"),
-        q.ref("record", "->>").key("location").as("location"),
+        q.ref("record", "->").key("company").as("company"),
+        q.ref("record", "->").key("title").as("title"),
+        q.ref("record", "->").key("description").as("description"),
+        q.ref("record", "->").key("startedAt").as("startedAt"),
+        q.ref("record", "->").key("endedAt").as("endedAt"),
+        q.ref("record", "->").key("employmentType").as("employmentType"),
+        q.ref("record", "->").key("workplaceType").as("workplaceType"),
+        q.ref("record", "->").key("location").as("location"),
       ])
       .where("did", "=", did)
       .orderBy((q) => q.ref("record", "->>").key("startedAt"), "desc")
@@ -123,12 +123,12 @@ export async function loadSifaResume(
     db
       .selectFrom("records_education")
       .select((q) => [
-        q.ref("record", "->>").key("institution").as("institution"),
-        q.ref("record", "->>").key("degree").as("degree"),
-        q.ref("record", "->>").key("fieldOfStudy").as("fieldOfStudy"),
-        q.ref("record", "->>").key("startedAt").as("startedAt"),
-        q.ref("record", "->>").key("endedAt").as("endedAt"),
-        q.ref("record", "->>").key("description").as("description"),
+        q.ref("record", "->").key("institution").as("institution"),
+        q.ref("record", "->").key("degree").as("degree"),
+        q.ref("record", "->").key("fieldOfStudy").as("fieldOfStudy"),
+        q.ref("record", "->").key("startedAt").as("startedAt"),
+        q.ref("record", "->").key("endedAt").as("endedAt"),
+        q.ref("record", "->").key("description").as("description"),
       ])
       .where("did", "=", did)
       .orderBy((q) => q.ref("record", "->>").key("startedAt"), "desc")
@@ -136,18 +136,18 @@ export async function loadSifaResume(
 
     db
       .selectFrom("records_skill")
-      .select((q) => [q.ref("record", "->>").key("name").as("name")])
+      .select((q) => [q.ref("record", "->").key("name").as("name")])
       .where("did", "=", did)
       .execute(),
 
     db
       .selectFrom("records_project")
       .select((q) => [
-        q.ref("record", "->>").key("name").as("name"),
-        q.ref("record", "->>").key("description").as("description"),
-        q.ref("record", "->>").key("url").as("url"),
-        q.ref("record", "->>").key("startedAt").as("startedAt"),
-        q.ref("record", "->>").key("endedAt").as("endedAt"),
+        q.ref("record", "->").key("name").as("name"),
+        q.ref("record", "->").key("description").as("description"),
+        q.ref("record", "->").key("url").as("url"),
+        q.ref("record", "->").key("startedAt").as("startedAt"),
+        q.ref("record", "->").key("endedAt").as("endedAt"),
       ])
       .where("did", "=", did)
       .orderBy((q) => q.ref("record", "->>").key("startedAt"), "desc")
@@ -155,15 +155,15 @@ export async function loadSifaResume(
 
     db
       .selectFrom("records_language")
-      .select((q) => [q.ref("record", "->>").key("name").as("name")])
+      .select((q) => [q.ref("record", "->").key("name").as("name")])
       .where("did", "=", did)
       .execute(),
 
     db
       .selectFrom("records_account")
       .select((q) => [
-        q.ref("record", "->>").key("url").as("url"),
-        q.ref("record", "->>").key("isPrimary").as("isPrimary"),
+        q.ref("record", "->").key("url").as("url"),
+        q.ref("record", "->").key("isPrimary").as("isPrimary"),
       ])
       .where("did", "=", did)
       .execute(),
