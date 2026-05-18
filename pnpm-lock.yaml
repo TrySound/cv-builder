@@ -29,6 +29,9 @@ importers:
       '@google/genai':
         specifier: ^2.0.1
         version: 2.0.1
+      '@oddbird/popover-polyfill':
+        specifier: ^0.5.1
+        version: 0.5.2
       cookie-signature:
         specifier: ^1.2.2
         version: 1.2.2
@@ -523,6 +526,9 @@ packages:
 
   '@noble/secp256k1@3.1.0':
     resolution: {integrity: sha512-+F7iS7tUMaNGXcc9X3PjmjvuQnXEuSjCRNzVVA2xAcKXgCaP0dHYz4SFyt4FKNHef7sOP//xihowcySSS7PK9g==}
+
+  '@oddbird/popover-polyfill@0.5.2':
+    resolution: {integrity: sha512-iFrvar5SOMtKFOSjYvs4z9UlLqDdJbMx0mgISLcPedv+g0ac5sgeETLGtipHCVIae6HJPclNEH5aCyD1RZaEHw==}
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -2147,6 +2153,8 @@ snapshots:
   '@noble/hashes@1.8.0': {}
 
   '@noble/secp256k1@3.1.0': {}
+
+  '@oddbird/popover-polyfill@0.5.2': {}
 
   '@opentelemetry/api@1.9.0':
     optional: true
