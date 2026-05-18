@@ -61,67 +61,34 @@
   }
 
   let submittingSignIn = $state(false);
-  let submittingSignUp = $state(false);
-
-  const handleConnectSubmit = (event: SubmitEvent) => {
-    const form = event.currentTarget as HTMLFormElement;
-    const handle = form.elements.namedItem("handle") as HTMLInputElement;
-    if (
-      !isAtIdentifierString(handle.value) &&
-      !handle.value.startsWith("https://")
-    ) {
-      event.preventDefault();
-      handle.setCustomValidity(
-        "Please enter a valid handle, DID, or a full PDS URL",
-      );
-      handle.reportValidity();
-    } else {
-      submittingSignIn = true;
-    }
-  };
 </script>
 
 <div popover id="login-dialog" class="popover login-popover">
-  <div class="form-stack">
-    <h2 class="body login-text">
+  <div class="margin-trim-block">
+    <h2 class="body">
       Sign in to <strong>weareonhire.com</strong> with
-      <strong>Atmosphere</strong>
+      <strong><a class="link" href="/about#atmosphere">Atmosphere</a></strong>
     </h2>
-
-    <details class="form-group details">
-      <summary class="subtle link">What is Atmosphere?</summary>
-      <p class="login-text">
-        The Atmosphere is the ecosystem of interconnected apps built on the AT
-        Protocol — an open standard for decentralized social networking. Your
-        account works across multiple apps: use your existing <a
-          class="link"
-          target="_blank"
-          href="https://bsky.app/">Bluesky</a
-        >
-        handle (like user.bsky.social) to sign in. You own your data, your social
-        graph, and can move freely between apps like
-        <a class="link" target="_blank" href="https://tangled.org/">Tangled</a>,
-        <a class="link" target="_blank" href="https://leaflet.pub">Leaflet</a>,
-        and more. Discover more apps in
-        <a class="link" target="_blank" href="https://atstore.fyi/">ATStore</a>
-      </p>
-    </details>
 
     <form
       bind:this={loginFormElement}
       class="form-stack"
       method="get"
       action="/auth/login"
-      onsubmit={handleConnectSubmit}
+      onsubmit={() => (submittingSignIn = true)}
     >
       <input type="hidden" name="prompt" value="login" />
       <input type="hidden" name="redirect" value={redirectUrl} />
       <div class="form-group">
-        <label for="login-dialog-handle" class="form-label">Handle</label>
+        <label for="login-dialog-handle" class="form-label">
+          Atmosphere Account
+        </label>
         <Combobox
           id="login-dialog-handle"
           bind:value={loginHandleInput}
           options={loginSearchOptions}
+          autofocus
+          name="handle"
           placeholder="e.g., user.bsky.social"
           loading={isLoginSearchPending}
           oninput={handleLoginHandleInput}
@@ -145,33 +112,53 @@
             </div>
           {/snippet}
         </Combobox>
-        <input type="hidden" name="handle" value={loginHandleInput} />
       </div>
       <button
         class="button button-primary"
         data-state={submittingSignIn ? "loading" : undefined}
       >
-        Continue
+        Sign in
       </button>
     </form>
 
-    <hr class="separator" />
-
     <form
+      id="login-dialog-signup"
       method="get"
       action="/auth/login"
-      class="form-stack"
       onsubmit={() => (submittingSignUp = true)}
+      hidden
     >
       <input type="hidden" name="prompt" value="create" />
       <input type="hidden" name="redirect" value={redirectUrl} />
-      <button
-        class="button"
-        data-state={submittingSignUp ? "loading" : undefined}
-      >
-        Create a new account
-      </button>
     </form>
+
+    <p>
+      Don't have an account?
+      <button form="login-dialog-signup" class="link">
+        Create an account.
+      </button>
+    </p>
+
+    <!--<details class="form-group details">
+        <summary class="link">What is the Atmosphere?</summary>
+        <p class="login-text">
+          The Atmosphere is the ecosystem of interconnected apps built on the AT
+          Protocol — an open standard for decentralized social networking. Your
+          account works across multiple apps: use your existing <a
+            class="link"
+            target="_blank"
+            href="https://bsky.app/">Bluesky</a
+          >
+          handle (like user.bsky.social) to sign in. You own your data, your social
+          graph, and can move freely between apps like
+          <a class="link" target="_blank" href="https://tangled.org/">Tangled</a
+          >,
+          <a class="link" target="_blank" href="https://leaflet.pub">Leaflet</a
+          >, and more. Discover more apps in
+          <a class="link" target="_blank" href="https://atstore.fyi/">ATStore</a
+          >
+        </p>
+      </details>-->
   </div>
 </div>
 
@@ -179,18 +166,9 @@
   .login-popover {
     position-anchor: --topbar;
     position-area: bottom span-left;
-    width: 360px;
+    width: 380px;
     max-width: anchor-size(width);
-    padding: var(--space-3);
-  }
-
-  /* prevents details-content affecting grid gap */
-  .details:not([open])::details-content {
-    display: none;
-  }
-
-  .login-text {
-    margin: 0;
+    padding: var(--space-4);
   }
 
   .search-result-item {
@@ -198,7 +176,6 @@
     grid-template-columns: max-content 1fr;
     gap: var(--space-3);
     align-items: center;
-    padding: var(--space-2) 0;
   }
 
   .search-result-avatar {

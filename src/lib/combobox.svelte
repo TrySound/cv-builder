@@ -5,7 +5,9 @@
     id,
     value = $bindable(),
     options,
+    name,
     placeholder = "Search...",
+    autofocus,
     allowCustom = false,
     stayOpenOnSelect = false,
     loading = false,
@@ -19,7 +21,9 @@
     id: string;
     value: string;
     options: T[];
+    name?: string;
     placeholder?: string;
+    autofocus?: boolean;
     allowCustom?: boolean;
     stayOpenOnSelect?: boolean;
     loading?: boolean;
@@ -165,12 +169,16 @@
     class="combobox-input-wrapper form-input-wrapper"
     data-state={loading ? "loading" : undefined}
   >
+    <!-- svelte-ignore a11y_autofocus -->
     <input
       {id}
       style:anchor-name="--{id}"
       class="form-input"
-      type="text"
+      // prevents passwords managers autocomplete
+      type="search"
+      {name}
       {placeholder}
+      {autofocus}
       autocomplete="off"
       data-state={loading ? "loading" : undefined}
       role="combobox"

@@ -15,7 +15,7 @@ html[data-theme="dark"] {
   --font-family: ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
   --font-size-sm: 0.875rem;
-  --font-size-base: 0.95rem;
+  --font-size-base: 1rem;
   --font-size-lg: 1.1rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
@@ -82,7 +82,7 @@ html[data-theme="dark"] {
     rgba(136, 136, 136, 0.3)
   );
 
-  --row-side-size: 160px;
+  --row-side-size: 170px;
 }
 
 /* Base Styles */
@@ -92,7 +92,7 @@ html[data-theme="dark"] {
   font-family: var(--font-family);
   line-height: var(--line-height-relaxed);
   font-weight: var(--font-weight-normal);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   background-color: var(--color-bg);
   scrollbar-gutter: stable;

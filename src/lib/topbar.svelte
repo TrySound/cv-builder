@@ -262,7 +262,6 @@
     grid-template-columns: max-content 1fr;
     gap: var(--space-3);
     align-items: center;
-    padding: var(--space-2) 0;
   }
 
   .search-result-avatar {
