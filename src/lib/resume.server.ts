@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { Agent } from "@atproto/api";
-import type { DidString } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
@@ -130,16 +130,16 @@ export async function updateResumeBasicsData(
 
   // Update com.weareonhire.profile record (preserves introduction)
   const now = getNow();
+  const client = new Client(agent);
 
-  const response = await applyWrites(agent, (client) => {
+  const [profileResult, basicsResult] = await Promise.all([
     client.put(weareonhire.profile, {
       name: data.name,
       title: data.title,
       introduction: profile?.introduction,
       countryCode: data.countryCode,
       createdAt: profile?.createdAt ?? now,
-    });
-
+    }),
     client.put(sifa.profile.self, {
       headline: data.title,
       about: data.summary,
@@ -150,10 +150,10 @@ export async function updateResumeBasicsData(
         ?.map(getSifaWorkplaceType)
         .filter((item) => item !== undefined),
       createdAt: basics?.createdAt ?? now,
-    });
-  });
+    }),
+  ]);
   const contrail = await getContrail();
-  await contrail.notify(response.data.affectedUris);
+  await contrail.notify([profileResult.uri, basicsResult.uri]);
 }
 
 /* LANGUAGES */

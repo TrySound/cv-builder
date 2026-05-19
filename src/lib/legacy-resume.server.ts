@@ -1,4 +1,4 @@
-import type { DidString } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import type { DatabaseSchema } from "./db";
 import type { Kysely } from "kysely";
 import { updateResumeData } from "./jsonresume.server";
@@ -6,7 +6,7 @@ import type { EmploymentType, Resume, WorkplaceType } from "./jsonresume";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import { getOAuthClient } from "./auth";
 import { Agent } from "@atproto/api";
-import { applyWrites, getNow } from "./atproto";
+import { getNow } from "./atproto";
 import { getContrail } from "./contrail";
 import { getDB } from "./dbkit";
 
@@ -187,20 +187,19 @@ export async function migrateLegacyResume(
     const oauthClient = await getOAuthClient();
     const session = await oauthClient.restore(did);
     const agent = new Agent(session);
+    const client = new Client(agent);
 
-    const response = await applyWrites(agent, (client) => {
-      client.put(weareonhire.profile, {
-        name: resume.basics?.name,
-        title: resume.basics?.label,
-        countryCode: resume.basics?.location?.countryCode,
-        introduction: resume.basics?.summary,
-        createdAt: getNow(),
-      });
+    const profileResult = await client.put(weareonhire.profile, {
+      name: resume.basics?.name,
+      title: resume.basics?.label,
+      countryCode: resume.basics?.location?.countryCode,
+      introduction: resume.basics?.summary,
+      createdAt: getNow(),
     });
 
     // Notify contrail of the weareonhire profile record
     const contrail = await getContrail();
-    await contrail.notify(response.data.affectedUris);
+    await contrail.notify(profileResult.uri);
 
     // Cleanup legacy data after successful migration
     await cleanupLegacyResume(db, did);
