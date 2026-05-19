@@ -36,8 +36,7 @@ export const getChecks = query(async () => {
       .select("uri")
       .where("did", "=", locals.did)
       .where(
-        (query) => query.ref("record", "->>")
-          .key("subject"),
+        (query) => query.ref("record", "->>").key("subject"),
         "=",
         member.invited_by,
       )

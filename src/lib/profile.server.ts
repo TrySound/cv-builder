@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import type { DidString } from "@atproto/lex";
+import { Client, type DidString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
@@ -112,14 +112,16 @@ export async function updateProfileData(
 
   // Update com.weareonhire.profile record
   const now = getNow();
-  const response = await applyWrites(agent, (client) => {
+  const client = new Client(agent);
+
+  const [profileResult, basicsResult] = await Promise.all([
     client.put(weareonhire.profile, {
       name: data.name,
       title: data.title,
       introduction: data.introduction,
       countryCode: data.countryCode,
       createdAt: profile?.createdAt ?? now,
-    });
+    }),
     client.put(sifa.profile.self, {
       headline: data.title,
       about: basics?.about,
@@ -127,10 +129,10 @@ export async function updateProfileData(
         ? { countryCode: data.countryCode }
         : undefined,
       createdAt: basics?.createdAt ?? now,
-    });
-  });
+    }),
+  ]);
   const contrail = await getContrail();
-  await contrail.notify(response.data.affectedUris);
+  await contrail.notify([profileResult.uri, basicsResult.uri]);
 }
 
 /* CONTACTS */
@@ -149,10 +151,7 @@ export async function loadProfileContacts(did: DidString) {
   const db = await getDB();
   const contacts = await db
     .selectFrom("records_account")
-    .select((query) => [
-      "rkey",
-      query.ref("record", "->").key("url").as("url"),
-    ])
+    .select((query) => ["rkey", query.ref("record", "->").key("url").as("url")])
     .where("did", "=", did)
     .execute();
   return contacts;

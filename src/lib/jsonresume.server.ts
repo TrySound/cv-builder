@@ -1,4 +1,5 @@
 import { Agent } from "@atproto/api";
+import { Client } from "@atproto/lex";
 import { getOAuthClient } from "./auth";
 import type { EmploymentType, Resume, WorkplaceType } from "./jsonresume";
 import { getDB } from "./dbkit";
@@ -148,39 +149,43 @@ export async function updateResumeData(
     ? { countryCode: resume.basics.location.countryCode }
     : undefined;
 
-  const response = await applyWrites(agent, (client) => {
+  const client = new Client(agent);
+
+  // Use client.put for sifa.profile.self (upsert, won't fail if record doesn't exist)
+  const selfResult = await client.put(sifa.profile.self, {
+    headline: resume.basics?.label,
+    about: resume.basics?.summary,
+    industry: resume.extension?.industry,
+    location,
+    preferredWorkplace: preferredWorkplaces,
+    createdAt: existingBasics?.createdAt ?? now,
+  });
+
+  // Batch delete and create operations remain atomic via applyWrites
+  const response = await applyWrites(agent, (ops) => {
     // Delete all existing records first
     for (const record of existingAccounts) {
-      client.delete(sifa.profile.externalAccount, { rkey: record.rkey });
+      ops.delete(sifa.profile.externalAccount, { rkey: record.rkey });
     }
     for (const record of existingPositions) {
-      client.delete(sifa.profile.position, { rkey: record.rkey });
+      ops.delete(sifa.profile.position, { rkey: record.rkey });
     }
     for (const record of existingEducation) {
-      client.delete(sifa.profile.education, { rkey: record.rkey });
+      ops.delete(sifa.profile.education, { rkey: record.rkey });
     }
     for (const record of existingProjects) {
-      client.delete(sifa.profile.project, { rkey: record.rkey });
+      ops.delete(sifa.profile.project, { rkey: record.rkey });
     }
     for (const record of existingSkills) {
-      client.delete(sifa.profile.skill, { rkey: record.rkey });
+      ops.delete(sifa.profile.skill, { rkey: record.rkey });
     }
     for (const record of existingLanguages) {
-      client.delete(sifa.profile.language, { rkey: record.rkey });
+      ops.delete(sifa.profile.language, { rkey: record.rkey });
     }
-
-    client.put(sifa.profile.self, {
-      headline: resume.basics?.label,
-      about: resume.basics?.summary,
-      industry: resume.extension?.industry,
-      location,
-      preferredWorkplace: preferredWorkplaces,
-      createdAt: existingBasics?.createdAt ?? now,
-    });
 
     for (const profile of resume.basics?.profiles ?? []) {
       if (profile.url) {
-        client.create(sifa.profile.externalAccount, {
+        ops.create(sifa.profile.externalAccount, {
           createdAt: now,
           platform: inferPlatform(profile.url),
           url: normalizeUrl(profile.url) as `${string}:${string}`,
@@ -190,7 +195,7 @@ export async function updateResumeData(
     }
 
     for (const work of resume.work ?? []) {
-      client.create(sifa.profile.position, {
+      ops.create(sifa.profile.position, {
         createdAt: now,
         company: work.name ?? "",
         title: work.position ?? "",
@@ -204,7 +209,7 @@ export async function updateResumeData(
     }
 
     for (const edu of resume.education ?? []) {
-      client.create(sifa.profile.education, {
+      ops.create(sifa.profile.education, {
         createdAt: now,
         institution: edu.institution ?? "",
         degree: edu.studyType ?? "",
@@ -216,7 +221,7 @@ export async function updateResumeData(
     }
 
     for (const project of resume.projects ?? []) {
-      client.create(sifa.profile.project, {
+      ops.create(sifa.profile.project, {
         createdAt: now,
         name: project.name ?? "",
         description: project.description,
@@ -230,7 +235,7 @@ export async function updateResumeData(
 
     for (const skill of resume.skills ?? []) {
       if (skill.name) {
-        client.create(sifa.profile.skill, {
+        ops.create(sifa.profile.skill, {
           createdAt: now,
           name: skill.name.trim().toLowerCase(),
         });
@@ -239,7 +244,7 @@ export async function updateResumeData(
 
     for (const language of resume.languages ?? []) {
       if (language.language) {
-        client.create(sifa.profile.language, {
+        ops.create(sifa.profile.language, {
           createdAt: now,
           name: language.language.trim(),
         });
@@ -248,5 +253,5 @@ export async function updateResumeData(
   });
 
   const contrail = await getContrail();
-  await contrail.notify(response.data.affectedUris);
+  await contrail.notify([selfResult.uri, ...response.data.affectedUris]);
 }

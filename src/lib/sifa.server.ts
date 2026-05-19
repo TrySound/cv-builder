@@ -170,10 +170,10 @@ export async function loadSifaResume(
 
     isProfileOwner
       ? db
-        .selectFrom("profile_private")
-        .select(["email"])
-        .where("did", "=", did)
-        .executeTakeFirst()
+          .selectFrom("profile_private")
+          .select(["email"])
+          .where("did", "=", did)
+          .executeTakeFirst()
       : Promise.resolve(undefined),
   ]);
 

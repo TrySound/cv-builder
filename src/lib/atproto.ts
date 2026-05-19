@@ -91,7 +91,7 @@ type ApplyWritesOperations = {
     input: Omit<Infer<T>, "$type">,
     options?: CreateOptions<T>,
   ): void;
-  put<const T extends RecordSchema>(
+  update<const T extends RecordSchema>(
     ns: T | { main: T },
     input: Omit<Infer<T>, "$type">,
     options?: PutOptions<T>,
@@ -129,7 +129,7 @@ export async function applyWrites(
       });
     },
 
-    put: (ns, value, options) => {
+    update: (ns, value, options) => {
       const schema = getMain(ns);
       const rkey = options?.rkey ?? getLiteralRecordKey(schema);
       affectedUris.push(
