@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { isAtIdentifierString } from "@atproto/lex";
   import { searchProfiles } from "$lib/search.remote";
   import Combobox from "$lib/combobox.svelte";
 
@@ -55,9 +54,12 @@
   }) {
     loginHandleInput = option.handle;
     // Submit the form when an item is selected
-    if (loginFormElement) {
-      loginFormElement.requestSubmit();
-    }
+    // make sure the form is rendered before submit
+    requestAnimationFrame(() => {
+      if (loginFormElement) {
+        loginFormElement.requestSubmit();
+      }
+    });
   }
 
   let submittingSignIn = $state(false);
@@ -121,13 +123,7 @@
       </button>
     </form>
 
-    <form
-      id="login-dialog-signup"
-      method="get"
-      action="/auth/login"
-      onsubmit={() => (submittingSignUp = true)}
-      hidden
-    >
+    <form id="login-dialog-signup" method="get" action="/auth/login" hidden>
       <input type="hidden" name="prompt" value="create" />
       <input type="hidden" name="redirect" value={redirectUrl} />
     </form>
@@ -138,27 +134,6 @@
         Create an account.
       </button>
     </p>
-
-    <!--<details class="form-group details">
-        <summary class="link">What is the Atmosphere?</summary>
-        <p class="login-text">
-          The Atmosphere is the ecosystem of interconnected apps built on the AT
-          Protocol — an open standard for decentralized social networking. Your
-          account works across multiple apps: use your existing <a
-            class="link"
-            target="_blank"
-            href="https://bsky.app/">Bluesky</a
-          >
-          handle (like user.bsky.social) to sign in. You own your data, your social
-          graph, and can move freely between apps like
-          <a class="link" target="_blank" href="https://tangled.org/">Tangled</a
-          >,
-          <a class="link" target="_blank" href="https://leaflet.pub">Leaflet</a
-          >, and more. Discover more apps in
-          <a class="link" target="_blank" href="https://atstore.fyi/">ATStore</a
-          >
-        </p>
-      </details>-->
   </div>
 </div>
 

@@ -11,7 +11,8 @@ export const GET = async ({ url, cookies }) => {
     prompt = "login";
   }
 
-  const handle = url.searchParams.get("handle");
+  // normalize handle
+  const handle = url.searchParams.get("handle")?.replace(/^@/, "");
   // redirect to provided url
   let redirectUrl = url.searchParams.get("redirect");
   // except for home page which should be redirected to user profile
