@@ -5,7 +5,9 @@
     id,
     value = $bindable(),
     options,
+    name,
     placeholder = "Search...",
+    autofocus,
     allowCustom = false,
     stayOpenOnSelect = false,
     loading = false,
@@ -19,7 +21,9 @@
     id: string;
     value: string;
     options: T[];
+    name?: string;
     placeholder?: string;
+    autofocus?: boolean;
     allowCustom?: boolean;
     stayOpenOnSelect?: boolean;
     loading?: boolean;
@@ -165,11 +169,16 @@
     class="combobox-input-wrapper form-input-wrapper"
     data-state={loading ? "loading" : undefined}
   >
+    <!-- svelte-ignore a11y_autofocus -->
     <input
       {id}
+      style:anchor-name="--{id}"
       class="form-input"
-      type="text"
+      // prevents passwords managers autocomplete
+      type="search"
+      {name}
       {placeholder}
+      {autofocus}
       autocomplete="off"
       data-state={loading ? "loading" : undefined}
       role="combobox"
@@ -194,6 +203,7 @@
         role="listbox"
         aria-label="Options"
         class="menu"
+        style:position-anchor="--{id}"
       >
         {#each options as option, index}
           {@const optionValue = getOptionValue(option)}
@@ -252,10 +262,9 @@
   }
 
   .menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
+    position: fixed;
+    position-area: span-right bottom;
+    width: anchor-size(width);
     margin: var(--space-1) 0 0;
     list-style: none;
     max-height: 300px;

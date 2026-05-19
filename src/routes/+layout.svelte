@@ -4,6 +4,7 @@
   import "../app.css";
 
   if (browser) {
+    import("@oddbird/popover-polyfill");
     import("invokers-polyfill");
     import("dialog-closedby-polyfill");
     startKeyUX(window, [focusGroupKeyUX()]);

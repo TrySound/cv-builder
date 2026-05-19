@@ -8,6 +8,7 @@ import { getDB } from "./dbkit";
 import { getOAuthClient } from "./auth";
 import { getNow, resolveIdentifier } from "./atproto";
 import { getContrail } from "./contrail";
+import { formatDate } from "./date";
 
 export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
@@ -49,6 +50,7 @@ export const getProfileRecommendations = query(
       authorHandle: item.author_handle ?? item.author_did,
       authorName: item.author_name,
       createdAt: item.created_at,
+      createdAtFormatted: formatDate(item.created_at),
     }));
 
     return {

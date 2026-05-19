@@ -2,6 +2,7 @@
   import { page } from "$app/state";
   import { searchProfiles } from "$lib/search.remote";
   import Topbar from "$lib/topbar.svelte";
+  import ContactCards from "$lib/contact-cards.svelte";
 
   let { data } = $props();
 
@@ -54,7 +55,7 @@
 </svelte:head>
 
 <div class="container">
-  <Topbar handle={data.handle} hideLogo />
+  <Topbar handle={data.handle} />
 
   <section class="hero">
     <h1 class="hero-title">weareonhire!</h1>
@@ -70,8 +71,8 @@
       {:else}
         <button
           class="button button-primary button-lg"
-          commandfor="topbar-login-dialog"
-          command="show-modal"
+          commandfor="login-dialog"
+          command="show-popover"
         >
           Get Started
         </button>
@@ -236,44 +237,7 @@
 
   <footer class="section">
     <h2 class="section-title">Get Involved</h2>
-    <div class="columns-3">
-      <a class="button" target="_blank" href="https://repo.weareonhire.com">
-        <div class="involved-card margin-trim-block">
-          <p>
-            <svg width="32" height="32">
-              <use href="#icon-github" />
-            </svg>
-          </p>
-          <h3 class="heading-2">Contribute</h3>
-          <p class="subtle">Help us build weareonhire!</p>
-          <p>View on GitHub</p>
-        </div>
-      </a>
-      <a class="button" target="_blank" href="https://chat.weareonhire.com">
-        <div class="involved-card margin-trim-block">
-          <p>
-            <svg width="32" height="32">
-              <use href="#icon-discord" />
-            </svg>
-          </p>
-          <h3 class="heading-2">Join the Community</h3>
-          <p class="subtle">Chat, ask questions, and share ideas.</p>
-          <p>Join Discord</p>
-        </div>
-      </a>
-      <a class="button" target="_blank" href="https://social.weareonhire.com">
-        <div class="involved-card margin-trim-block">
-          <p>
-            <svg width="32" height="32">
-              <use href="#icon-bluesky" />
-            </svg>
-          </p>
-          <h3 class="heading-2">Stay Updated</h3>
-          <p class="subtle">Get the latest updates and announcements.</p>
-          <p>Follow on Bluesky</p>
-        </div>
-      </a>
-    </div>
+    <ContactCards />
   </footer>
 </div>
 
@@ -403,11 +367,6 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-  }
-
-  .involved-card {
-    text-align: center;
-    padding: var(--space-4);
   }
 
   .works-list {

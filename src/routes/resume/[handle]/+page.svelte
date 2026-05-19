@@ -541,6 +541,10 @@
     </div>
     <div class="row">
       <div class="subtle">
+        <a href="/profile/{data.profile.handle}" class="link contact-item">
+          View Profile
+          <svg width="14" height="14"><use href="#icon-users" /></svg>
+        </a>
         {#if basicProfile.email}
           <a href="mailto:{basicProfile.email}" class="link contact-item">
             Email

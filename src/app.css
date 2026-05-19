@@ -14,9 +14,8 @@ html[data-theme="dark"] {
   /* Typography */
   --font-family: ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
-  --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
-  --font-size-base: 0.95rem;
+  --font-size-base: 1rem;
   --font-size-lg: 1.1rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
@@ -43,12 +42,12 @@ html[data-theme="dark"] {
   --radius-md: 6px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
   --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -83,7 +82,7 @@ html[data-theme="dark"] {
     rgba(136, 136, 136, 0.3)
   );
 
-  --row-side-size: 160px;
+  --row-side-size: 170px;
 }
 
 /* Base Styles */
@@ -93,7 +92,7 @@ html[data-theme="dark"] {
   font-family: var(--font-family);
   line-height: var(--line-height-relaxed);
   font-weight: var(--font-weight-normal);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   background-color: var(--color-bg);
   scrollbar-gutter: stable;
@@ -123,10 +122,15 @@ body {
   background: transparent;
   border: 0;
   padding: 0;
+  font: inherit;
   &:hover {
     color: var(--color-text);
     text-decoration-color: var(--color-accent);
     text-underline-offset: 6px;
+  }
+  /* summary is practically a button */
+  &:where(summary) {
+    cursor: default;
   }
 }
 
@@ -199,12 +203,10 @@ body {
 }
 
 .button-primary {
-  background: light-dark(#333333, #dddddd);
-  color: light-dark(#ffffff, #000000);
-  border: none;
-  transition: background var(--transition-fast);
+  color: light-dark(#111, #eee);
+  border-color: currentColor;
+  transition: all var(--transition-fast);
   &:hover {
-    background: light-dark(#000000, #ffffff);
   }
 }
 
@@ -238,6 +240,11 @@ body {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
+}
+
+.body {
+  font: inherit;
+  color: inherit;
 }
 
 .subtle {
@@ -515,6 +522,38 @@ body {
 .alert-info {
   border-color: #93c5fd;
   color: #1e40af;
+}
+
+.popover {
+  margin: var(--space-3) 0;
+  padding: 0;
+  color: inherit;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
+
+  & {
+    transition:
+      display var(--transition-fast) allow-discrete,
+      overlay var(--transition-fast) allow-discrete,
+      opacity var(--transition-fast);
+
+    /* Exit Stage To */
+    opacity: 0;
+  }
+
+  /* On Stage */
+  &:popover-open {
+    opacity: 1;
+  }
+
+  /* Enter Stage From */
+  @starting-style {
+    &:popover-open {
+      opacity: 0;
+    }
+  }
 }
 
 .dialog {

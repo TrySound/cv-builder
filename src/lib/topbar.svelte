@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { isAtIdentifierString } from "@atproto/lex";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { getTheme, toggleTheme, type Theme } from "$lib/theme";
   import { searchProfiles } from "$lib/search.remote";
   import Combobox from "$lib/combobox.svelte";
+  import LoginDialog from "$lib/login-dialog.svelte";
 
   let {
     handle,
@@ -66,21 +66,6 @@
   const handleThemeToggle = () => {
     currentTheme = toggleTheme(currentTheme);
   };
-
-  const handleConnectSubmit = (event: SubmitEvent) => {
-    const form = event.currentTarget as HTMLFormElement;
-    const handle = form.elements.namedItem("handle") as HTMLInputElement;
-    if (
-      !isAtIdentifierString(handle.value) &&
-      !handle.value.startsWith("https://")
-    ) {
-      event.preventDefault();
-      handle.setCustomValidity(
-        "Please enter a valid handle, DID, or a full PDS URL",
-      );
-      handle.reportValidity();
-    }
-  };
 </script>
 
 <header class="topbar">
@@ -137,7 +122,7 @@
         >
           Account
         </button>
-        <div id="desktop-auth-menu" popover class="menu-popover">
+        <div id="desktop-auth-menu" popover class="popover menu-popover">
           <div class="menu" role="menu">
             <!-- svelte-ignore a11y_autofocus -->
             <a
@@ -158,12 +143,8 @@
           </div>
         </div>
       {:else}
-        <button
-          class="link"
-          commandfor="topbar-login-dialog"
-          command="show-modal"
-        >
-          Connect to Atmosphere
+        <button class="link" commandfor="login-dialog" command="toggle-popover">
+          Sign in
         </button>
       {/if}
     </div>
@@ -198,7 +179,7 @@
 <div
   id="topbar-menu"
   popover
-  class="menu-popover"
+  class="popover menu-popover"
   onclick={(event) => event.currentTarget.hidePopover()}
 >
   <div class="menu" role="menu">
@@ -217,91 +198,16 @@
         class="menuitem"
         role="menuitem"
         autofocus
-        commandfor="topbar-login-dialog"
-        command="show-modal"
+        commandfor="login-dialog"
+        command="toggle-popover"
       >
-        Connect to Atmosphere
+        Sign in
       </button>
     {/if}
   </div>
 </div>
 
-<dialog id="topbar-login-dialog" closedby="any" class="dialog">
-  <header class="dialog-header">
-    <h2 class="dialog-title">Connect to Atmosphere</h2>
-    <button
-      class="icon-button"
-      aria-label="Close"
-      commandfor="topbar-login-dialog"
-      command="close"
-    >
-      <svg width="20" height="20">
-        <use href="#icon-x" />
-      </svg>
-    </button>
-  </header>
-
-  <div class="dialog-content">
-    <p class="dialog-description">
-      weareonhire uses the
-      <a class="link" target="_blank" href="https://atproto.com/">AT Protocol</a
-      >
-      to power its social features, allowing users to own their data and use one account
-      for all compatible applications. Once you create an account, you can use other
-      apps like
-      <a class="link" target="_blank" href="https://bsky.app/">Bluesky</a>
-      and
-      <a class="link" target="_blank" href="https://tangled.org/">Tangled</a>
-      with the same account.
-    </p>
-
-    <details class="dialog-details">
-      <summary class="subtle">Troubleshooting</summary>
-      <p class="dialog-description">
-        Having trouble with Bluesky signup due to captcha? You can use
-        <strong>npmx.social</strong> as your personal data server (PDS) instead.
-        Enter <code>https://npmx.social</code> in the handle field above and press
-        Connect to create an account on the npmx server, then use it to access Bluesky
-        later.
-      </p>
-    </details>
-
-    <form
-      class="form-stack"
-      method="get"
-      action="/auth/login"
-      onsubmit={handleConnectSubmit}
-    >
-      <input type="hidden" name="prompt" value="login" />
-      <input type="hidden" name="redirect" value={redirectUrl} />
-      <div class="form-group">
-        <label for="topbar-login-handle-input" class="form-label">Handle</label>
-        <!-- svelte-ignore a11y_autofocus -->
-        <input
-          type="text"
-          id="topbar-login-handle-input"
-          name="handle"
-          placeholder="e.g., user.bsky.social"
-          autocomplete="off"
-          inputmode="url"
-          autofocus
-          required
-          class="form-input"
-          oninput={(event) => event.currentTarget.setCustomValidity("")}
-        />
-      </div>
-      <button class="button button-primary">Connect</button>
-    </form>
-
-    <hr class="separator" />
-
-    <form method="get" action="/auth/login">
-      <input type="hidden" name="prompt" value="create" />
-      <input type="hidden" name="redirect" value={redirectUrl} />
-      <button class="button">Create a new account</button>
-    </form>
-  </div>
-</dialog>
+<LoginDialog {redirectUrl} />
 
 <style>
   .topbar {
@@ -313,6 +219,7 @@
     min-height: 60px;
     margin-bottom: var(--space-12);
     border-bottom: 1px solid var(--color-border);
+    anchor-name: --topbar;
   }
 
   .logo-and-search {
@@ -355,7 +262,6 @@
     grid-template-columns: max-content 1fr;
     gap: var(--space-3);
     align-items: center;
-    padding: var(--space-2) 0;
   }
 
   .search-result-avatar {
@@ -398,34 +304,7 @@
 
   .menu-popover {
     position-area: bottom span-left;
-    padding: 0;
-    margin: var(--space-3) 0;
-    background: transparent;
-    border: 0;
     min-width: 120px;
-    color: inherit;
-
-    & {
-      transition:
-        display var(--transition-fast) allow-discrete,
-        overlay var(--transition-fast) allow-discrete,
-        opacity var(--transition-fast);
-
-      /* Exit Stage To */
-      opacity: 0;
-    }
-
-    /* On Stage */
-    &:popover-open {
-      opacity: 1;
-    }
-
-    /* Enter Stage From */
-    @starting-style {
-      &:popover-open {
-        opacity: 0;
-      }
-    }
   }
 
   form {
