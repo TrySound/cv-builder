@@ -35,10 +35,7 @@ export const handle = async ({ event, resolve }) => {
   if (theme === "light" || theme === "dark") {
     return resolve(event, {
       transformPageChunk({ html }) {
-        return html.replace(
-          `data-theme="system"`,
-          `data-theme="${theme}"`,
-        );
+        return html.replace(`data-theme="system"`, `data-theme="${theme}"`);
       },
     });
   }

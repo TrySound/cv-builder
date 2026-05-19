@@ -151,10 +151,7 @@ export async function loadProfileContacts(did: DidString) {
   const db = await getDB();
   const contacts = await db
     .selectFrom("records_account")
-    .select((query) => [
-      "rkey",
-      query.ref("record", "->").key("url").as("url"),
-    ])
+    .select((query) => ["rkey", query.ref("record", "->").key("url").as("url")])
     .where("did", "=", did)
     .execute();
   return contacts;
