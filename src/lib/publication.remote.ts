@@ -23,19 +23,19 @@ export const getPublications = query(
         join.on(
           sql`concat('at://', pub.did, '/site.standard.publication/', pub.rkey)`,
           "=",
-          sql`doc.record->>'site'`,
+          (q) => q.ref("doc.record", "->>").key("site"),
         ),
       )
       .select((q) => [
-        q.ref("doc.record", "->>").key("title").as("title"),
-        q.ref("doc.record", "->>").key("description").as("description"),
-        q.ref("doc.record", "->>").key("path").as("path"),
-        q.ref("pub.record", "->>").key("url").as("url"),
-        q.ref("pub.record", "->>").key("name").as("name"),
-        q.ref("doc.record", "->>").key("publishedAt").as("publishedAt"),
+        q.ref("doc.record", "->").key("title").as("title"),
+        q.ref("doc.record", "->").key("description").as("description"),
+        q.ref("doc.record", "->").key("path").as("path"),
+        q.ref("pub.record", "->").key("url").as("url"),
+        q.ref("pub.record", "->").key("name").as("name"),
+        q.ref("doc.record", "->").key("publishedAt").as("publishedAt"),
       ])
       .where("doc.did", "=", resolved.did)
-      .orderBy(sql`doc.record->>'publishedAt'`, "desc");
+      .orderBy((q) => q.ref("doc.record", "->>").key("publishedAt"), "desc");
 
     if (limit !== undefined) {
       queryBuilder = queryBuilder.limit(limit);
