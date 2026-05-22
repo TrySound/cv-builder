@@ -8,6 +8,7 @@
     getProfileContacts,
     updateProfile,
   } from "$lib/profile.remote";
+  import { getPublications } from "$lib/publication.remote";
   import {
     getProfileRecommendations,
     createRecommendation as createRecommendationRaw,
@@ -15,6 +16,7 @@
   import type { DatabaseSchema } from "$lib/db";
   import MultiSelectCombobox from "$lib/multi-select-combobox.svelte";
   import { getLinkDisplayName, getLinkIcon } from "$lib/link";
+  import { formatDate } from "$lib/date.js";
 
   let { data } = $props();
 
@@ -50,8 +52,7 @@
     .map(([code, name]) => ({ code, name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const isOwnProfile = $derived(data.handle === data.profile.handle);
-  const isReadOnly = $derived(!isOwnProfile);
+  const isProfileOwner = $derived(data.handle === data.profile.handle);
 
   // reset the form instantly hidden after submission
   const createRecommendation = $derived(
@@ -65,6 +66,15 @@
 
   const contacts = $derived(
     await getProfileContacts({ handle: data.profile.handle }),
+  );
+
+  const publicationsLimit = 4;
+
+  const publications = $derived(
+    await getPublications({
+      author: data.profile.handle,
+      limit: publicationsLimit,
+    }),
   );
 
   // Track which recommendation is currently targeted via URL hash
@@ -308,7 +318,7 @@
       <div class="margin-trim-block">
         <div class="space-between">
           <h2 class="heading-1">{profile.name ?? data.profile.handle}</h2>
-          {#if !isReadOnly}
+          {#if isProfileOwner}
             <button
               class="icon-button"
               aria-label="Edit profile"
@@ -383,6 +393,73 @@
     </div>
   </section>
 
+  <!-- Publications Section -->
+  {#if publications.publications.length > 0 || isProfileOwner}
+    <section class="publications-section" aria-label="Recent articles">
+      <div class="row">
+        <div><!-- skip column --></div>
+        <div class="space-between">
+          <h2 class="heading-2 subtle">Publications</h2>
+          {#if isProfileOwner}
+            <a
+              class="icon-button"
+              aria-label="Add publication"
+              href="/about#publications"
+              target="_blank"
+            >
+              <svg width="16" height="16">
+                <use href="#icon-plus" />
+              </svg>
+            </a>
+          {/if}
+        </div>
+      </div>
+
+      {#each publications.publications as publication}
+        <article class="row">
+          <div>
+            {#if publication.publishedAt}
+              <time class="subtle" datetime={publication.publishedAt}>
+                {formatDate(publication.publishedAt)}
+              </time>
+            {/if}
+          </div>
+          <div class="margin-trim-block">
+            <h3 class="body">
+              <a href={publication.url} target="_blank" class="link">
+                {publication.title}
+              </a>
+            </h3>
+            {#if publication.description}
+              <p class="subtle">{publication.description}</p>
+            {/if}
+          </div>
+        </article>
+      {/each}
+      {#if publications.publications.length === 0}
+        <div class="row">
+          <div><!-- skip column --></div>
+          <div>
+            <div class="subtle">You have not published anything yet</div>
+          </div>
+        </div>
+      {/if}
+      {#if publications.publications.length >= publicationsLimit}
+        <div class="row">
+          <div><!-- skip column --></div>
+          <div>
+            <a
+              href="/publications?author={data.profile.handle}"
+              class="link subtle"
+            >
+              Read all
+            </a>
+          </div>
+        </div>
+      {/if}
+    </section>
+  {/if}
+
   <!-- Recommendations Section -->
   <section
     class="recommendations-section"
@@ -394,7 +471,7 @@
     </div>
 
     <!-- Write Recommendation Form -->
-    {#if !isOwnProfile && !recommendations.isRecommendedByMe && data.handle}
+    {#if !isProfileOwner && !recommendations.isRecommendedByMe && data.handle}
       <div class="row">
         <div><!-- skip column --></div>
         <form {...createRecommendation} class="form-stack">
@@ -495,7 +572,7 @@
 
   .recommendations-section {
     display: grid;
-    gap: var(--space-8);
+    gap: var(--space-3);
   }
 
   .character-count {
@@ -503,10 +580,16 @@
   }
 
   .recommendation {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-4) var(--space-4);
     margin: 0 calc(var(--space-4) * -1);
     &.active {
       background-color: var(--color-bg-hover);
     }
+  }
+
+  .publications-section {
+    display: grid;
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
   }
 </style>

@@ -1,0 +1,63 @@
+{
+  "lexicon": 1,
+  "id": "site.standard.theme.color",
+  "description": "Color definitions for the basic theme lexicon.",
+  "defs": {
+    "rgb": {
+      "type": "object",
+      "description": "RGB color with red, green, and blue channels.",
+      "required": ["r", "g", "b"],
+      "properties": {
+        "r": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Red channel value."
+        },
+        "g": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Green channel value."
+        },
+        "b": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Blue channel value."
+        }
+      }
+    },
+    "rgba": {
+      "type": "object",
+      "description": "RGBA color with red, green, blue, and alpha channels.",
+      "required": ["r", "g", "b", "a"],
+      "properties": {
+        "r": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Red channel value."
+        },
+        "g": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Green channel value."
+        },
+        "b": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Blue channel value."
+        },
+        "a": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Alpha (opacity) value, where 0 is transparent and 100 is opaque."
+        }
+      }
+    }
+  }
+}

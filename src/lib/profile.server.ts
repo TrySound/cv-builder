@@ -36,10 +36,16 @@ export async function loadProfile(
     .where("did", "=", did)
     .executeTakeFirst();
 
+  const basics = await db
+    .selectFrom("records_basics")
+    .select((query) => [query.ref("record", "->").key("about").as("about")])
+    .where("did", "=", did)
+    .executeTakeFirst();
+
   const result: ProfileData = {
     name: profile?.name,
     title: profile?.title,
-    introduction: profile?.introduction,
+    introduction: profile?.introduction || basics?.about,
     countryCode: profile?.country_code,
   };
 

@@ -1,0 +1,34 @@
+{
+  "lexicon": 1,
+  "id": "site.standard.theme.basic",
+  "description": "Simplified theme definition for publications, enabling basic color customization for content display across different platforms and applications.",
+  "defs": {
+    "main": {
+      "type": "object",
+      "description": "Basic theme colors for a publication.",
+      "required": ["background", "foreground", "accent", "accentForeground"],
+      "properties": {
+        "background": {
+          "type": "ref",
+          "ref": "site.standard.theme.color#rgb",
+          "description": "Color used for content background."
+        },
+        "foreground": {
+          "type": "ref",
+          "ref": "site.standard.theme.color#rgb",
+          "description": "Color used for content text."
+        },
+        "accent": {
+          "type": "ref",
+          "ref": "site.standard.theme.color#rgb",
+          "description": "Color used for links and button backgrounds."
+        },
+        "accentForeground": {
+          "type": "ref",
+          "ref": "site.standard.theme.color#rgb",
+          "description": "Color used for button text."
+        }
+      }
+    }
+  }
+}
