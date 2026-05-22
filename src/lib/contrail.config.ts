@@ -30,5 +30,13 @@ export const config: ContrailConfig = {
     account: {
       collection: "id.sifa.profile.externalAccount",
     },
+    publication: {
+      collection: "site.standard.publication",
+      discover: false,
+    },
+    document: {
+      collection: "site.standard.document",
+      discover: false,
+    },
   },
 };

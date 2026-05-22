@@ -87,6 +87,29 @@
       </p>
     </section>
 
+    <section
+      id="publications"
+      aria-label="How to add publications"
+      class="margin-trim-block"
+    >
+      <h2 class="section-title">How to add publications?</h2>
+      <p>
+        WAOH! is retrieving publications from <a
+          class="link"
+          target="_blank"
+          href="http://standard.site/"
+        >
+          standard.site
+        </a>
+        – a publishing platform for long-form content in Atmosphere ecosystem. You
+        can publish your existing articles using
+        <a class="link" target="_blank" href="https://sequoia.pub">Sequoia</a>
+        CLI, write directly on
+        <a class="link" target="_blank" href="https://leaflet.pub">Leaflet</a>,
+        and other compatible services to share your work on the open social.
+      </p>
+    </section>
+
     <footer class="margin-trim-block">
       <h2 class="section-title">Get Involved</h2>
       <ContactCards />

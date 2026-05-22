@@ -2,6 +2,7 @@ import type { PGlite } from "@electric-sql/pglite";
 import type { Pool } from "pg";
 import type { weareonhire } from "./lexicons/com";
 import type { sifa } from "./lexicons/id";
+import type { standard } from "./lexicons/site";
 
 // Base record table structure from contrail
 interface RecordRow<Record> {
@@ -136,6 +137,8 @@ export interface DatabaseSchema {
   records_project: RecordRow<sifa.profile.project.Main>;
   records_language: RecordRow<sifa.profile.language.Main>;
   records_account: RecordRow<sifa.profile.externalAccount.Main>;
+  records_publication: RecordRow<standard.publication.Main>;
+  records_document: RecordRow<standard.document.Main>;
 }
 
 let pglite: undefined | PGlite;
