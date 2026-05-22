@@ -1,8 +1,9 @@
-import { unsign } from "cookie-signature";
-import { env } from "$env/dynamic/private";
-import { getOAuthClient } from "$lib/auth";
+// import { unsign } from "cookie-signature";
+// import { env } from "$env/dynamic/private";
+// import { getOAuthClient } from "$lib/auth";
 
 export const handle = async ({ event, resolve }) => {
+  /*
   const signedSession = event.cookies.get("session");
 
   if (signedSession) {
@@ -29,6 +30,7 @@ export const handle = async ({ event, resolve }) => {
       event.cookies.delete("session", { path: "/" });
     }
   }
+  */
 
   const theme = event.cookies.get("theme");
   // check values to prevent script injection
