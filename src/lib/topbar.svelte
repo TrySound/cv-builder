@@ -138,7 +138,7 @@
             </a>
             <form method="POST" action="/auth/logout">
               <input type="hidden" name="redirect" value={redirectUrl} />
-              <button role="menuitem" class="menuitem">Disconnect</button>
+              <button role="menuitem" class="menuitem">Sign out</button>
             </form>
           </div>
         </div>
@@ -190,7 +190,7 @@
       <a href="/resume/{handle}" role="menuitem" class="menuitem">Resume</a>
       <form method="POST" action="/auth/logout">
         <input type="hidden" name="redirect" value={redirectUrl} />
-        <button role="menuitem" class="menuitem">Disconnect</button>
+        <button role="menuitem" class="menuitem">Sign out</button>
       </form>
     {:else}
       <!-- svelte-ignore a11y_autofocus -->

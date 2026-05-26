@@ -62,6 +62,22 @@
             </p>
             <p class="overflow-wrap-anywhere">{item.reason}</p>
           {/if}
+          {#if item.type === "document"}
+            <p>
+              <a href={item.url} target="_blank" class="link">
+                {item.title}
+              </a>
+              <span class="subtle">
+                by
+                <a href="/profile/{item.authorHandle}" class="link">
+                  {item.authorName || item.authorHandle}
+                </a>
+              </span>
+            </p>
+            {#if item.description}
+              <p class="overflow-wrap-anywhere">{item.description}</p>
+            {/if}
+          {/if}
         </div>
         {#if item.type === "user"}
           <a
@@ -75,6 +91,14 @@
             class="link-target"
             href="/profile/{item.subjectHandle}#recommendation-{item.uri}"
             aria-label="View full recommendation"
+          ></a>
+        {/if}
+        {#if item.type === "document"}
+          <a
+            class="link-target"
+            href={item.url}
+            target="_blank"
+            aria-label="View document"
           ></a>
         {/if}
       </article>

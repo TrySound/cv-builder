@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { formatDate } from "$lib/date";
 import { getDB } from "$lib/dbkit";
 
@@ -30,7 +31,19 @@ export type FeedUser = {
   introduction: string | null;
 };
 
-export type FeedItem = FeedRecommendation | FeedUser;
+export type FeedDocument = {
+  type: "document";
+  title: string;
+  description: string | undefined;
+  url: string;
+  authorHandle: string;
+  authorName: string | undefined;
+  publicationName: string | undefined;
+  createdAt: string;
+  createdAtFormatted: string;
+};
+
+export type FeedItem = FeedRecommendation | FeedUser | FeedDocument;
 
 export const load = async ({ locals }) => {
   const db = await getDB();
@@ -87,6 +100,39 @@ export const load = async ({ locals }) => {
     .limit(50)
     .execute();
 
+  // Load documents joined with publication, author identity and profile
+  const documents = await db
+    .selectFrom("records_document as doc")
+    .leftJoin("identities as author_id", "author_id.did", "doc.did")
+    .leftJoin("records_profile as author", "author.did", "doc.did")
+    .innerJoin("records_publication as pub", (join) =>
+      join.onRef(
+        sql`concat('at://', pub.did, '/site.standard.publication/', pub.rkey)`,
+        "=",
+        (q) => q.ref("doc.record", "->>").key("site"),
+      ),
+    )
+    .where(
+      (q) =>
+        q.ref("pub.record", "->>").key("preferences").key("showInDiscover"),
+      "is distinct from",
+      "false",
+    )
+    .orderBy((q) => q.ref("doc.record", "->>").key("publishedAt"), "desc")
+    .limit(50)
+    .select((q) => [
+      q.ref("doc.record", "->").key("title").as("title"),
+      q.ref("doc.record", "->").key("description").as("description"),
+      q.ref("doc.record", "->").key("path").as("path"),
+      q.ref("doc.record", "->").key("publishedAt").as("published_at"),
+      "doc.did as author_did",
+      "author_id.handle as author_handle",
+      q.ref("author.record", "->").key("name").as("author_name"),
+      q.ref("pub.record", "->").key("url").as("url"),
+      q.ref("pub.record", "->").key("name").as("publication_name"),
+    ])
+    .execute();
+
   // Use handle from DB or fallback to DID
   const recommendationItems: FeedRecommendation[] = recommendations.map(
     (item) => ({
@@ -112,13 +158,32 @@ export const load = async ({ locals }) => {
     introduction: item.introduction ? truncate(item.introduction, 200) : null,
   }));
 
+  const trimTrailingSlash = (text: string) =>
+    text.endsWith("/") ? text.slice(0, -1) : text;
+
+  const documentItems: FeedDocument[] = documents.map((item) => ({
+    type: "document",
+    title: item.title ?? "Untitled",
+    description: item.description ? truncate(item.description, 200) : undefined,
+    url: `${trimTrailingSlash(item.url ?? "")}${item.path ?? ""}`,
+    authorHandle: item.author_handle ?? item.author_did,
+    authorName: item.author_name ?? undefined,
+    publicationName: item.publication_name ?? undefined,
+    createdAt: item.published_at,
+    createdAtFormatted: formatDate(item.published_at),
+  }));
+
   // Combine and sort by created_at desc, limit to 50
-  const feed: FeedItem[] = [...recommendationItems, ...userItems]
+  const feed: FeedItem[] = [
+    ...recommendationItems,
+    ...userItems,
+    ...documentItems,
+  ]
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
-    .slice(0, 50);
+    .slice(0, 100);
 
   return {
     handle: locals.handle,
