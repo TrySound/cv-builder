@@ -47,7 +47,7 @@
   .card-grid {
     display: grid;
     gap: var(--space-8);
-    @media (max-width: 640px) {
+    @media (max-width: 767px) {
       grid-template-columns: 1fr;
     }
   }

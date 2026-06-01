@@ -287,7 +287,7 @@
   }
 
   .drop-zone.drag-over {
-    border-color: var(--color-primary);
+    border-color: var(--color-text-tertiary);
   }
 
   .drop-zone:hover,

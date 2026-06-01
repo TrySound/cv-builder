@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { searchProfiles } from "$lib/search.remote";
   import Topbar from "$lib/topbar.svelte";
   import ContactCards from "$lib/contact-cards.svelte";
 
@@ -17,19 +16,6 @@
     name: title,
     description,
   };
-
-  // Input value (can differ from query during typing)
-  let inputValue = $state("");
-  // Query used for actual search (synced with URL)
-  let query = $state("");
-  let queryTimeoutId: ReturnType<typeof setTimeout>;
-  // Track whether to show search results - prevents reactivity issues
-  let showResults = $state(false);
-  // do not invoke query initially to avoid reactivity issues
-  // "This query instance is no longer active and can no longer be used for reactive state access"
-  const searchQuery = $derived(
-    query.length > 0 ? searchProfiles({ q: query }) : undefined,
-  );
 </script>
 
 <svelte:head>
@@ -58,8 +44,8 @@
   <Topbar handle={data.handle} />
 
   <section class="hero">
-    <h1 class="hero-title">weareonhire!</h1>
-    <p class="hero-tagline">Your professional story, backed by your peers</p>
+    <h1 class="text-heading-1 hero-title">weareonhire!</h1>
+    <p class="text-heading-6 hero-tagline">Your professional story, backed by your peers</p>
     <div class="hero-actions">
       {#if data.handle}
         <a
@@ -81,7 +67,7 @@
   </section>
 
   <section class="section">
-    <h2 class="section-title">Why This Exists</h2>
+    <h2 class="text-heading-2 section-title">Why This Exists</h2>
     <div class="columns-3">
       <article class="margin-trim-block text-align-center">
         <p>
@@ -123,7 +109,7 @@
   </section>
 
   <section class="section section-sm">
-    <h2 class="section-title">How It Works</h2>
+    <h2 class="text-heading-2 section-title">How It Works</h2>
     <div class="works-list">
       <article class="margin-trim-block">
         <h3 class="heading-2">Tell Your Story</h3>
@@ -159,72 +145,8 @@
     </div>
   </section>
 
-  <!-- temporary hide the section -->
-  {#if 1 > 5}
-    <section class="section section-sm">
-      <h2 class="section-title">Find Professionals</h2>
-      <div class="search-form">
-        <input
-          type="text"
-          name="q"
-          autocomplete="off"
-          placeholder="Search by name, handle, or expertise..."
-          class="form-input form-input-lg"
-          bind:value={
-            () => inputValue,
-            (newValue) => {
-              inputValue = newValue;
-              showResults = newValue.length > 0;
-              clearTimeout(queryTimeoutId);
-              queryTimeoutId = setTimeout(() => {
-                query = newValue;
-              }, 300);
-            }
-          }
-        />
-        <button
-          class="button button-lg"
-          data-state={(inputValue.length > 0 && inputValue !== query) ||
-          searchQuery?.loading
-            ? "loading"
-            : "idle"}
-        >
-          Search
-        </button>
-      </div>
-
-      {#if showResults}
-        <div class="results-list">
-          {#each searchQuery?.current?.results as result (result.handle)}
-            <a href="/profile/{result.handle}" class="button result-item">
-              {#if result.avatar}
-                <img src={result.avatar} alt="" class="result-avatar" />
-              {:else}
-                <div class="result-avatar-placeholder"></div>
-              {/if}
-              <div class="result-item-content">
-                <div class="result-handle">@{result.handle}</div>
-                {#if result.displayName}
-                  <div class="subtle">
-                    {result.displayName}
-                  </div>
-                {/if}
-              </div>
-            </a>
-          {:else}
-            {#if !searchQuery?.loading}
-              <p class="subtle">
-                No users found matching "{searchQuery?.current?.query ?? ""}"
-              </p>
-            {/if}
-          {/each}
-        </div>
-      {/if}
-    </section>
-  {/if}
-
   <section class="section">
-    <h2 class="section-title">Recent Recommendations</h2>
+    <h2 class="text-heading-2 section-title">Recent Recommendations</h2>
     <div class="columns-2">
       {#each data.lastRecommendations as rec}
         <div class="margin-trim-block">
@@ -236,7 +158,7 @@
   </section>
 
   <footer class="section">
-    <h2 class="section-title">Get Involved</h2>
+    <h2 class="text-heading-2 section-title">Get Involved</h2>
     <ContactCards />
   </footer>
 </div>
@@ -260,22 +182,15 @@
   }
 
   .hero-title {
-    font-size: var(--font-size-4xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-text);
-    margin: 0 0 var(--space-4);
-    letter-spacing: -0.02em;
+    font-weight: var(--font-weight-medium);
+    margin: 0;
   }
 
   .hero-tagline {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
     margin: 0 0 var(--space-6);
-    line-height: var(--line-height-tight);
   }
 
   .hero-actions {
-    margin-top: var(--space-8);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -283,9 +198,7 @@
   }
 
   .section {
-    display: grid;
-    gap: var(--space-12);
-    margin: var(--space-12) 0;
+    margin-bottom: var(--space-8);
   }
 
   .section-sm {
@@ -299,10 +212,6 @@
   .section-title {
     text-transform: uppercase;
     text-align: center;
-    margin: 0;
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
     text-decoration-line: underline;
     text-decoration-thickness: 1px;
     text-decoration-color: var(--color-accent);
@@ -321,52 +230,9 @@
   .columns-3 {
     display: grid;
     gap: var(--space-8);
-    @media (max-width: 640px) {
+    @media (max-width: 767px) {
       grid-template-columns: 1fr;
     }
-  }
-
-  .search-form {
-    display: grid;
-    align-items: center;
-    grid-template-columns: 1fr max-content;
-    gap: var(--space-3);
-  }
-
-  .results-list {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .result-item {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: var(--space-3);
-    text-align: left;
-  }
-
-  .result-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .result-avatar-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: var(--color-border);
-  }
-
-  .result-item-content {
-    overflow: hidden;
-  }
-
-  .result-handle {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
   }
 
   .works-list {
@@ -379,14 +245,6 @@
   @media (max-width: 768px) {
     .hero {
       padding: var(--space-12) var(--space-6);
-    }
-
-    .hero-title {
-      font-size: var(--font-size-3xl);
-    }
-
-    .hero-tagline {
-      font-size: var(--font-size-lg);
     }
   }
 </style>

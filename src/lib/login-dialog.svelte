@@ -141,7 +141,7 @@
   .login-popover {
     position-anchor: --topbar;
     position-area: bottom span-left;
-    width: 380px;
+    width: 400px;
     max-width: anchor-size(width);
     padding: var(--space-4);
   }
