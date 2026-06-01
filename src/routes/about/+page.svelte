@@ -31,16 +31,13 @@
   <Topbar handle={undefined} />
 
   <main class="prose">
-    <section aria-label="About weareonhire">
-      <h1>About weareonhire!</h1>
+    <h1>About weareonhire!</h1>
 
-      <p>
-        An open social network where members maintain verified,
-        recommendation-backed profiles. Think of it as a living resume that
-        grows with your network — your professional reputation, backed by real
-        people.
-      </p>
-    </section>
+    <p>
+      An open social network where members maintain verified,
+      recommendation-backed profiles. Think of it as a living resume that grows
+      with your network — your professional reputation, backed by real people.
+    </p>
 
     <section aria-label="Why it was built?">
       <h2>Why I built this?</h2>

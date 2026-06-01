@@ -118,6 +118,13 @@ body {
 
 .prose {
   text-wrap: pretty;
+  /* margin-trim: block polyfill */
+  & > *:first-child {
+    margin-top: 0;
+  }
+  & > *:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .text-heading-6,
